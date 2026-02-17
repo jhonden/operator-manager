@@ -143,82 +143,6 @@ CREATE INDEX idx_package_business_scenario ON operator_packages(business_scenari
 -- ============================================================================
 -- PACKAGE OPERATORS (Link table with order)
 -- ============================================================================
-
-CREATE TABLE package_operators (
-    id BIGSERIAL PRIMARY KEY,
-    package_id BIGINT NOT NULL REFERENCES operator_packages(id) ON DELETE CASCADE,
-    operator_id BIGINT NOT NULL REFERENCES operators(id) ON DELETE CASCADE,
-    version_id BIGINT NOT NULL REFERENCES versions(id) ON DELETE CASCADE,
-    order_index INTEGER NOT NULL DEFAULT 0,
-    parameter_mapping TEXT,
-    enabled BOOLEAN NOT NULL DEFAULT TRUE,
-    notes TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100),
-    UNIQUE(package_id, operator_id)
-);
-
-CREATE INDEX idx_pkg_op_package ON package_operators(package_id);
-CREATE INDEX idx_pkg_op_operator ON package_operators(operator_id);
-CREATE INDEX idx_pkg_op_order ON package_operators(package_id, order_index);
-
--- ============================================================================
--- VERSIONS (Operator versions)
--- ============================================================================
-
-CREATE TABLE versions (
-    id BIGSERIAL PRIMARY KEY,
-    operator_id BIGINT NOT NULL REFERENCES operators(id) ON DELETE CASCADE,
-    version_number VARCHAR(50) NOT NULL,
-    description TEXT,
-    changelog TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    code_file_path VARCHAR(500),
-    file_name VARCHAR(255),
-    file_size BIGINT,
-    git_commit_hash VARCHAR(100),
-    git_tag VARCHAR(100),
-    is_released BOOLEAN NOT NULL DEFAULT FALSE,
-    release_date TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
-);
-
-CREATE INDEX idx_version_operator ON versions(operator_id);
-CREATE INDEX idx_version_number ON versions(version_number);
-CREATE INDEX idx_version_status ON versions(status);
-
--- ============================================================================
--- PACKAGE VERSIONS
--- ============================================================================
-
-CREATE TABLE package_versions (
-    id BIGSERIAL PRIMARY KEY,
-    package_id BIGINT NOT NULL REFERENCES operator_packages(id) ON DELETE CASCADE,
-    version_number VARCHAR(50) NOT NULL,
-    description TEXT,
-    changelog TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
-    operator_versions TEXT,
-    git_commit_hash VARCHAR(100),
-    git_tag VARCHAR(100),
-    is_released BOOLEAN NOT NULL DEFAULT FALSE,
-    release_date TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
-);
-
-CREATE INDEX idx_pkg_version_package ON package_versions(package_id);
-CREATE INDEX idx_pkg_version_number ON package_versions(version_number);
-CREATE INDEX idx_pkg_version_status ON package_versions(status);
-
--- ============================================================================
 -- MARKET ITEMS
 -- ============================================================================
 
@@ -322,7 +246,6 @@ CREATE INDEX idx_publish_dest_enabled ON publish_destinations(enabled);
 CREATE TABLE publish_history (
     id BIGSERIAL PRIMARY KEY,
     publish_destination_id BIGINT NOT NULL REFERENCES publish_destinations(id) ON DELETE CASCADE,
-    package_version_id BIGINT REFERENCES package_versions(id) ON DELETE SET NULL,
     item_type VARCHAR(20) NOT NULL,
     item_id BIGINT NOT NULL,
     version VARCHAR(50),
@@ -352,8 +275,6 @@ CREATE TABLE tasks (
     task_type VARCHAR(20) NOT NULL,
     operator_id BIGINT REFERENCES operators(id) ON DELETE SET NULL,
     package_id BIGINT REFERENCES operator_packages(id) ON DELETE SET NULL,
-    operator_version_id BIGINT,
-    package_version_id BIGINT,
     user_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     priority INTEGER NOT NULL DEFAULT 0,
