@@ -38,12 +38,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
           label: 'All Operators',
           onClick: () => navigate('/operators'),
         },
-        {
-          key: '/operators/my',
-          icon: <FolderOpenOutlined />,
-          label: 'My Operators',
-          onClick: () => navigate('/operators?filter=my'),
-        },
       ],
     },
     {
