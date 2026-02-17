@@ -3,8 +3,6 @@ import {
   CodeOutlined,
   AppstoreOutlined,
   ShopOutlined,
-  UserOutlined,
-  SettingOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
@@ -56,28 +54,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
       label: 'Marketplace',
       onClick: () => navigate('/market'),
     },
-    {
-      type: 'divider' as const,
-    },
-    {
-      key: 'user-group',
-      label: 'User',
-      type: 'group' as const,
-      children: [
-        {
-          key: '/profile',
-          icon: <UserOutlined />,
-          label: 'Profile',
-          onClick: () => navigate('/profile'),
-        },
-        {
-          key: '/settings',
-          icon: <SettingOutlined />,
-          label: 'Settings',
-          onClick: () => navigate('/settings'),
-        },
-      ],
-    },
   ];
 
   // Get current selected key based on location
@@ -92,9 +68,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
     }
     if (path.startsWith('/market')) {
       return '/market';
-    }
-    if (path.startsWith('/profile') || path.startsWith('/settings')) {
-      return '/profile';
     }
 
     return path;
