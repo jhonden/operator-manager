@@ -2,11 +2,9 @@ import { Menu, Layout } from 'antd';
 import {
   CodeOutlined,
   AppstoreOutlined,
-  HistoryOutlined,
   ShopOutlined,
   UserOutlined,
   SettingOutlined,
-  FolderOpenOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
@@ -53,12 +51,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
       ],
     },
     {
-      key: 'versions',
-      icon: <HistoryOutlined />,
-      label: 'Versions',
-      onClick: () => navigate('/versions'),
-    },
-    {
       key: '/market',
       icon: <ShopOutlined />,
       label: 'Marketplace',
@@ -98,9 +90,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
     if (path.startsWith('/packages')) {
       return '/packages';
     }
-    if (path.startsWith('/versions')) {
-      return '/versions';
-    }
     if (path.startsWith('/market')) {
       return '/market';
     }
@@ -117,7 +106,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
         height: '64px',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
         borderBottom: '1px solid rgba(255,255,255,0.1)',
       }}>
         {!collapsed && (
