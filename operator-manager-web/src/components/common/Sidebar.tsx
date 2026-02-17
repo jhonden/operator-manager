@@ -2,7 +2,6 @@ import { Menu, Layout } from 'antd';
 import {
   CodeOutlined,
   AppstoreOutlined,
-  ThunderboltOutlined,
   HistoryOutlined,
   ShopOutlined,
   UserOutlined,
@@ -54,13 +53,7 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
       ],
     },
     {
-      key: '/execution',
-      icon: <ThunderboltOutlined />,
-      label: 'Execution',
-      onClick: () => navigate('/execution/tasks'),
-    },
-    {
-      key: '/versions',
+      key: 'versions',
       icon: <HistoryOutlined />,
       label: 'Versions',
       onClick: () => navigate('/versions'),
@@ -104,9 +97,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
     }
     if (path.startsWith('/packages')) {
       return '/packages';
-    }
-    if (path.startsWith('/execution')) {
-      return '/execution';
     }
     if (path.startsWith('/versions')) {
       return '/versions';
