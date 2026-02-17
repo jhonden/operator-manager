@@ -1,0 +1,40 @@
+spring:
+  # H2 In-Memory Database Configuration
+  datasource:
+    url: jdbc:h2:mem:operator_db
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # H2 Console Configuration
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+
+  # Disable Redis for H2 profile (using in-memory cache)
+  cache:
+    type: simple
+
+  # DevTools
+  devtools:
+    restart:
+      enabled: true
+
+# Disable MinIO for H2 profile
+minio:
+  enabled: false
+
+# Logging
+logging:
+  level:
+    com.operator: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE

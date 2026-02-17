@@ -1,0 +1,43 @@
+spring:
+  # Production Database Configuration
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/operator_manager}
+    username: ${DB_USERNAME:operator_user}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+
+  # Production Redis Configuration
+  data:
+    redis:
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD}
+      database: 0
+
+  # Production JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+# Production MinIO Configuration
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+  bucket-name: ${MINIO_BUCKET:operator-prod}
+
+# Production JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Production Logging
+logging:
+  level:
+    root: WARN
+    com.operator: INFO
+    org.springframework.web: WARN
+  file:
+    name: /var/log/operator-manager/app.log
