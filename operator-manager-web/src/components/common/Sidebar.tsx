@@ -2,7 +2,6 @@ import { Menu, Layout } from 'antd';
 import {
   CodeOutlined,
   AppstoreOutlined,
-  ShopOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import useAuthStore from '@/stores/useAuthStore';
@@ -48,12 +47,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
         },
       ],
     },
-    {
-      key: '/market',
-      icon: <ShopOutlined />,
-      label: 'Marketplace',
-      onClick: () => navigate('/market'),
-    },
   ];
 
   // Get current selected key based on location
@@ -65,9 +58,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
     }
     if (path.startsWith('/packages')) {
       return '/packages';
-    }
-    if (path.startsWith('/market')) {
-      return '/market';
     }
 
     return path;
