@@ -51,12 +51,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
           label: 'All Packages',
           onClick: () => navigate('/packages'),
         },
-        {
-          key: '/packages/my',
-          icon: <FolderOpenOutlined />,
-          label: 'My Packages',
-          onClick: () => navigate('/packages?filter=my'),
-        },
       ],
     },
     {
