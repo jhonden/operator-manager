@@ -7,7 +7,6 @@ import Layout from './components/common/Layout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoginPage from './pages/auth/login';
 import RegisterPage from './pages/auth/register';
-import DashboardPage from './pages/dashboard';
 import OperatorListPage from './pages/operator/list';
 import OperatorDetailPage from './pages/operator/detail';
 import OperatorCreatePage from './pages/operator/create';
@@ -52,8 +51,7 @@ function App() {
           {/* Protected routes */}
           <Route path="/" element={<ProtectedRoute />}>
             <Route element={<Layout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              <Route index element={<Navigate to="/operators" replace />} />
 
               {/* Operator routes */}
               <Route path="operators">

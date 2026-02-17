@@ -1,6 +1,5 @@
 import { Menu, Layout } from 'antd';
 import {
-  DashboardOutlined,
   CodeOutlined,
   AppstoreOutlined,
   ThunderboltOutlined,
@@ -28,12 +27,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
   const { user } = useAuthStore();
 
   const menuItems = [
-    {
-      key: '/dashboard',
-      icon: <DashboardOutlined />,
-      label: 'Dashboard',
-      onClick: () => navigate('/dashboard'),
-    },
     {
       key: 'operators-group',
       label: 'Operators',
