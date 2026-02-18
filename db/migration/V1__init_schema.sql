@@ -37,28 +37,6 @@ CREATE INDEX idx_user_email ON users(email);
 CREATE INDEX idx_user_status ON users(status);
 
 -- ============================================================================
--- CATEGORIES
--- ============================================================================
-
-CREATE TABLE categories (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    icon VARCHAR(100),
-    color VARCHAR(20),
-    parent_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
-    order_index INTEGER,
-    operator_count INTEGER DEFAULT 0,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
-);
-
-CREATE INDEX idx_category_name ON categories(name);
-CREATE INDEX idx_category_parent ON categories(parent_id);
-
--- ============================================================================
 -- OPERATORS
 -- ============================================================================
 
@@ -72,8 +50,6 @@ CREATE TABLE operators (
     code_file_path VARCHAR(500),
     file_name VARCHAR(255),
     file_size BIGINT,
-    category_id BIGINT REFERENCES categories(id) ON DELETE SET NULL,
-    tags TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     downloads_count INTEGER DEFAULT 0,
     featured BOOLEAN NOT NULL DEFAULT FALSE,
@@ -85,7 +61,6 @@ CREATE TABLE operators (
 
 CREATE INDEX idx_operator_name ON operators(name);
 CREATE INDEX idx_operator_status ON operators(status);
-CREATE INDEX idx_operator_category ON operators(category_id);
 CREATE INDEX idx_operator_language ON operators(language);
 CREATE INDEX idx_operator_created_by ON operators(created_by);
 
@@ -125,7 +100,6 @@ CREATE TABLE operator_packages (
     status VARCHAR(20) NOT NULL DEFAULT 'DRAFT',
     version VARCHAR(50),
     icon VARCHAR(100),
-    tags TEXT,
     is_public BOOLEAN NOT NULL DEFAULT FALSE,
     downloads_count INTEGER DEFAULT 0,
     featured BOOLEAN NOT NULL DEFAULT FALSE,
@@ -266,23 +240,5 @@ CREATE INDEX idx_audit_user ON audit_logs(user_id);
 CREATE INDEX idx_audit_action ON audit_logs(action);
 CREATE INDEX idx_audit_entity_type ON audit_logs(entity_type);
 CREATE INDEX idx_audit_created ON audit_logs(created_at);
-
--- ============================================================================
--- INITIAL DATA
--- ============================================================================
-
--- Insert default categories
-INSERT INTO categories (name, description, icon, color, order_index) VALUES
-('Data Processing', 'Data processing and transformation operators', 'database', '#1890ff', 1),
-('File Operations', 'File reading, writing, and manipulation', 'file', '#52c41a', 2),
-('API Integration', 'REST API and web service integration', 'api', '#722ed1', 3),
-('Machine Learning', 'ML model training and inference', 'machine-learning', '#fa8c16', 4),
-('Utilities', 'General utility operators', 'tool', '#13c2c2', 5);
-
--- Insert sub-categories
-INSERT INTO categories (name, description, icon, color, parent_id, order_index) VALUES
-('Data Cleaning', 'Clean and sanitize data', 'clean', '#1890ff', (SELECT id FROM categories WHERE name = 'Data Processing'), 1),
-('Data Transformation', 'Transform data formats', 'transform', '#1890ff', (SELECT id FROM categories WHERE name = 'Data Processing'), 2),
-('Data Validation', 'Validate data quality', 'check', '#1890ff', (SELECT id FROM categories WHERE name = 'Data Processing'), 3);
 
 COMMIT;

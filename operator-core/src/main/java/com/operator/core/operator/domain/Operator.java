@@ -23,7 +23,6 @@ import java.util.List;
 @Table(name = "operators", indexes = {
     @Index(name = "idx_operator_name", columnList = "name"),
     @Index(name = "idx_operator_status", columnList = "status"),
-    @Index(name = "idx_operator_category", columnList = "category_id"),
     @Index(name = "idx_operator_language", columnList = "language"),
     @Index(name = "idx_operator_created_by", columnList = "created_by")
 })
@@ -49,7 +48,6 @@ public class Operator extends BaseEntity {
     @Builder.Default
     private OperatorStatus status = OperatorStatus.DRAFT;
 
-
     @Column(name = "code_file_path", length = 500)
     private String codeFilePath;
 
@@ -58,13 +56,6 @@ public class Operator extends BaseEntity {
 
     @Column(name = "file_size")
     private Long fileSize;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
-
-    @Column(name = "tags", columnDefinition = "TEXT")
-    private String tags; // JSON array of tags
 
     @Column(name = "is_public", nullable = false)
     @Builder.Default
@@ -89,8 +80,14 @@ public class Operator extends BaseEntity {
     /**
      * Language type enum for operators
      */
+    public enum LanguageType {
+        JAVA, PYTHON
+    }
 
     /**
      * Operator status enum
      */
+    public enum OperatorStatus {
+        DRAFT, PUBLISHED, ARCHIVED
+    }
 }

@@ -45,12 +45,8 @@ public class OperatorPackage extends BaseEntity {
     @Builder.Default
     private PackageStatus status = PackageStatus.DRAFT;
 
-
     @Column(name = "icon", length = 100)
     private String icon;
-
-    @Column(name = "tags", columnDefinition = "TEXT")
-    private String tags; // JSON array
 
     @Column(name = "is_public", nullable = false)
     @Builder.Default
@@ -79,4 +75,7 @@ public class OperatorPackage extends BaseEntity {
     /**
      * Package status enum
      */
+    public enum PackageStatus {
+        DRAFT, PUBLISHED, ARCHIVED
+    }
 }
