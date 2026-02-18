@@ -296,12 +296,6 @@ const PackageDetailPage: React.FC = () => {
         }
         extra={
           <Space>
-            <Button
-              icon={<PlayCircleOutlined />}
-              onClick={() => navigate(`/execution/create?packageId=${packageData.id}`)}
-            >
-              Execute Package
-            </Button>
             {packageData.status === 'DRAFT' && (
               <Button type="primary" onClick={handlePublish}>
                 Publish

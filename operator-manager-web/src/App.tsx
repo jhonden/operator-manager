@@ -13,8 +13,6 @@ import OperatorCreatePage from './pages/operator/create';
 import PackageListPage from './pages/package/list';
 import PackageDetailPage from './pages/package/detail';
 import PackageCreatePage from './pages/package/create';
-import MarketListPage from './pages/market/list';
-import MarketDetailPage from './pages/market/detail';
 
 // Placeholder components for unimplemented pages
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -79,12 +77,6 @@ function App() {
 
               {/* Version routes */}
               <Route path="versions" element={<PlaceholderPage title="Versions List" />} />
-
-              {/* Market routes */}
-              <Route path="market">
-                <Route index element={<MarketListPage />} />
-                <Route path="items/:id" element={<MarketDetailPage />} />
-              </Route>
 
               {/* User routes */}
               <Route path="profile" element={<PlaceholderPage title="Profile" />} />

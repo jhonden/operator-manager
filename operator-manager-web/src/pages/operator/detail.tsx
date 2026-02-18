@@ -150,12 +150,6 @@ const OperatorDetailPage: React.FC = () => {
         }
         extra={
           <Space>
-            <Button
-              icon={<PlayCircleOutlined />}
-              onClick={() => navigate(`/execution/create?operatorId=${operator.id}`)}
-            >
-              Execute
-            </Button>
             {operator.status === 'DRAFT' && (
               <Button type="primary" onClick={handlePublish}>
                 Publish
