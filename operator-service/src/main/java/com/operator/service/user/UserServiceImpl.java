@@ -1,23 +1,12 @@
 package com.operator.service.user;
 
 
-
 import com.operator.common.enums.*;
 import com.operator.common.dto.UserInfo;
 import com.operator.common.dto.user.UpdateUserRequest;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.core.security.domain.User;
 import com.operator.core.security.repository.UserRepository;
-import com.operator.core.operator.domain.Operator;
-import com.operator.core.operator.domain.Category;
-import com.operator.core.operator.domain.Parameter;
-import com.operator.core.pkg.domain.OperatorPackage;
-import com.operator.core.security.domain.User;
-import com.operator.core.execution.domain.Task;
-import com.operator.core.execution.domain.TaskLog;
-import com.operator.core.version.domain.Version;
-import com.operator.core.market.domain.MarketItem;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

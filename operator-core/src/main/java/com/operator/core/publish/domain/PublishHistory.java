@@ -1,9 +1,7 @@
 package com.operator.core.publish.domain;
 
 import com.operator.core.domain.BaseEntity;
-import com.operator.core.version.domain.PackageVersion;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -35,10 +33,6 @@ public class PublishHistory extends BaseEntity {
 
     @Column(name = "package_version_id")
     private Long packageVersionId;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "package_version_id", insertable = false, updatable = false)
-    private PackageVersion packageVersion;
 
     @Column(name = "item_type", nullable = false, length = 20)
     @Enumerated(EnumType.STRING)

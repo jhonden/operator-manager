@@ -267,11 +267,11 @@ public class PackageServiceImpl implements PackageService {
         response.setBusinessScenario(pkg.getBusinessScenario());
         response.setStatus(pkg.getStatus() != null ? pkg.getStatus().name() : null);
         response.setVersion(pkg.getVersion());
-        response.setOperators(getPackageOperators(pkg.getId()));
+        response.setOperators(loadPackageOperators(pkg.getId()));
         return response;
     }
 
-    private List<PackageOperatorResponse> getPackageOperators(Long packageId) {
+    private List<PackageOperatorResponse> loadPackageOperators(Long packageId) {
         return packageOperatorRepository.findByOperatorPackageIdOrderByOrderIndexAsc(packageId).stream()
                 .map(this::mapPackageOperatorToResponse)
                 .collect(Collectors.toList());
