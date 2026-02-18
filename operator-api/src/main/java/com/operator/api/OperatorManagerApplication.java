@@ -17,7 +17,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.operator.core.security.domain",
     "com.operator.core.operator.domain",
     "com.operator.core.pkg.domain",
-    "com.operator.core.execution.domain",
     "com.operator.core.publish.domain"
 })
 @EnableJpaAuditing
@@ -25,7 +24,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.operator.core.security.repository",
     "com.operator.core.operator.repository",
     "com.operator.core.pkg.repository",
-    "com.operator.core.execution.repository",
     "com.operator.core.publish.repository"
 })
 public class OperatorManagerApplication {
