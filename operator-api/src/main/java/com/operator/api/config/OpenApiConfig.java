@@ -29,7 +29,7 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(new Info()
                         .title("Code Operator Management System API")
-                        .description("RESTful API for managing code operators, packages, execution, and marketplace")
+                        .description("RESTful API for managing code operators, packages, and execution")
                         .version("v1.0.0")
                         .contact(new Contact()
                                 .name("Operator Manager Team")

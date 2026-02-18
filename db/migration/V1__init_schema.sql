@@ -1,7 +1,7 @@
 -- Code Operator Management System Database Schema
 -- Version 1.0.0
 -- This script creates all tables, indexes, and constraints
-
+--
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -143,78 +143,25 @@ CREATE INDEX idx_package_business_scenario ON operator_packages(business_scenari
 -- ============================================================================
 -- PACKAGE OPERATORS (Link table with order)
 -- ============================================================================
--- MARKET ITEMS
--- ============================================================================
 
-CREATE TABLE market_items (
+CREATE TABLE package_operators (
     id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    item_type VARCHAR(20) NOT NULL,
-    operator_id BIGINT,
-    package_id BIGINT,
-    featured BOOLEAN NOT NULL DEFAULT FALSE,
-    average_rating NUMERIC(3,2) DEFAULT 0.00,
-    ratings_count INTEGER DEFAULT 0,
-    reviews_count INTEGER DEFAULT 0,
-    downloads_count INTEGER DEFAULT 0,
-    views_count INTEGER DEFAULT 0,
-    status VARCHAR(20) NOT NULL DEFAULT 'PUBLISHED',
-    published_date TIMESTAMP,
-    tags TEXT,
-    business_scenario VARCHAR(255),
+    operator_id BIGINT NOT NULL REFERENCES operators(id) ON DELETE CASCADE,
+    package_id BIGINT NOT NULL REFERENCES operator_packages(id) ON DELETE CASCADE,
+    order_index INTEGER NOT NULL,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    version VARCHAR(50),
+    parameter_mapping TEXT,
+    notes TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP,
     created_by VARCHAR(100),
     updated_by VARCHAR(100)
 );
 
-CREATE INDEX idx_market_item_type ON market_items(item_type);
-CREATE INDEX idx_market_item_featured ON market_items(featured);
-CREATE INDEX idx_market_item_operator ON market_items(operator_id);
-CREATE INDEX idx_market_item_package ON market_items(package_id);
-CREATE INDEX idx_market_item_rating ON market_items(average_rating);
-
--- ============================================================================
--- RATINGS
--- ============================================================================
-
-CREATE TABLE ratings (
-    id BIGSERIAL PRIMARY KEY,
-    market_item_id BIGINT NOT NULL REFERENCES market_items(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
-    rating INTEGER NOT NULL,
-    review TEXT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
-);
-
-CREATE INDEX idx_rating_market_item ON ratings(market_item_id);
-CREATE INDEX idx_rating_user ON ratings(user_id);
-
--- ============================================================================
--- REVIEWS
--- ============================================================================
-
-CREATE TABLE reviews (
-    id BIGSERIAL PRIMARY KEY,
-    market_item_id BIGINT NOT NULL REFERENCES market_items(id) ON DELETE CASCADE,
-    user_id BIGINT NOT NULL,
-    user_name VARCHAR(100),
-    content TEXT NOT NULL,
-    rating INTEGER,
-    likes_count INTEGER DEFAULT 0,
-    parent_id BIGINT,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP,
-    created_by VARCHAR(100),
-    updated_by VARCHAR(100)
-);
-
-CREATE INDEX idx_review_market_item ON reviews(market_item_id);
-CREATE INDEX idx_review_user ON reviews(user_id);
+CREATE INDEX idx_pkg_op_package ON package_operators(package_id);
+CREATE INDEX idx_pkg_op_operator ON package_operators(operator_id);
+CREATE INDEX idx_pkg_op_order ON package_operators(package_id, order_index);
 
 -- ============================================================================
 -- PUBLISH DESTINATIONS
@@ -248,6 +195,7 @@ CREATE TABLE publish_history (
     publish_destination_id BIGINT NOT NULL REFERENCES publish_destinations(id) ON DELETE CASCADE,
     item_type VARCHAR(20) NOT NULL,
     item_id BIGINT NOT NULL,
+    package_version_id BIGINT,
     version VARCHAR(50),
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     started_at TIMESTAMP,
@@ -274,7 +222,9 @@ CREATE TABLE tasks (
     task_name VARCHAR(255) NOT NULL,
     task_type VARCHAR(20) NOT NULL,
     operator_id BIGINT REFERENCES operators(id) ON DELETE SET NULL,
+    operator_version_id BIGINT,
     package_id BIGINT REFERENCES operator_packages(id) ON DELETE SET NULL,
+    package_version_id BIGINT,
     user_id BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     priority INTEGER NOT NULL DEFAULT 0,
