@@ -100,7 +100,6 @@ export interface OperatorPackage {
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   version?: string;
   icon?: string;
-  tags?: string[];
   isPublic: boolean;
   downloadsCount: number;
   featured: boolean;
@@ -261,7 +260,6 @@ export interface PackageRequest {
   businessScenario: string;
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   icon?: string;
-  tags?: string[];
   isPublic?: boolean;
 }
 

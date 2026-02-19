@@ -49,7 +49,6 @@ const PackageCreatePage: React.FC = () => {
           description: pkg.description,
           businessScenario: pkg.businessScenario,
           icon: pkg.icon,
-          tags: pkg.tags,
           status: pkg.status,
           version: pkg.version,
           isPublic: pkg.isPublic,
