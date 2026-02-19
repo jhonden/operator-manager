@@ -9,7 +9,7 @@ import {
   message,
   Row,
   Col,
-  // @ts-ignore - Switch is used in JSX, but TypeScript may not detect it
+  Switch,
 } from 'antd';
 import {
   ArrowLeftOutlined,
