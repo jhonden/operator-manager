@@ -49,6 +49,7 @@ export interface Operator {
   language: 'JAVA' | 'GROOVY';
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
   version?: string;
+  code?: string;
   codeFilePath?: string;
   fileName?: string;
   fileSize?: number;

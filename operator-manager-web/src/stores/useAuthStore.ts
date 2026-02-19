@@ -8,7 +8,7 @@ interface User {
   fullName?: string;
   avatarUrl?: string;
   role: 'ADMIN' | 'USER' | 'GUEST';
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 }
 
 interface AuthState {

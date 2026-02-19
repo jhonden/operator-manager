@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-  Table,
   Button,
   Space,
   Tag,
@@ -30,7 +29,6 @@ import { packageApi } from '@/api/package';
  */
 const PackageListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [packages, setPackages] = useState<OperatorPackage[]>([]);
   const [pagination, setPagination] = useState({
     current: 1,
@@ -45,7 +43,6 @@ const PackageListPage: React.FC = () => {
   });
 
   const fetchPackages = async () => {
-    setLoading(true);
     try {
       const response = await packageApi.getAllPackages(
         filters.status,
@@ -63,8 +60,6 @@ const PackageListPage: React.FC = () => {
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to fetch packages');
-    } finally {
-      setLoading(false);
     }
   };
 

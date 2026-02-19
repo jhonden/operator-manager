@@ -1,12 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Badge } from 'antd';
+import { useState } from 'react';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { TaskLog } from '@/types';
 
 /**
  * Hook for managing task logs with WebSocket
  */
-export const useTaskLogs = (taskId: number | null, enabled = true) => {
+export const useTaskLogs = (taskId: number | null) => {
   const [logs, setLogs] = useState<TaskLog[]>([]);
   const [progress, setProgress] = useState(0);
   const [isConnected, setIsConnected] = useState(false);
@@ -14,7 +13,6 @@ export const useTaskLogs = (taskId: number | null, enabled = true) => {
   const [result, setResult] = useState<{ success: boolean; output?: string; error?: string } | null>(null);
 
   const { disconnect } = useWebSocket(taskId || null, {
-    enabled,
     onLog: (level, message, source) => {
       const log: TaskLog = {
         id: Date.now() + Math.random(),

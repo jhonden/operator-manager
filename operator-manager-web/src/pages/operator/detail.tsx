@@ -189,13 +189,10 @@ const OperatorDetailPage: React.FC = () => {
             {operator.description || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Created By">
-            {operator.createdBy?.username || '-'}
+            {operator.createdBy || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Created At">
             {new Date(operator.createdAt).toLocaleString()}
-          </Descriptions.Item>
-          <Descriptions.Item label="Updated By">
-            {operator.updatedBy?.username || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Updated At">
             {new Date(operator.updatedAt).toLocaleString()}

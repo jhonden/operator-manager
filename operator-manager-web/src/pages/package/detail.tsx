@@ -7,7 +7,6 @@ import {
   Space,
   Tag,
   Tabs,
-  Table,
   message,
   Popconfirm,
   Row,
@@ -17,13 +16,11 @@ import {
   Select,
   Input,
   Form,
-  Switch,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
   DeleteOutlined,
-  PlayCircleOutlined,
   AppstoreOutlined,
   PlusOutlined,
   ArrowUpOutlined,
@@ -42,7 +39,6 @@ const { Text } = Typography;
 const PackageDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [packageData, setPackageData] = useState<OperatorPackage | null>(null);
   const [operators, setOperators] = useState<PackageOperator[]>([]);
   const [availableOperators, setAvailableOperators] = useState<any[]>([]);
@@ -53,7 +49,6 @@ const PackageDetailPage: React.FC = () => {
 
   const fetchPackage = async () => {
     if (!id) return;
-    setLoading(true);
     try {
       const response = await packageApi.getPackage(Number(id));
       if (response.data) {
@@ -62,8 +57,6 @@ const PackageDetailPage: React.FC = () => {
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to fetch package');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -92,7 +85,8 @@ const PackageDetailPage: React.FC = () => {
     setAddOperatorLoading(true);
     try {
       await packageApi.addOperator(Number(id), {
-        operatorId: selectedOperatorId,
+        operatorId: selectedOperatorId!,
+        versionId: 0,
         enabled: true,
         orderIndex: operators.length,
       });
@@ -437,7 +431,6 @@ const PackageDetailPage: React.FC = () => {
         onCancel={() => {
           setAddOperatorModalVisible(false);
           setSelectedOperatorId(undefined);
-          setSelectedVersionId(undefined);
           addForm.resetFields();
         }}
         confirmLoading={addOperatorLoading}

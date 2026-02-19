@@ -6,17 +6,16 @@ import {
   Button,
   Card,
   Select,
-  Switch,
   Space,
   message,
   Steps,
   Tabs,
+  Tag,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons';
 import CodeEditor from '@/components/code/CodeEditor';
 import ParameterForm from '@/components/operator/ParameterForm';
 import { operatorApi } from '@/api/operator';
-import type { Operator } from '@/types';
 
 const { Step } = Steps;
 const { TabPane } = Tabs;
@@ -32,7 +31,6 @@ const OperatorCreatePage: React.FC = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  const [operator, setOperator] = useState<Operator | null>(null);
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState<'java' | 'groovy'>('java');
 
@@ -50,7 +48,6 @@ const OperatorCreatePage: React.FC = () => {
       const response = await operatorApi.getOperator(Number(id));
       if (response.data) {
         const op = response.data;
-        setOperator(op);
         setLanguage(op.language.toLowerCase() as 'java' | 'groovy');
         setCode(op.code || '');
 
@@ -136,7 +133,9 @@ const OperatorCreatePage: React.FC = () => {
       } else {
         const response = await operatorApi.createOperator(operatorData);
         message.success('Operator created successfully');
-        navigate(`/operators/${response.data.id}`);
+        if (response.data) {
+          navigate(`/operators/${response.data.id}`);
+        }
       }
     } catch (error: any) {
       console.error('Error saving operator:', error);
