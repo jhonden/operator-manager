@@ -7,6 +7,7 @@ import {
   Space,
   Tag,
   Tabs,
+  Table,
   message,
   Popconfirm,
   Row,
