@@ -118,7 +118,7 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     public OperatorResponse getOperatorById(Long id) {
         log.info("Getting operator by id: {}", id);
-        Operator operator = operatorRepository.findById(id)
+        Operator operator = operatorRepository.findByIdWithAssociations(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
         return mapToResponse(operator);
     }
