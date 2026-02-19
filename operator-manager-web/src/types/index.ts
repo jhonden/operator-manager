@@ -31,6 +31,8 @@ export interface User {
   createdAt: string;
 }
 
+export type UserStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
+
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
@@ -50,8 +52,6 @@ export interface Operator {
   codeFilePath?: string;
   fileName?: string;
   fileSize?: number;
-  category?: Category;
-  tags?: string[];
   isPublic: boolean;
   downloadsCount: number;
   featured: boolean;
@@ -67,25 +67,11 @@ export interface OperatorFilters {
   keyword?: string;
   language?: 'JAVA' | 'GROOVY';
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  categoryId?: number;
 }
 
 export interface PackageFilters {
   keyword?: string;
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-}
-
-export interface Category {
-  id: number;
-  name: string;
-  description?: string;
-  icon?: string;
-  color?: string;
-  parentId?: number;
-  orderIndex?: number;
-  operatorCount: number;
-  children?: Category[];
-  createdAt: string;
 }
 
 export interface Parameter {
@@ -214,7 +200,6 @@ export interface MarketItem {
   viewsCount: number;
   status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED' | 'REMOVED';
   publishedDate?: string;
-  tags?: string[];
   businessScenario?: string;
   createdAt: string;
   operatorLanguage?: string;
@@ -253,8 +238,6 @@ export interface OperatorRequest {
   description?: string;
   language: 'JAVA' | 'GROOVY';
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  categoryId?: number;
-  tags?: string[];
   version?: string;
   isPublic?: boolean;
   parameters?: ParameterRequest[];
@@ -296,7 +279,6 @@ export interface TaskRequest {
 export interface MarketSearchRequest {
   keyword?: string;
   itemType?: 'OPERATOR' | 'PACKAGE';
-  categoryId?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
   page?: number;

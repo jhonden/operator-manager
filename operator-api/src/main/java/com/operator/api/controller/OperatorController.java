@@ -146,7 +146,8 @@ public class OperatorController {
 
         // Filter by language
         if (language != null && !language.isEmpty()) {
-            LanguageType langFilter = LanguageType.valueOf(language);
+            com.operator.core.operator.domain.Operator.LanguageType langFilter =
+                    com.operator.core.operator.domain.Operator.LanguageType.valueOf(language);
             filteredOperators = filteredOperators.stream()
                     .filter(op -> op.getLanguage() == langFilter)
                     .toList();
@@ -154,16 +155,10 @@ public class OperatorController {
 
         // Filter by status
         if (status != null && !status.isEmpty()) {
-            OperatorStatus statusFilter = OperatorStatus.valueOf(status);
+            com.operator.core.operator.domain.Operator.OperatorStatus statusFilter =
+                    com.operator.core.operator.domain.Operator.OperatorStatus.valueOf(status);
             filteredOperators = filteredOperators.stream()
                     .filter(op -> op.getStatus() == statusFilter)
-                    .toList();
-        }
-
-        // Filter by category
-        if (categoryId != null) {
-            filteredOperators = filteredOperators.stream()
-                    .filter(op -> op.getCategory() != null && op.getCategory().getId().equals(categoryId))
                     .toList();
         }
 
@@ -397,28 +392,37 @@ public class OperatorController {
      * This is a helper method used within getAllOperators for manual conversion
      */
     private OperatorResponse convertToResponse(com.operator.core.operator.domain.Operator operator) {
-        CategoryResponse category = null;
-        if (operator.getCategory() != null) {
-            category = CategoryResponse.builder()
-                    .id(operator.getCategory().getId())
-                    .name(operator.getCategory().getName())
-                    .description(operator.getCategory().getDescription())
-                    .build();
-        }
-
         return OperatorResponse.builder()
                 .id(operator.getId())
                 .name(operator.getName())
                 .description(operator.getDescription())
-                .language(operator.getLanguage())
-                .status(operator.getStatus())
+                .language(convertToDtoLanguageType(operator.getLanguage()))
+                .status(convertToDtoOperatorStatus(operator.getStatus()))
                 .version(operator.getVersion())
                 .isPublic(operator.getIsPublic())
                 .featured(operator.getFeatured())
                 .createdBy(operator.getCreatedBy())
                 .createdAt(operator.getCreatedAt())
                 .updatedAt(operator.getUpdatedAt())
-                .category(category)
+                .tags(new ArrayList<>()) // Empty list since tags are removed
                 .build();
+    }
+
+    // Helper methods for enum conversion
+
+    private LanguageType convertToDtoLanguageType(
+            com.operator.core.operator.domain.Operator.LanguageType entityType) {
+        if (entityType == null) {
+            return LanguageType.JAVA;
+        }
+        return LanguageType.valueOf(entityType.name());
+    }
+
+    private OperatorStatus convertToDtoOperatorStatus(
+            com.operator.core.operator.domain.Operator.OperatorStatus entityType) {
+        if (entityType == null) {
+            return OperatorStatus.DRAFT;
+        }
+        return OperatorStatus.valueOf(entityType.name());
     }
 }

@@ -31,7 +31,6 @@ public class OperatorResponse {
     private String code;  // Operator implementation code (stored in version field for now)
     private String fileName;
     private Long fileSize;
-    private CategoryResponse category;
     private List<String> tags;
     private Boolean isPublic;
     private Integer downloadsCount;

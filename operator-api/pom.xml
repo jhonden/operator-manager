@@ -20,7 +20,7 @@
         <dependency>
             <groupId>com.operator</groupId>
             <artifactId>operator-service</artifactId>
-            <version>${project.version}</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <!-- Operator Infrastructure -->

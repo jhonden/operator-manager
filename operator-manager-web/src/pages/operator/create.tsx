@@ -11,7 +11,6 @@ import {
   message,
   Steps,
   Tabs,
-  Tag,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons';
 import CodeEditor from '@/components/code/CodeEditor';
@@ -77,8 +76,6 @@ const OperatorCreatePage: React.FC = () => {
           name: op.name,
           description: op.description,
           language: op.language,
-          categoryId: op.category?.id,
-          tags: op.tags,
           status: op.status,
           version: op.version,
           inputParameters: inputParams,
@@ -252,32 +249,6 @@ const OperatorCreatePage: React.FC = () => {
                 >
                   <Option value="JAVA">Java</Option>
                   <Option value="GROOVY">Groovy</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item
-                label="Category"
-                name="categoryId"
-                rules={[{ required: true, message: 'Please select category' }]}
-              >
-                <Select placeholder="Select category">
-                  <Option value={1}>Data Processing</Option>
-                  <Option value={2}>File Operations</Option>
-                  <Option value={3}>Data Validation</Option>
-                  <Option value={4}>Data Transformation</Option>
-                </Select>
-              </Form.Item>
-
-              <Form.Item label="Tags" name="tags">
-                <Select
-                  mode="tags"
-                  placeholder="Add tags (press Enter to add)"
-                  style={{ width: '100%' }}
-                >
-                  <Option value="data">Data</Option>
-                  <Option value="etl">ETL</Option>
-                  <Option value="validation">Validation</Option>
-                  <Option value="transformation">Transformation</Option>
                 </Select>
               </Form.Item>
 

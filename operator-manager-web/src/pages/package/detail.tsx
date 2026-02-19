@@ -333,11 +333,6 @@ const PackageDetailPage: React.FC = () => {
               <Descriptions.Item label="Description">
                 {packageData.description || '-'}
               </Descriptions.Item>
-              <Descriptions.Item label="Tags">
-                {packageData.tags?.map((tag) => (
-                  <Tag key={tag}>{tag}</Tag>
-                )) || '-'}
-              </Descriptions.Item>
             </Descriptions>
           </Col>
           <Col span={8}>

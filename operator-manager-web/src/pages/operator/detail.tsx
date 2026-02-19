@@ -182,19 +182,11 @@ const OperatorDetailPage: React.FC = () => {
               {operator.language}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Category" span={2}>
-            {operator.category?.name || '-'}
-          </Descriptions.Item>
           <Descriptions.Item label="Current Version" span={2}>
             {operator.version || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Description" span={2}>
             {operator.description || '-'}
-          </Descriptions.Item>
-          <Descriptions.Item label="Tags" span={2}>
-            {operator.tags?.map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
-            )) || '-'}
           </Descriptions.Item>
           <Descriptions.Item label="Created By">
             {operator.createdBy?.username || '-'}

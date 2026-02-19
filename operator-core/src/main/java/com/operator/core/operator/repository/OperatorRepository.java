@@ -33,11 +33,6 @@ public interface OperatorRepository extends JpaRepository<Operator, Long> {
     List<Operator> findByLanguage(LanguageType language);
 
     /**
-     * Find operators by category
-     */
-    List<Operator> findByCategoryId(Long categoryId);
-
-    /**
      * Find public operators
      */
     List<Operator> findByIsPublicTrue();
@@ -76,35 +71,18 @@ public interface OperatorRepository extends JpaRepository<Operator, Long> {
     boolean existsByName(String name);
 
     /**
-     * Find operators by category (with pagination)
-     */
-    Page<Operator> findByCategoryId(Long categoryId, Pageable pageable);
-
-    /**
-     * Find all operators with parameters and category eagerly loaded
+     * Find all operators with parameters eagerly loaded
      */
     @Query("SELECT DISTINCT o FROM Operator o " +
            "LEFT JOIN FETCH o.parameters " +
-           "LEFT JOIN FETCH o.category " +
            "ORDER BY o.createdAt DESC")
     List<Operator> findAllWithAssociations();
 
     /**
-     * Find operators by category with parameters and category eagerly loaded
-     */
-    @Query("SELECT DISTINCT o FROM Operator o " +
-           "LEFT JOIN FETCH o.parameters " +
-           "LEFT JOIN FETCH o.category " +
-           "WHERE o.category.id = :categoryId " +
-           "ORDER BY o.createdAt DESC")
-    List<Operator> findByCategoryIdWithAssociations(@Param("categoryId") Long categoryId);
-
-    /**
-     * Find operator by ID with parameters and category eagerly loaded
+     * Find operator by ID with parameters eagerly loaded
      */
     @Query("SELECT o FROM Operator o " +
            "LEFT JOIN FETCH o.parameters " +
-           "LEFT JOIN FETCH o.category " +
            "WHERE o.id = :id")
     Optional<Operator> findByIdWithAssociations(@Param("id") Long id);
 }

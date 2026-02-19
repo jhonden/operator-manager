@@ -1,5 +1,5 @@
 import request from '@/utils/request';
-import type { ApiResponse, Operator, OperatorRequest, PageResponse, Category, Parameter } from '@/types';
+import type { ApiResponse, Operator, OperatorRequest, PageResponse, Parameter } from '@/types';
 
 export const operatorApi = {
   /**
@@ -8,7 +8,6 @@ export const operatorApi = {
   getAllOperators: (params?: {
     language?: string;
     status?: string;
-    categoryId?: number;
     keyword?: string;
     page?: number;
     size?: number;
@@ -36,10 +35,8 @@ export const operatorApi = {
    */
   searchOperators: (data: {
     keyword?: string;
-    categoryId?: number;
     language?: string;
     status?: string;
-    tags?: string;
     isPublic?: boolean;
     featured?: boolean;
     sortBy?: string;
@@ -153,12 +150,5 @@ export const operatorApi = {
    */
   incrementDownload: (id: number): Promise<ApiResponse<void>> => {
     return request.post<ApiResponse<void>>(`/v1/operators/${id}/download`);
-  },
-
-  /**
-   * Get operators by category
-   */
-  getOperatorsByCategory: (categoryId: number): Promise<ApiResponse<Operator[]>> => {
-    return request.get<ApiResponse<Operator[]>>(`/v1/operators/category/${categoryId}`);
   },
 };

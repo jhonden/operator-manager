@@ -41,7 +41,6 @@ const OperatorListPage: React.FC = () => {
     keyword: '',
     language: undefined,
     status: undefined,
-    categoryId: undefined,
   });
 
   const fetchOperators = async () => {
@@ -50,7 +49,6 @@ const OperatorListPage: React.FC = () => {
       const response = await operatorApi.getAllOperators({
         language: filters.language,
         status: filters.status,
-        categoryId: filters.categoryId,
         keyword: filters.keyword,
         page: pagination.current - 1,
         size: pagination.pageSize
@@ -84,7 +82,6 @@ const OperatorListPage: React.FC = () => {
       keyword: '',
       language: undefined,
       status: undefined,
-      categoryId: undefined,
     });
     setPagination({ ...pagination, current: 1 });
     setTimeout(() => fetchOperators(), 0);
@@ -146,12 +143,6 @@ const OperatorListPage: React.FC = () => {
         };
         return <Tag color={colorMap[status]}>{status}</Tag>;
       },
-    },
-    {
-      title: 'Category',
-      dataIndex: ['category', 'name'],
-      key: 'category',
-      width: 150,
     },
     {
       title: 'Version',

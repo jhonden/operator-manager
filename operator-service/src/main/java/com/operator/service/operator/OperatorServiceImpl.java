@@ -1,28 +1,25 @@
 package com.operator.service.operator;
 
-import com.operator.common.enums.*;
 import com.operator.common.dto.operator.*;
+import com.operator.common.enums.IOType;
+import com.operator.common.enums.LanguageType;
+import com.operator.common.enums.OperatorStatus;
+import com.operator.common.enums.ParameterType;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
 import com.operator.core.operator.domain.Operator;
 import com.operator.core.operator.domain.Parameter;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.core.operator.repository.ParameterRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,110 +36,41 @@ public class OperatorServiceImpl implements OperatorService {
 
     private final OperatorRepository operatorRepository;
     private final ParameterRepository parameterRepository;
-    private final EntityManager entityManager;
 
     @Override
     @Transactional
     public OperatorResponse createOperator(OperatorRequest request, String username) {
-        log.info("=== CREATE OPERATOR START ===");
         log.info("Creating operator: {} by user: {}", request.getName(), username);
-        log.info("Request parameters count: {}, code length: {}, version: {}",
-                request.getParameters() != null ? request.getParameters().size() : 0,
-                request.getCode() != null ? request.getCode().length() : 0,
-                request.getVersion());
-
-        // Validate required fields for published operators
-        OperatorStatus status = request.getStatus() != null ? request.getStatus() : OperatorStatus.DRAFT;
-        if (status == OperatorStatus.PUBLISHED) {
-            if (request.getName() == null || request.getName().trim().isEmpty()) {
-                throw new IllegalArgumentException("Name is required for published operators");
-            }
-            if (request.getLanguage() == null) {
-                throw new IllegalArgumentException("Language is required for published operators");
-            }
-        }
 
         Operator operator = new Operator();
         operator.setName(request.getName());
         operator.setDescription(request.getDescription());
-        operator.setLanguage(request.getLanguage());
-        operator.setStatus(request.getStatus() != null ? request.getStatus() : OperatorStatus.DRAFT);
+        operator.setLanguage(convertToEntityLanguageType(request.getLanguage()));
+        operator.setStatus(convertToEntityOperatorStatus(request.getStatus()));
         operator.setIsPublic(request.getIsPublic() != null ? request.getIsPublic() : false);
+        operator.setCreatedBy(username);
+        operator.setUpdatedBy(username);
+        operator.setVersion(request.getVersion() != null ? request.getVersion() : "1.0.0");
 
-        // Set version number - use request value if provided, otherwise use default
-        if (request.getVersion() != null && !request.getVersion().trim().isEmpty()) {
-            operator.setVersion(request.getVersion());
-            log.info("Setting version from request: {}", request.getVersion());
-        } else {
-            operator.setVersion("1.0.0");
-            log.info("Setting default version: 1.0.0");
-        }
-
-        log.info("Operator before save - name: {}, version: {}", operator.getName(), operator.getVersion());
         operator = operatorRepository.save(operator);
 
         // Save parameters
         if (request.getParameters() != null) {
-            saveParameters(request.getParameters(), operator);
+            for (ParameterRequest paramRequest : request.getParameters()) {
+                Parameter parameter = mapToParameter(paramRequest);
+                parameter.setOperator(operator);
+                parameter.setCreatedBy(username);
+                parameter.setUpdatedBy(username);
+                parameterRepository.save(parameter);
+            }
         }
 
-        log.info("=== CREATE OPERATOR END ===");
         return mapToResponse(operator);
-    }
-
-    @Override
-    public OperatorResponse getOperatorById(Long id) {
-        log.info("Getting operator by id: {}", id);
-        Operator operator = operatorRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
-        return mapToResponse(operator);
-    }
-
-    @Override
-    public PageResponse<OperatorResponse> getAllOperators(OperatorSearchRequest request) {
-        log.info("Searching operators with filters: {}", request);
-
-        // Build criteria
-        CriteriaBuilder<Operator> criteriaBuilder = new CriteriaBuilder<>();
-        Root<Operator> root = criteriaBuilder.from(Operator.class);
-
-        // Name filter
-        if (request.getName() != null && !request.getName().trim().isEmpty()) {
-            criteriaBuilder.add(root.get("name").like("%" + request.getName() + "%"));
-        }
-
-        // Status filter
-        if (request.getStatus() != null) {
-            criteriaBuilder.add(root.get("status").equalTo(request.getStatus()));
-        }
-
-        // Language filter
-        if (request.getLanguage() != null) {
-            criteriaBuilder.add(root.get("language").equalTo(request.getLanguage()));
-        }
-
-        // Is Public filter
-        if (request.getIsPublic() != null) {
-            criteriaBuilder.add(root.get("isPublic").equalTo(request.getIsPublic()));
-        }
-
-        // Page and sort
-        Pageable pageable = PageRequest.of(
-                request.getPage() != null ? request.getPage() : 0,
-                request.getSize() != null ? request.getSize() : 20,
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
-
-        CriteriaQuery<Operator> query = criteriaBuilder.build();
-        Page<Operator> page = operatorRepository.findAll(query, pageable);
-
-        return PageResponse.of(page.map(this::mapToResponse));
     }
 
     @Override
     @Transactional
     public OperatorResponse updateOperator(Long id, OperatorRequest request, String username) {
-        log.info("=== UPDATE OPERATOR START ===");
         log.info("Updating operator: {} by user: {}", id, username);
 
         Operator operator = operatorRepository.findById(id)
@@ -156,147 +84,316 @@ public class OperatorServiceImpl implements OperatorService {
             operator.setDescription(request.getDescription());
         }
         if (request.getLanguage() != null) {
-            operator.setLanguage(request.getLanguage());
+            operator.setLanguage(convertToEntityLanguageType(request.getLanguage()));
         }
         if (request.getStatus() != null) {
-            operator.setStatus(request.getStatus());
+            operator.setStatus(convertToEntityOperatorStatus(request.getStatus()));
         }
         if (request.getIsPublic() != null) {
             operator.setIsPublic(request.getIsPublic());
         }
-        if (request.getVersion() != null && !request.getVersion().trim().isEmpty()) {
+        if (request.getVersion() != null) {
             operator.setVersion(request.getVersion());
         }
-        if (request.getTags() != null) {
-            operator.setTags(request.getTags());
-        }
 
-        log.info("=== UPDATE OPERATOR END ===");
+        operator.setUpdatedBy(username);
+        operator = operatorRepository.save(operator);
+
         return mapToResponse(operator);
     }
 
     @Override
     @Transactional
-    public void deleteOperator(Long id) {
-        log.info("Deleting operator: {}", id);
+    public void deleteOperator(Long id, String username) {
+        log.info("Deleting operator: {} by user: {}", id, username);
 
         Operator operator = operatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
 
-        // Check if operator has associated parameters
-        List<Parameter> parameters = parameterRepository.findByOperatorId(id);
-        if (parameters != null && !parameters.isEmpty()) {
-            log.warn("Operator {} has {} parameters. Deleting them first.", id, parameters.size());
-            parameterRepository.deleteAll(parameters);
-        }
-
+        // Parameters will be cascade deleted
         operatorRepository.delete(operator);
         log.info("Operator deleted: {}", id);
     }
 
     @Override
-    @Transactional
-    public void publishOperator(Long id, String username) {
-        log.info("Publishing operator: {} by user: {}", id, username);
-
+    public OperatorResponse getOperatorById(Long id) {
+        log.info("Getting operator by id: {}", id);
         Operator operator = operatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
+        return mapToResponse(operator);
+    }
 
-        operator.setStatus(OperatorStatus.PUBLISHED);
-        operatorRepository.save(operator);
+    @Override
+    public OperatorResponse getOperatorByName(String name) {
+        log.info("Getting operator by name: {}", name);
+        Operator operator = operatorRepository.findByName(name)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", "name", name));
+        return mapToResponse(operator);
+    }
 
-        log.info("Operator published: {}", id);
+    @Override
+    public PageResponse<OperatorResponse> searchOperators(OperatorSearchRequest request) {
+        log.info("Searching operators with filters: {}", request);
+
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(
+                request.getPage() != null ? request.getPage() : 0,
+                request.getSize() != null ? request.getSize() : 20,
+                org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "createdAt")
+        );
+
+        Page<Operator> page;
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            page = operatorRepository.searchOperators(request.getKeyword(), pageable);
+        } else {
+            page = operatorRepository.findAll(pageable);
+        }
+
+        return PageResponse.of(page.map(this::mapToResponse));
+    }
+
+    @Override
+    public Page<OperatorResponse> getAllOperators(Pageable pageable) {
+        log.info("Getting all operators");
+        Page<Operator> page = operatorRepository.findAll(pageable);
+        return page.map(this::mapToResponse);
+    }
+
+    @Override
+    public List<OperatorResponse> getOperatorsByCategory(Long categoryId) {
+        log.info("Getting operators by category: {} (category feature removed, returning empty list)", categoryId);
+        // Category feature has been removed, return empty list
+        return List.of();
+    }
+
+    @Override
+    public List<OperatorResponse> getOperatorsByCreator(String username) {
+        log.info("Getting operators by creator: {}", username);
+        List<Operator> operators = operatorRepository.findByCreatedBy(username);
+        return operators.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
     @Transactional
-    public PageResponse<OperatorResponse> getPublishedOperators(Pageable pageable) {
-        log.info("Getting published operators");
+    public OperatorResponse uploadCodeFile(Long operatorId, MultipartFile file, String username) {
+        log.info("Uploading code file for operator: {} by user: {}", operatorId, username);
 
-        Pageable pageRequest = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", operatorId));
 
-        Page<Operator> page = operatorRepository.findByStatus(OperatorStatus.PUBLISHED, pageRequest);
+        operator.setCodeFilePath("/uploads/" + file.getOriginalFilename());
+        operator.setFileName(file.getOriginalFilename());
+        operator.setFileSize(file.getSize());
+        operator.setUpdatedBy(username);
 
-        return PageResponse.of(page.map(this::mapToResponse));
+        operator = operatorRepository.save(operator);
+        return mapToResponse(operator);
     }
+
+    @Override
+    @Transactional
+    public OperatorResponse updateOperatorStatus(Long id, String status, String username) {
+        log.info("Updating operator status: {} to {} by user: {}", id, status, username);
+
+        Operator operator = operatorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
+
+        Operator.OperatorStatus entityStatus = Operator.OperatorStatus.valueOf(status);
+        operator.setStatus(entityStatus);
+        operator.setUpdatedBy(username);
+
+        operator = operatorRepository.save(operator);
+        return mapToResponse(operator);
+    }
+
+    @Override
+    @Transactional
+    public ParameterResponse addParameter(Long operatorId, ParameterRequest request, String username) {
+        log.info("Adding parameter to operator: {} by user: {}", operatorId, username);
+
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", operatorId));
+
+        Parameter parameter = mapToParameter(request);
+        parameter.setOperator(operator);
+        parameter.setCreatedBy(username);
+        parameter.setUpdatedBy(username);
+
+        parameter = parameterRepository.save(parameter);
+        return mapToParameterResponse(parameter);
+    }
+
+    @Override
+    @Transactional
+    public ParameterResponse updateParameter(Long operatorId, Long parameterId, ParameterRequest request, String username) {
+        log.info("Updating parameter: {} for operator: {} by user: {}", parameterId, operatorId, username);
+
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", operatorId));
+
+        Parameter parameter = parameterRepository.findById(parameterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Parameter", parameterId));
+
+        if (!parameter.getOperator().getId().equals(operatorId)) {
+            throw new IllegalArgumentException("Parameter does not belong to the specified operator");
+        }
+
+        if (request.getName() != null) {
+            parameter.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            parameter.setDescription(request.getDescription());
+        }
+        if (request.getParameterType() != null) {
+            parameter.setParameterType(request.getParameterType());
+        }
+        if (request.getIoType() != null) {
+            parameter.setIoType(request.getIoType());
+        }
+        if (request.getIsRequired() != null) {
+            parameter.setIsRequired(request.getIsRequired());
+        }
+        if (request.getDefaultValue() != null) {
+            parameter.setDefaultValue(request.getDefaultValue());
+        }
+        if (request.getValidationRules() != null) {
+            parameter.setValidationRules(request.getValidationRules());
+        }
+        if (request.getOrderIndex() != null) {
+            parameter.setOrderIndex(request.getOrderIndex());
+        }
+
+        parameter.setUpdatedBy(username);
+        parameter = parameterRepository.save(parameter);
+        return mapToParameterResponse(parameter);
+    }
+
+    @Override
+    @Transactional
+    public void deleteParameter(Long operatorId, Long parameterId, String username) {
+        log.info("Deleting parameter: {} for operator: {} by user: {}", parameterId, operatorId, username);
+
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", operatorId));
+
+        Parameter parameter = parameterRepository.findById(parameterId)
+                .orElseThrow(() -> new ResourceNotFoundException("Parameter", parameterId));
+
+        if (!parameter.getOperator().getId().equals(operatorId)) {
+            throw new IllegalArgumentException("Parameter does not belong to the specified operator");
+        }
+
+        parameterRepository.delete(parameter);
+        log.info("Parameter deleted: {}", parameterId);
+    }
+
+    @Override
+    @Transactional
+    public OperatorResponse toggleFeatured(Long id, String username) {
+        log.info("Toggling featured status for operator: {} by user: {}", id, username);
+
+        Operator operator = operatorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
+
+        operator.setFeatured(!operator.getFeatured());
+        operator.setUpdatedBy(username);
+
+        operator = operatorRepository.save(operator);
+        return mapToResponse(operator);
+    }
+
+    @Override
+    @Transactional
+    public void incrementDownloadCount(Long id) {
+        log.info("Incrementing download count for operator: {}", id);
+
+        Operator operator = operatorRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
+
+        operator.setDownloadsCount((operator.getDownloadsCount() != null ? operator.getDownloadsCount() : 0) + 1);
+        operatorRepository.save(operator);
+    }
+
+    // Helper methods
 
     private OperatorResponse mapToResponse(Operator operator) {
         return OperatorResponse.builder()
                 .id(operator.getId())
                 .name(operator.getName())
                 .description(operator.getDescription())
-                .language(operator.getLanguage())
-                .status(operator.getStatus())
+                .language(convertToDtoLanguageType(operator.getLanguage()))
+                .status(convertToDtoOperatorStatus(operator.getStatus()))
                 .version(operator.getVersion())
+                .codeFilePath(operator.getCodeFilePath())
+                .fileName(operator.getFileName())
+                .fileSize(operator.getFileSize())
+                .tags(new ArrayList<>()) // Empty list since tags are removed
                 .isPublic(operator.getIsPublic())
+                .downloadsCount(operator.getDownloadsCount())
+                .featured(operator.getFeatured())
                 .parameters(operator.getParameters().stream()
-                        .map(this::mapParameterToResponse)
+                        .map(this::mapToParameterResponse)
                         .collect(Collectors.toList()))
+                .createdBy(operator.getCreatedBy())
                 .createdAt(operator.getCreatedAt())
                 .updatedAt(operator.getUpdatedAt())
-                .createdBy(operator.getCreatedBy())
-                .updatedBy(operator.getUpdatedBy())
                 .build();
     }
 
-    private ParameterResponse mapParameterToResponse(Parameter param) {
+    private ParameterResponse mapToParameterResponse(Parameter parameter) {
         return ParameterResponse.builder()
-                .id(param.getId())
-                .name(param.getName())
-                .description(param.getDescription())
-                .parameterType(param.getParameterType())
-                .ioType(param.getIoType())
-                .isRequired(param.getIsRequired())
-                .defaultValue(param.getDefaultValue())
-                .validationRules(param.getValidationRules())
-                .orderIndex(param.getOrderIndex())
+                .id(parameter.getId())
+                .name(parameter.getName())
+                .description(parameter.getDescription())
+                .parameterType(parameter.getParameterType())
+                .ioType(parameter.getIoType())
+                .isRequired(parameter.getIsRequired())
+                .defaultValue(parameter.getDefaultValue())
+                .validationRules(parameter.getValidationRules())
+                .orderIndex(parameter.getOrderIndex())
                 .build();
     }
 
-    private void saveParameters(List<OperatorRequest.Parameter> parameters, Operator operator) {
-        if (parameters == null || parameters.isEmpty()) {
-            return;
-        }
-
-        List<Parameter> existingParams = parameterRepository.findByOperatorId(operator.getId());
-        for (OperatorRequest.Parameter paramRequest : parameters) {
-            Parameter param;
-            boolean isNew = true;
-
-            // Find matching parameter
-            for (Parameter existing : existingParams) {
-                if (existing.getName().equals(paramRequest.getName())) {
-                    param = existing;
-                    isNew = false;
-                    break;
-                }
-            }
-
-            if (isNew) {
-                param = new Parameter();
-                param.setName(paramRequest.getName());
-                param.setDescription(paramRequest.getDescription());
-                param.setParameterType(paramRequest.getParameterType());
-                param.setIoType(paramRequest.getIoType());
-                param.setIsRequired(paramRequest.getIsRequired());
-                param.setDefaultValue(paramRequest.getDefaultValue());
-                param.setValidationRules(paramRequest.getValidationRules());
-                param.setOrderIndex(paramRequest.getOrderIndex() != null ? paramRequest.getOrderIndex() : getNextOrderIndex(operator.getId()));
-                param.setOperator(operator);
-                parameterRepository.save(param);
-            }
-        }
+    private Parameter mapToParameter(ParameterRequest request) {
+        return Parameter.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .parameterType(request.getParameterType())
+                .ioType(request.getIoType())
+                .isRequired(request.getIsRequired())
+                .defaultValue(request.getDefaultValue())
+                .validationRules(request.getValidationRules())
+                .orderIndex(request.getOrderIndex())
+                .build();
     }
 
-    private int getNextOrderIndex(Long operatorId) {
-        List<Parameter> existingParams = parameterRepository.findByOperatorId(operatorId);
-        return existingParams.stream()
-                .mapToInt(Parameter::getOrderIndex)
-                .max()
-                .orElse(0) + 1;
+    private Operator.LanguageType convertToEntityLanguageType(LanguageType dtoType) {
+        if (dtoType == null) {
+            return Operator.LanguageType.JAVA;
+        }
+        return Operator.LanguageType.valueOf(dtoType.name());
+    }
+
+    private LanguageType convertToDtoLanguageType(Operator.LanguageType entityType) {
+        if (entityType == null) {
+            return LanguageType.JAVA;
+        }
+        return LanguageType.valueOf(entityType.name());
+    }
+
+    private Operator.OperatorStatus convertToEntityOperatorStatus(OperatorStatus dtoType) {
+        if (dtoType == null) {
+            return Operator.OperatorStatus.DRAFT;
+        }
+        return Operator.OperatorStatus.valueOf(dtoType.name());
+    }
+
+    private OperatorStatus convertToDtoOperatorStatus(Operator.OperatorStatus entityType) {
+        if (entityType == null) {
+            return OperatorStatus.DRAFT;
+        }
+        return OperatorStatus.valueOf(entityType.name());
     }
 }

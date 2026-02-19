@@ -47,9 +47,8 @@ public class PackageServiceImpl implements PackageService {
         pkg.setName(request.getName());
         pkg.setDescription(request.getDescription());
         pkg.setBusinessScenario(request.getBusinessScenario());
-        pkg.setStatus(request.getStatus() != null ? request.getStatus() : PackageStatus.DRAFT);
+        pkg.setStatus(convertToEntityPackageStatus(request.getStatus() != null ? request.getStatus() : PackageStatus.DRAFT));
         pkg.setIcon(request.getIcon());
-        pkg.setTags(request.getTags() != null ? String.join(",", request.getTags()) : null);
         pkg.setVersion(request.getVersion() != null ? request.getVersion() : "1.0.0");
         pkg.setIsPublic(request.getIsPublic() != null ? request.getIsPublic() : false);
         pkg.setOperatorCount(0);
@@ -73,10 +72,9 @@ public class PackageServiceImpl implements PackageService {
         pkg.setDescription(request.getDescription());
         pkg.setBusinessScenario(request.getBusinessScenario());
         if (request.getStatus() != null) {
-            pkg.setStatus(request.getStatus());
+            pkg.setStatus(convertToEntityPackageStatus(request.getStatus()));
         }
         pkg.setIcon(request.getIcon());
-        pkg.setTags(request.getTags() != null ? String.join(",", request.getTags()) : null);
         if (request.getVersion() != null && !request.getVersion().trim().isEmpty()) {
             pkg.setVersion(request.getVersion());
         }
@@ -229,7 +227,7 @@ public class PackageServiceImpl implements PackageService {
         OperatorPackage pkg = packageRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Package", id));
 
-        pkg.setStatus(PackageStatus.valueOf(status));
+        pkg.setStatus(convertToEntityPackageStatus(PackageStatus.valueOf(status)));
         pkg.setUpdatedBy(username);
         pkg = packageRepository.save(pkg);
 
@@ -282,7 +280,8 @@ public class PackageServiceImpl implements PackageService {
                 .id(po.getId())
                 .operatorId(po.getOperator() != null ? po.getOperator().getId() : null)
                 .operatorName(po.getOperator() != null ? po.getOperator().getName() : null)
-                .operatorLanguage(po.getOperator() != null && po.getOperator().getLanguage() != null ? po.getOperator().getLanguage() : null)
+                .operatorLanguage(po.getOperator() != null && po.getOperator().getLanguage() != null
+                        ? convertToDtoLanguageType(po.getOperator().getLanguage()) : null)
                 .version(po.getVersion())
                 .orderIndex(po.getOrderIndex())
                 .parameterMapping(po.getParameterMapping())
@@ -290,5 +289,29 @@ public class PackageServiceImpl implements PackageService {
                 .notes(po.getNotes())
                 .createdAt(po.getCreatedAt())
                 .build();
+    }
+
+    // Helper methods for enum conversion
+
+    private OperatorPackage.PackageStatus convertToEntityPackageStatus(PackageStatus dtoType) {
+        if (dtoType == null) {
+            return OperatorPackage.PackageStatus.DRAFT;
+        }
+        return OperatorPackage.PackageStatus.valueOf(dtoType.name());
+    }
+
+    private PackageStatus convertToDtoPackageStatus(OperatorPackage.PackageStatus entityType) {
+        if (entityType == null) {
+            return PackageStatus.DRAFT;
+        }
+        return PackageStatus.valueOf(entityType.name());
+    }
+
+    private com.operator.common.enums.LanguageType convertToDtoLanguageType(
+            com.operator.core.operator.domain.Operator.LanguageType entityType) {
+        if (entityType == null) {
+            return com.operator.common.enums.LanguageType.JAVA;
+        }
+        return com.operator.common.enums.LanguageType.valueOf(entityType.name());
     }
 }

@@ -167,19 +167,6 @@ const PackageCreatePage: React.FC = () => {
                 <Input placeholder="https://example.com/icon.png" />
               </Form.Item>
 
-              <Form.Item label="Tags" name="tags">
-                <Select
-                  mode="tags"
-                  placeholder="Add tags (press Enter to add)"
-                  style={{ width: '100%' }}
-                >
-                  <Select.Option value="etl">ETL</Select.Option>
-                  <Select.Option value="data">Data</Select.Option>
-                  <Select.Option value="analytics">Analytics</Select.Option>
-                  <Select.Option value="automation">Automation</Select.Option>
-                </Select>
-              </Form.Item>
-
               <Form.Item
                 label="Version"
                 name="version"

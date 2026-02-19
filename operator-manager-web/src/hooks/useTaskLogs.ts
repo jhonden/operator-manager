@@ -24,7 +24,7 @@ export const useTaskLogs = (taskId: number | null, enabled = true) => {
         timestamp: new Date().toISOString(),
         source,
       };
-      setLogs((prev) => [...prev, log];
+      setLogs((prev) => [...prev, log]);
     },
     onProgress: (newProgress) => {
       setProgress(newProgress);
