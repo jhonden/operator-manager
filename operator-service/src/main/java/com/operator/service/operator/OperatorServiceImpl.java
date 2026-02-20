@@ -62,7 +62,11 @@ public class OperatorServiceImpl implements OperatorService {
         operator.setGenerator(request.getGenerator());
         operator.setBusinessLogic(request.getBusinessLogic());
 
+        log.info("Business logic from request: {}", request.getBusinessLogic());
+
         operator = operatorRepository.save(operator);
+
+        log.info("Business logic after save: {}", operator.getBusinessLogic());
 
         // Save parameters
         if (request.getParameters() != null) {
@@ -124,10 +128,13 @@ public class OperatorServiceImpl implements OperatorService {
         }
         if (request.getBusinessLogic() != null) {
             operator.setBusinessLogic(request.getBusinessLogic());
+            log.info("Updated business logic: {}", request.getBusinessLogic());
         }
 
         operator.setUpdatedBy(username);
         operator = operatorRepository.save(operator);
+
+        log.info("Business logic after update save: {}", operator.getBusinessLogic());
 
         return mapToResponse(operator);
     }

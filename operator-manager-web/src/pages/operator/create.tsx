@@ -108,6 +108,7 @@ const OperatorCreatePage: React.FC = () => {
 
       console.log('Form values:', values);
       console.log('Code:', code);
+      console.log('Business logic from form:', values.businessLogic);
 
       // Convert dataFormat array to comma-separated string
       const dataFormat = Array.isArray(values.dataFormat)
@@ -141,6 +142,7 @@ const OperatorCreatePage: React.FC = () => {
       delete operatorData.outputParameters;
 
       console.log('Operator data to send:', operatorData);
+      console.log('Business logic in operatorData:', operatorData.businessLogic);
 
       if (isEdit) {
         await operatorApi.updateOperator(Number(id), operatorData);
