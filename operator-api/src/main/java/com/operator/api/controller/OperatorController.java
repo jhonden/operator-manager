@@ -58,11 +58,22 @@ public class OperatorController {
             @Valid @RequestBody OperatorRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         log.info("=== CONTROLLER: Creating operator: {} by user: {}", request.getName(), userPrincipal.getUsername());
-        log.info("=== CONTROLLER: Request parameters count: {}, code length: {}",
+        log.info("=== CONTROLLER: Request parameters count: {}, code present: {}, code length: {}",
                 request.getParameters() != null ? request.getParameters().size() : 0,
+                request.getCode() != null,
                 request.getCode() != null ? request.getCode().length() : 0);
+        log.info("=== CONTROLLER: Business logic present: {}, business logic length: {}",
+                request.getBusinessLogic() != null,
+                request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
 
         OperatorResponse response = operatorService.createOperator(request, userPrincipal.getUsername());
+
+        log.info("=== CONTROLLER: Response code present: {}, code length: {}",
+                response.getCode() != null,
+                response.getCode() != null ? response.getCode().length() : 0);
+        log.info("=== CONTROLLER: Response business logic present: {}, business logic length: {}",
+                response.getBusinessLogic() != null,
+                response.getBusinessLogic() != null ? response.getBusinessLogic().length() : 0);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -390,6 +401,14 @@ public class OperatorController {
      * This is a helper method used within getAllOperators for manual conversion
      */
     private OperatorResponse convertToResponse(com.operator.core.operator.domain.Operator operator) {
+        log.debug("=== CONTROLLER convertToResponse: operator ID: {}, code present: {}, code length: {}",
+                operator.getId(),
+                operator.getCode() != null,
+                operator.getCode() != null ? operator.getCode().length() : 0);
+        log.debug("=== CONTROLLER convertToResponse: business logic present: {}, business logic length: {}",
+                operator.getBusinessLogic() != null,
+                operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
+
         return OperatorResponse.builder()
                 .id(operator.getId())
                 .name(operator.getName())
@@ -397,6 +416,10 @@ public class OperatorController {
                 .language(convertToDtoLanguageType(operator.getLanguage()))
                 .status(convertToDtoOperatorStatus(operator.getStatus()))
                 .version(operator.getVersion())
+                .code(operator.getCode())  // 添加缺失的 code 字段
+                .codeFilePath(operator.getCodeFilePath())
+                .fileName(operator.getFileName())
+                .fileSize(operator.getFileSize())
                 .isPublic(operator.getIsPublic())
                 .featured(operator.getFeatured())
                 .createdBy(operator.getCreatedBy())

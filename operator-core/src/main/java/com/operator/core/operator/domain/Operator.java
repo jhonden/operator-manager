@@ -4,6 +4,8 @@ import com.operator.core.domain.BaseEntity;
 import com.operator.common.enums.LanguageType;
 import com.operator.common.enums.OperatorStatus;
 import com.operator.common.validation.OperatorCode;
+import jakarta.persistence.Basic;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -52,6 +54,7 @@ public class Operator extends BaseEntity {
     @Column(name = "code_file_path", length = 500)
     private String codeFilePath;
 
+    @Basic(fetch = FetchType.EAGER)
     @Column(name = "code", columnDefinition = "TEXT")
     private String code;
 

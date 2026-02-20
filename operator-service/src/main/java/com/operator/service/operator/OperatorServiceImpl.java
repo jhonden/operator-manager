@@ -92,10 +92,23 @@ public class OperatorServiceImpl implements OperatorService {
     @Override
     @Transactional
     public OperatorResponse updateOperator(Long id, OperatorRequest request, String username) {
-        log.info("Updating operator: {} by user: {}", id, username);
+        log.info("=== SERVICE updateOperator: Updating operator: {} by user: {}", id, username);
+        log.info("=== SERVICE updateOperator: Request code present: {}, code length: {}",
+                request.getCode() != null,
+                request.getCode() != null ? request.getCode().length() : 0);
+        log.info("=== SERVICE updateOperator: Request business logic present: {}, business logic length: {}",
+                request.getBusinessLogic() != null,
+                request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
 
         Operator operator = operatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
+
+        log.info("=== SERVICE updateOperator: Before update - code present: {}, code length: {}",
+                operator.getCode() != null,
+                operator.getCode() != null ? operator.getCode().length() : 0);
+        log.info("=== SERVICE updateOperator: Before update - business logic present: {}, business logic length: {}",
+                operator.getBusinessLogic() != null,
+                operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
 
         // Check if operatorCode is unique (if changed)
         if (request.getOperatorCode() != null && !request.getOperatorCode().equals(operator.getOperatorCode())) {
@@ -135,19 +148,25 @@ public class OperatorServiceImpl implements OperatorService {
         }
         if (request.getCode() != null) {
             operator.setCode(request.getCode());
-            log.info("Updated code, length: {}", request.getCode().length());
+            log.info("=== SERVICE updateOperator: Updated code, length: {}", request.getCode().length());
         }
 
         // Always update businessLogic if it's present in request (including empty string)
         if (request.getBusinessLogic() != null) {
             operator.setBusinessLogic(request.getBusinessLogic());
-            log.info("Updated business logic, length: {}", request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
+            log.info("=== SERVICE updateOperator: Updated business logic, length: {}",
+                    request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
         }
 
         operator.setUpdatedBy(username);
         operator = operatorRepository.save(operator);
 
-        log.info("Business logic after update save, length: {}", operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
+        log.info("=== SERVICE updateOperator: After save - code present: {}, code length: {}",
+                operator.getCode() != null,
+                operator.getCode() != null ? operator.getCode().length() : 0);
+        log.info("=== SERVICE updateOperator: After save - business logic present: {}, business logic length: {}",
+                operator.getBusinessLogic() != null,
+                operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
 
         return mapToResponse(operator);
     }
@@ -369,6 +388,14 @@ public class OperatorServiceImpl implements OperatorService {
     // Helper methods
 
     private OperatorResponse mapToResponse(Operator operator) {
+        log.info("=== SERVICE mapToResponse: operator ID: {}, code present: {}, code length: {}",
+                operator.getId(),
+                operator.getCode() != null,
+                operator.getCode() != null ? operator.getCode().length() : 0);
+        log.info("=== SERVICE mapToResponse: business logic present: {}, business logic length: {}",
+                operator.getBusinessLogic() != null,
+                operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
+
         return OperatorResponse.builder()
                 .id(operator.getId())
                 .name(operator.getName())
