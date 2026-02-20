@@ -49,6 +49,7 @@ This is a **Code Operator Management System** - a full-stack platform for managi
 - 变量名、类名、方法名等标识符使用英文
 - 配置文件中的 key 使用英文
 - 国际化（i18n）相关内容使用英文
+- **代码的运行日志输出使用英文**（便于日志分析和问题排查）
 
 ---
 
