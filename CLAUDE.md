@@ -6,6 +6,52 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is a **Code Operator Management System** - a full-stack platform for managing code operators (reusable code components) with complete lifecycle management including creation, packaging, versioning, execution, and marketplace functionality.
 
+---
+
+## 开发规范
+
+### 文档和注释语言规范
+
+**重要：因为项目在中国开发，以下情况必须优先使用中文：**
+
+1. **Git 提交注释（Commit Messages）**
+   - 必须使用中文编写提交信息
+   - 格式示例：`git commit -m "修复：算子列表查询 500 错误"`
+
+2. **代码注释**
+   - 业务逻辑注释必须使用中文
+   - 复杂算法或配置说明必须使用中文
+   - 示例：
+     ```java
+     // 检查 operatorCode 是否已存在，确保唯一性约束
+     if (operatorRepository.existsByOperatorCode(dto.getOperatorCode())) {
+         throw new BusinessException("算子编码已存在");
+     }
+     ```
+
+3. **文档输出**
+   - 代码文档（Javadoc、README）优先使用中文
+   - 架构设计文档、API 文档使用中文
+   - 用户手册、开发指南使用中文
+
+4. **日志输出**
+   - 应用日志信息使用中文
+   - 错误提示信息使用中文
+   - 示例：`log.error("用户登录失败：{}", username);`
+
+5. **用户界面文本**
+   - 前端页面文本使用中文
+   - 错误提示、警告信息使用中文
+   - API 返回的错误消息使用中文
+
+**例外情况：**
+- 技术术语保持英文（如 JSON、API、JWT、Exception 等）
+- 变量名、类名、方法名等标识符使用英文
+- 配置文件中的 key 使用英文
+- 国际化（i18n）相关内容使用英文
+
+---
+
 ## Development Commands
 
 ### Backend Development Workflow
