@@ -175,6 +175,10 @@ const OperatorCreatePage: React.FC = () => {
       description: 'Name, description, language',
     },
     {
+      title: 'Business Logic',
+      description: 'Markdown business rules',
+    },
+    {
       title: 'Parameters',
       description: 'Input and output parameters',
     },
@@ -316,14 +320,6 @@ const OperatorCreatePage: React.FC = () => {
               </Form.Item>
 
               <Form.Item
-                label="业务逻辑"
-                name="businessLogic"
-                tooltip="使用 Markdown 描述算子的业务规则，支持 Mermaid 绘制流程图、序列图等"
-              >
-                <BusinessLogicEditor />
-              </Form.Item>
-
-              <Form.Item
                 label="Programming Language"
                 name="language"
                 rules={[{ required: true, message: 'Please select language' }]}
@@ -349,8 +345,20 @@ const OperatorCreatePage: React.FC = () => {
             </Card>
           )}
 
-          {/* Step 2: Parameters */}
+          {/* Step 2: Business Logic */}
           {currentStep === 1 && (
+            <Card title="业务逻辑" style={{ marginBottom: 16 }}>
+              <Form.Item
+                name="businessLogic"
+                tooltip="使用 Markdown 描述算子的业务规则，支持 Mermaid 绘制流程图、序列图、甘特图等"
+              >
+                <BusinessLogicEditor />
+              </Form.Item>
+            </Card>
+          )}
+
+          {/* Step 3: Parameters */}
+          {currentStep === 2 && (
             <Tabs defaultActiveKey="input">
               <TabPane tab="Input Parameters" key="input">
                 <ParameterForm direction="INPUT" />
@@ -361,8 +369,8 @@ const OperatorCreatePage: React.FC = () => {
             </Tabs>
           )}
 
-          {/* Step 3: Code */}
-          {currentStep === 2 && (
+          {/* Step 4: Code */}
+          {currentStep === 3 && (
             <Card title="Implementation Code">
               <div style={{ marginBottom: 16 }}>
                 <Tag color={language === 'java' ? 'blue' : 'green'}>

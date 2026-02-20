@@ -228,7 +228,11 @@ const OperatorDetailPage: React.FC = () => {
 
       {/* Tabs */}
       <Card>
-        <Tabs defaultActiveKey="parameters">
+        <Tabs defaultActiveKey="businessLogic">
+          <TabPane tab={<span><BookOutlined /> Business Logic</span>} key="businessLogic">
+            <BusinessLogicViewer value={operator.businessLogic} />
+          </TabPane>
+
           <TabPane tab={<span><SettingOutlined /> Parameters</span>} key="parameters">
             <Tabs defaultActiveKey="input">
               <TabPane tab={`Input Parameters (${inputParameters.length})`} key="input">
@@ -263,10 +267,6 @@ const OperatorDetailPage: React.FC = () => {
                 {operator.code || '// No code available'}
               </pre>
             </div>
-          </TabPane>
-
-          <TabPane tab={<span><BookOutlined /> 业务逻辑</span>} key="businessLogic">
-            <BusinessLogicViewer value={operator.businessLogic} />
           </TabPane>
 
         </Tabs>
