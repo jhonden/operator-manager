@@ -11,16 +11,19 @@ import {
   Steps,
   Tabs,
   Tag,
+  Checkbox,
 } from 'antd';
 import { ArrowLeftOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons';
 import CodeEditor from '@/components/code/CodeEditor';
 import ParameterForm from '@/components/operator/ParameterForm';
 import { operatorApi } from '@/api/operator';
+import { DataFormatOptions, GeneratorOptions } from '@/types';
 
 const { Step } = Steps;
 const { TabPane } = Tabs;
 const { Option } = Select;
 const { TextArea } = Input;
+const { Group: CheckboxGroup } = Checkbox;
 
 /**
  * Operator create/edit page
@@ -75,6 +78,10 @@ const OperatorCreatePage: React.FC = () => {
           language: op.language,
           status: op.status,
           version: op.version,
+          operatorCode: op.operatorCode,
+          objectCode: op.objectCode,
+          dataFormat: op.dataFormat ? op.dataFormat.split(',') : [],
+          generator: op.generator,
           inputParameters: inputParams,
           outputParameters: outputParams,
         });
@@ -100,6 +107,11 @@ const OperatorCreatePage: React.FC = () => {
       console.log('Form values:', values);
       console.log('Code:', code);
 
+      // Convert dataFormat array to comma-separated string
+      const dataFormat = Array.isArray(values.dataFormat)
+        ? values.dataFormat.join(',')
+        : values.dataFormat;
+
       // Merge inputParameters and outputParameters into a single parameters array
       const inputParams = (values.inputParameters || []).map((p: any) => ({
         ...p,
@@ -118,6 +130,7 @@ const OperatorCreatePage: React.FC = () => {
         ...values,
         parameters: [...inputParams, ...outputParams],
         code,
+        dataFormat,
         status: publish ? 'PUBLISHED' : 'DRAFT',
       };
 
@@ -234,6 +247,59 @@ const OperatorCreatePage: React.FC = () => {
                   rows={4}
                   placeholder="Describe what this operator does..."
                 />
+              </Form.Item>
+
+              <Form.Item
+                label="Operator Code"
+                name="operatorCode"
+                rules={[
+                  { required: true, message: 'Please input operator code' },
+                  {
+                    pattern: /^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/,
+                    message: 'Operator code must start with a letter or underscore, followed by letters, numbers, or underscores, 1-64 characters',
+                  },
+                ]}
+                tooltip="Unique identifier for the operator. Must start with a letter or underscore, followed by letters, numbers, or underscores."
+              >
+                <Input placeholder="e.g., data_cleaning_operator" />
+              </Form.Item>
+
+              <Form.Item
+                label="Object Code"
+                name="objectCode"
+                rules={[
+                  { required: true, message: 'Please input object code' },
+                  {
+                    pattern: /^[a-zA-Z_][a-zA-Z0-9_]{0,63}$/,
+                    message: 'Object code must start with a letter or underscore, followed by letters, numbers, or underscores, 1-64 characters',
+                  },
+                ]}
+                tooltip="Code of the data object that this operator outputs. Same format as operator code."
+              >
+                <Input placeholder="e.g., cleaned_data" />
+              </Form.Item>
+
+              <Form.Item
+                label="Data Format"
+                name="dataFormat"
+                rules={[{ required: true, message: 'Please select at least one data format' }]}
+                tooltip="Select the raw data formats this operator can process"
+              >
+                <CheckboxGroup options={DataFormatOptions} />
+              </Form.Item>
+
+              <Form.Item
+                label="Generator"
+                name="generator"
+                tooltip="Specify if this operator is dynamically generated or statically built-in"
+              >
+                <Select placeholder="Select generator type">
+                  {GeneratorOptions.map((opt) => (
+                    <Option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </Option>
+                  ))}
+                </Select>
               </Form.Item>
 
               <Form.Item

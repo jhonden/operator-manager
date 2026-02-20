@@ -1,6 +1,7 @@
 package com.operator.common.dto.operator;
 
 
+import com.operator.common.validation.OperatorCode;
 import com.operator.common.validation.ValidationGroups;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -47,4 +48,16 @@ public class OperatorRequest {
     private String code;  // Operator implementation code
 
     private List<ParameterRequest> parameters;
+
+    @NotBlank(message = "Operator code is required")
+    @OperatorCode
+    private String operatorCode;
+
+    @NotBlank(message = "Object code is required")
+    @OperatorCode
+    private String objectCode;
+
+    private String dataFormat;
+
+    private String generator;
 }

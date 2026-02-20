@@ -85,4 +85,14 @@ public interface OperatorRepository extends JpaRepository<Operator, Long> {
            "LEFT JOIN FETCH o.parameters " +
            "WHERE o.id = :id")
     Optional<Operator> findByIdWithAssociations(@Param("id") Long id);
+
+    /**
+     * Find operator by operator code
+     */
+    Optional<Operator> findByOperatorCode(String operatorCode);
+
+    /**
+     * Check if operator code exists
+     */
+    boolean existsByOperatorCode(String operatorCode);
 }

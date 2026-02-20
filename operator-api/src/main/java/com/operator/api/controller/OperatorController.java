@@ -405,6 +405,10 @@ public class OperatorController {
                 .createdAt(operator.getCreatedAt())
                 .updatedAt(operator.getUpdatedAt())
                 .tags(new ArrayList<>()) // Empty list since tags are removed
+                .operatorCode(operator.getOperatorCode())
+                .objectCode(operator.getObjectCode())
+                .dataFormat(operator.getDataFormat())
+                .generator(operator.getGenerator())
                 .build();
     }
 

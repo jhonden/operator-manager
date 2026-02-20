@@ -42,6 +42,19 @@ export interface AuthResponse {
 }
 
 // Operator types
+export type DataFormat = '1' | '10' | '12';
+export const DataFormatOptions = [
+  { label: '静态MML', value: '1' as DataFormat },
+  { label: '动态MML', value: '10' as DataFormat },
+  { label: '话统', value: '12' as DataFormat },
+];
+
+export type Generator = 'dynamic' | 'static';
+export const GeneratorOptions = [
+  { label: '动态', value: 'dynamic' as Generator },
+  { label: '静态', value: 'static' as Generator },
+];
+
 export interface Operator {
   id: number;
   name: string;
@@ -60,6 +73,10 @@ export interface Operator {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  operatorCode: string;
+  objectCode: string;
+  dataFormat?: string;
+  generator?: Generator;
 }
 
 export type ParameterType = 'STRING' | 'INTEGER' | 'FLOAT' | 'BOOLEAN' | 'JSON' | 'FILE' | 'DATE' | 'ARRAY';
@@ -241,6 +258,10 @@ export interface OperatorRequest {
   version?: string;
   isPublic?: boolean;
   parameters?: ParameterRequest[];
+  operatorCode: string;
+  objectCode: string;
+  dataFormat?: string;
+  generator?: Generator;
 }
 
 export interface ParameterRequest {

@@ -42,6 +42,11 @@ public class OperatorServiceImpl implements OperatorService {
     public OperatorResponse createOperator(OperatorRequest request, String username) {
         log.info("Creating operator: {} by user: {}", request.getName(), username);
 
+        // Check if operatorCode is unique
+        if (request.getOperatorCode() != null && operatorRepository.existsByOperatorCode(request.getOperatorCode())) {
+            throw new IllegalArgumentException("Operator code '" + request.getOperatorCode() + "' already exists");
+        }
+
         Operator operator = new Operator();
         operator.setName(request.getName());
         operator.setDescription(request.getDescription());
@@ -51,6 +56,10 @@ public class OperatorServiceImpl implements OperatorService {
         operator.setCreatedBy(username);
         operator.setUpdatedBy(username);
         operator.setVersion(request.getVersion() != null ? request.getVersion() : "1.0.0");
+        operator.setOperatorCode(request.getOperatorCode());
+        operator.setObjectCode(request.getObjectCode());
+        operator.setDataFormat(request.getDataFormat());
+        operator.setGenerator(request.getGenerator());
 
         operator = operatorRepository.save(operator);
 
@@ -76,6 +85,14 @@ public class OperatorServiceImpl implements OperatorService {
         Operator operator = operatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
 
+        // Check if operatorCode is unique (if changed)
+        if (request.getOperatorCode() != null && !request.getOperatorCode().equals(operator.getOperatorCode())) {
+            if (operatorRepository.existsByOperatorCode(request.getOperatorCode())) {
+                throw new IllegalArgumentException("Operator code '" + request.getOperatorCode() + "' already exists");
+            }
+            operator.setOperatorCode(request.getOperatorCode());
+        }
+
         // Update fields
         if (request.getName() != null) {
             operator.setName(request.getName());
@@ -94,6 +111,15 @@ public class OperatorServiceImpl implements OperatorService {
         }
         if (request.getVersion() != null) {
             operator.setVersion(request.getVersion());
+        }
+        if (request.getObjectCode() != null) {
+            operator.setObjectCode(request.getObjectCode());
+        }
+        if (request.getDataFormat() != null) {
+            operator.setDataFormat(request.getDataFormat());
+        }
+        if (request.getGenerator() != null) {
+            operator.setGenerator(request.getGenerator());
         }
 
         operator.setUpdatedBy(username);
@@ -339,6 +365,10 @@ public class OperatorServiceImpl implements OperatorService {
                 .createdBy(operator.getCreatedBy())
                 .createdAt(operator.getCreatedAt())
                 .updatedAt(operator.getUpdatedAt())
+                .operatorCode(operator.getOperatorCode())
+                .objectCode(operator.getObjectCode())
+                .dataFormat(operator.getDataFormat())
+                .generator(operator.getGenerator())
                 .build();
     }
 

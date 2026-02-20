@@ -10,6 +10,7 @@ import {
   message,
   Popconfirm,
   Modal,
+  Tooltip,
 } from 'antd';
 import {
   PlusOutlined,
@@ -21,7 +22,17 @@ import {
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { Operator, OperatorFilters } from '@/types';
+import { DataFormatOptions, GeneratorOptions } from '@/types';
 import { operatorApi } from '@/api/operator';
+
+// Helper function to convert data format codes to labels
+const formatDataFormat = (dataFormat?: string) => {
+  if (!dataFormat) return '-';
+  return dataFormat.split(',').map(code => {
+    const option = DataFormatOptions.find(opt => opt.value === code);
+    return option ? option.label : code;
+  }).join(', ');
+};
 
 /**
  * Operator list page
@@ -149,6 +160,52 @@ const OperatorListPage: React.FC = () => {
       dataIndex: 'version',
       key: 'version',
       width: 100,
+    },
+    {
+      title: 'Operator Code',
+      dataIndex: 'operatorCode',
+      key: 'operatorCode',
+      width: 150,
+      render: (text: string) => (
+        <Tooltip title={text}>
+          <span style={{ fontFamily: 'monospace' }}>{text}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: 'Object Code',
+      dataIndex: 'objectCode',
+      key: 'objectCode',
+      width: 150,
+      render: (text: string) => (
+        <Tooltip title={text}>
+          <span style={{ fontFamily: 'monospace' }}>{text}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: 'Data Format',
+      dataIndex: 'dataFormat',
+      key: 'dataFormat',
+      width: 150,
+      render: (dataFormat: string) => (
+        <Tooltip title={formatDataFormat(dataFormat)}>
+          <span>{formatDataFormat(dataFormat)}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: 'Generator',
+      dataIndex: 'generator',
+      key: 'generator',
+      width: 100,
+      render: (generator: string) => {
+        if (!generator) return '-';
+        const option = GeneratorOptions.find(opt => opt.value === generator);
+        return <Tag color={generator === 'dynamic' ? 'blue' : 'green'}>
+          {option ? option.label : generator}
+        </Tag>;
+      },
     },
     {
       title: 'Created By',

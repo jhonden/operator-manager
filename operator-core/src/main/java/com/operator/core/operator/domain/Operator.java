@@ -3,6 +3,7 @@ package com.operator.core.operator.domain;
 import com.operator.core.domain.BaseEntity;
 import com.operator.common.enums.LanguageType;
 import com.operator.common.enums.OperatorStatus;
+import com.operator.common.validation.OperatorCode;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -72,6 +73,20 @@ public class Operator extends BaseEntity {
     @Column(name = "version", length = 50)
     @Builder.Default
     private String version = "1.0";
+
+    @Column(name = "operator_code", nullable = false, unique = true, length = 64)
+    @OperatorCode
+    private String operatorCode;
+
+    @Column(name = "object_code", nullable = false, length = 64)
+    @OperatorCode
+    private String objectCode;
+
+    @Column(name = "data_format", length = 20)
+    private String dataFormat;
+
+    @Column(name = "generator", length = 20)
+    private String generator;
 
     @OneToMany(mappedBy = "operator", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")

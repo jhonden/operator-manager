@@ -21,7 +21,17 @@ import {
   CodeOutlined,
 } from '@ant-design/icons';
 import type { Operator, Parameter, Version } from '@/types';
+import { DataFormatOptions, GeneratorOptions } from '@/types';
 import { operatorApi } from '@/api/operator';
+
+// Helper function to convert data format codes to labels
+const formatDataFormat = (dataFormat?: string) => {
+  if (!dataFormat) return '-';
+  return dataFormat.split(',').map(code => {
+    const option = DataFormatOptions.find(opt => opt.value === code);
+    return option ? option.label : code;
+  }).join(', ');
+};
 
 const { TabPane } = Tabs;
 
@@ -182,8 +192,28 @@ const OperatorDetailPage: React.FC = () => {
               {operator.language}
             </Tag>
           </Descriptions.Item>
-          <Descriptions.Item label="Current Version" span={2}>
+          <Descriptions.Item label="Current Version">
             {operator.version || '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Generator">
+            {operator.generator ? (
+              <Tag color={operator.generator === 'dynamic' ? 'blue' : 'green'}>
+                {GeneratorOptions.find(opt => opt.value === operator.generator)?.label || operator.generator}
+              </Tag>
+            ) : '-'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Operator Code" span={2}>
+            <code style={{ padding: '2px 6px', background: '#f5f5f5', borderRadius: '3px' }}>
+              {operator.operatorCode || '-'}
+            </code>
+          </Descriptions.Item>
+          <Descriptions.Item label="Object Code" span={2}>
+            <code style={{ padding: '2px 6px', background: '#f5f5f5', borderRadius: '3px' }}>
+              {operator.objectCode || '-'}
+            </code>
+          </Descriptions.Item>
+          <Descriptions.Item label="Data Format" span={2}>
+            {formatDataFormat(operator.dataFormat)}
           </Descriptions.Item>
           <Descriptions.Item label="Description" span={2}>
             {operator.description || '-'}

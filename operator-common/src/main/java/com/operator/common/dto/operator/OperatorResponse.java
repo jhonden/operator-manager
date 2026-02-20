@@ -39,4 +39,8 @@ public class OperatorResponse {
     private String createdBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String operatorCode;
+    private String objectCode;
+    private String dataFormat;
+    private String generator;
 }
