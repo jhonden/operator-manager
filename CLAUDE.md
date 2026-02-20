@@ -1,396 +1,287 @@
-# CLAUDE.md
+# Operator Manager 项目指南
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
-
-## Project Overview
-
-This is a **Code Operator Management System** - a full-stack platform for managing code operators (reusable code components) with complete lifecycle management including creation, packaging, versioning, execution, and marketplace functionality.
+本文档是 Operator Manager 项目的总体入口文档。本文档将指导你理解项目结构、开发规范、关键约束和工作流程。
 
 ---
 
-## 开发规范
+## 📋 新会话开始必读
 
-### 文档和注释语言规范
+**⚠️ 重要：在开始任何开发工作之前，必须完成以下阅读步骤！**
 
-**重要：因为项目在中国开发，以下情况必须优先使用中文：**
+### 第一步：理解开发规范
 
-1. **Git 提交注释（Commit Messages）**
-   - 必须使用中文编写提交信息
-   - 格式示例：`git commit -m "修复：算子列表查询 500 错误"`
+必须阅读以下规范文档，理解项目开发要求：
 
-2. **代码注释**
-   - 业务逻辑注释必须使用中文
-   - 复杂算法或配置说明必须使用中文
-   - 示例：
-     ```java
-     // 检查 operatorCode 是否已存在，确保唯一性约束
-     if (operatorRepository.existsByOperatorCode(dto.getOperatorCode())) {
-         throw new BusinessException("算子编码已存在");
-     }
-     ```
+1. **[开发规范](./docs/standards/development-conventions.md)** ⭐⭐⭐
+   - 文档和注释语言规范
+   - 后端开发规范（Java 21、日志、事务等）
+   - 前端开发规范（TypeScript、组件、样式等）
+   - 测试规范
+   - 安全规范（输入验证、SQL 注入防护、XSS 防护）
 
-3. **文档输出**
-   - 代码文档（Javadoc、README）优先使用中文
-   - 架构设计文档、API 文档使用中文
-   - 用户手册、开发指南使用中文
+2. **[代码提交流程](./docs/standards/code-submission-workflow.md)** ⭐⭐⭐⭐⭐
+   - 修改后必须验证
+   - 验证步骤（编译、启动、功能测试）
+   - 只有验证通过才能提交
+   - 提交前必须得到用户确认
+   - 服务启动验证要求
 
-4. **日志输出**
-   - 应用日志信息使用中文
-   - 错误提示信息使用中文
-   - 示例：`log.error("用户登录失败：{}", username);`
+### 第二步：理解项目结构
 
-5. **用户界面文本**
-   - 前端页面文本使用中文
-   - 错误提示、警告信息使用中文
-   - API 返回的错误消息使用中文
+阅读下面的**项目目录结构树**章节，了解项目组织结构和关键文件位置。
 
-**例外情况：**
-- 技术术语保持英文（如 JSON、API、JWT、Exception 等）
-- 变量名、类名、方法名等标识符使用英文
-- 配置文件中的 key 使用英文
-- 国际化（i18n）相关内容使用英文
-- **代码的运行日志输出使用英文**（便于日志分析和问题排查）
+### 第三步：确认理解
 
----
+在开始工作前，确认你已经：
 
-## Development Commands
+- [ ] 阅读并理解了开发规范
+- [ ] 阅读并理解了代码提交流程
+- [ ] 了解了项目目录结构
+- [ ] 理解了关键约束和禁止行为
 
-### Backend Development Workflow
+### 关键约束提醒
 
-**重要：启动后端服务时请使用提供的脚本，不要直接执行 mvn 命令！**
+**✅ 必须遵守：**
+- 代码修改后必须验证，验证通过才能提交
+- 提交前必须得到用户确认
+- 文档和注释使用中文（除技术术语）
+- Git 提交信息使用中文
 
-#### 启动后端服务
-
-**推荐方式：**
-```bash
-# 完整启动（Docker + PostgreSQL + Redis + MinIO）
-./start-backend.sh
-
-# 本地调试启动（仅 Spring Boot，无 Docker）
-./start-backend-local.sh
-```
-
-**脚本选择说明：**
-
-| 脚本 | 适用场景 | 特点 |
-|-------|---------|------|
-| `start-backend.sh` | 正常启动，需要 Docker 服务 | 1. 自动停止旧进程<br>2. 等待 Docker 就绪<br>3. 后台运行<br>4. 日志输出到文件 |
-| `start-backend-local.sh` | 本地调试，无 Docker | 1. 前台启动<br>2. 直接查看日志<br>3. 适合 IDE 调试 |
-
-**常见问题及解决方法：**
-
-| 问题 | 原因 | 解决方法 |
-|------|--------|----------|
-| 端口 8080 被占用 | 脚本会自动停止旧进程并验证 |
-| 找不到 main class | 从错误的目录启动（如在根目录）| 必须从 operator-api 目录启动 |
-| 编译失败 | 代码语法错误或依赖问题 | 检查错误信息并修复 |
-| Docker 服务未启动 | 数据库不可用 | 脚本会先启动 Docker 并等待 8 秒 |
-
-**手动启动（不推荐，仅在脚本出问题时使用）：**
-
-如果 `start-backend.sh` 脚本无法工作，可以手动执行以下步骤：
-
-1. **停止旧进程：**
-   ```bash
-   lsof -ti:8080 | xargs kill -9
-   ```
-
-2. **启动 Docker 服务：**
-   ```bash
-   docker-compose up -d
-   ```
-
-3. **等待服务就绪（等待数据库连接可用）：**
-   ```bash
-   sleep 8
-   ```
-
-4. **清理编译缓存并编译：**
-   ```bash
-   cd operator-api
-   mvn clean package -DskipTests
-   ```
-
-5. **启动应用（从 operator-api 目录）：**
-   ```bash
-   cd operator-api
-   mvn spring-boot:run -Dspring-boot.run.profiles=dev
-   ```
+**❌ 严格禁止：**
+- 修改代码后立即提交（未验证）
+- 在编译错误时提交
+- 未进行功能测试时提交
+- 未经用户确认就提交代码
 
 ---
 
-#### 停止后端服务
+## 📁 项目目录结构树
 
-**推荐方式：**
-```bash
-# 使用脚本中输出的 PID 停止
-kill -9 <PID>
-```
-
-**手动停止：**
-```bash
-# 查找占用端口的进程
-lsof -ti:8080 | xargs kill -9
-```
-
----
-
-#### Git 提交流程
-
-#### 查看修改
-
-```bash
-# 查看所有修改的文件
-git status
-
-# 查看未暂存的修改
-git diff
-
-# 查看暂存的文件
-git diff --cached
-```
-
-#### 暂存和提交
-
-```bash
-# 暂存所有修改的文件
-git add .
-
-# 查看即将提交的内容
-git status
-
-# 提交（包含中文 commit message）
-git commit -m "修复：算子列表查询 500 错误，移除 Operator 实体内部枚举定义，使用 common 模块枚举；添加新字段 operatorCode、objectCode、dataFormat、generator"
-
-# 提交（英文 commit message）
-git commit -m "fix: resolve GROOVY enum error, add operator basic fields (operatorCode, objectCode, dataFormat, generator)"
-
-# 提交并推送到远程仓库
-git push
-```
-
-#### 推送更改
-
-```bash
-# 推送当前分支到远程
-git push
-
-# 强制推送（如果需要）
-git push -f
-```
-
-#### 回滚和分支管理
-
-```bash
-# 查看所有分支
-git branch -a
-
-# 创建新分支
-git branch feature/new-feature
-
-# 切换分支
-git checkout feature/new-feature
-
-# 合并分支到 main
-git checkout main
-git merge feature/new-feature
-
-# 删除分支
-git branch -d feature/new-feature
-```
-
----
-
-### Quick Start
-
-```bash
-# Start everything (macOS only - launches both frontend and backend)
-./start-all.sh
-
-# Start only backend (requires Docker services running)
-./start-backend.sh
-
-# Start only frontend
-./start-frontend.sh
-
-# Start Docker services (PostgreSQL, Redis, MinIO)
-docker-compose up -d
-```
-
----
-
-### Backend Commands
-
-```bash
-# Build all modules
-mvn clean install
-
-# Run backend (from operator-api directory)
-cd operator-api
-mvn spring-boot:run
-
-# Or run JAR directly
-java -jar operator-api/target/operator-api-1.0.0-SNAPSHOT.jar
-
-# Build without tests
-mvn clean install -DskipTests
-```
-
----
-
-### Frontend Commands
-
-```bash
-cd operator-manager-web
-
-# Install dependencies
-npm install
-
-# Development server with hot reload
-npm run dev
-
-# Build for production
-npm run build
-
-# Linting
-npm run lint
-npm run lint:fix
-```
-
----
-
-### Test Commands
-
-```bash
-cd tests
-
-# Run all test suites
-./99-run-all.sh
-
-# Run individual test suites
-./01-prepare-data.sh      # Prepare test data
-./02-auth-test.sh         # Authentication tests
-./03-operator-crud-test.sh # Operator CRUD tests
-```
-
----
-
-## Architecture
-
-### Backend Module Structure
-
-The backend follows **Clean Architecture** with 5 Maven modules:
+### 根目录
 
 ```
 operator-manager/
-├── operator-api/              # API Layer - REST controllers, handlers, security config
-├── operator-core/             # Domain Layer - JPA entities and repositories
-├── operator-service/          # Business Logic Layer - Service implementations
-├── operator-infrastructure/   # Infrastructure Layer - MinIO, Git, Docker, Redis
-└── operator-common/           # Shared Utilities - JWT, exceptions, API wrappers
+├── operator-api/                    # API 层 - REST 控制器、处理器、安全配置
+├── operator-core/                   # 领域层 - JPA 实体和仓库
+├── operator-service/                # 业务逻辑层 - Service 实现
+├── operator-infrastructure/           # 基础设施层 - MinIO、Git、Docker、Redis
+├── operator-common/                 # 公共模块 - JWT、异常、API 包装器、DTO、枚举
+├── operator-manager-web/            # 前端项目 - React + TypeScript + Vite
+├── docs/                          # 文档目录
+│   ├── standards/                    # 规约和规范（⭐ 必读）
+│   │   ├── development-conventions.md      # 开发规范
+│   │   └── code-submission-workflow.md    # 代码提交流程
+│   └── requirements/                 # 需求设计文档
+│       └── 2026-02-20-算子基本信息扩展-需求设计.md
+│       └── 2026-02-20-算子业务逻辑字段.md
+├── db/                            # 数据库相关
+│   └── migration/                  # Flyway 数据库迁移脚本
+│       ├── V1__init_schema.sql
+│       ├── V2__add_operator_fields.sql
+│       └── V3__add_business_logic.sql
+├── tests/                         # 测试脚本目录
+├── start-backend.sh                # 后端启动脚本（Docker 模式）
+├── start-backend-local.sh           # 后端启动脚本（本地调试模式，无 Docker）
+├── start-frontend.sh               # 前端启动脚本
+├── CLAUDE.md                      # 本文件 - 项目总体入口
+└── .cursorrules                    # 代码提交流程（已迁移到 docs/standards/）
 ```
 
-**Data Flow:**
+### 关键文件说明
+
+| 文件路径 | 用途 | 重要程度 |
+|---------|------|---------|
+| [开发规范](./docs/standards/development-conventions.md) | 项目编码规范（语言、后端、前端、测试、安全）| ⭐⭐⭐ |
+| [代码提交流程](./docs/standards/code-submission-workflow.md) | 代码修改、验证、提交流程 | ⭐⭐⭐⭐⭐ |
+| [数据库初始化](./db/migration/V1__init_schema.sql) | 数据库表结构初始化脚本 | ⭐⭐ |
+| [数据库迁移脚本](./db/migration/) | Flyway 数据库迁移脚本 | ⭐⭐⭐ |
+| [Operator 实体](./operator-core/src/main/java/com/operator/core/operator/domain/Operator.java) | 算子领域实体 | ⭐⭐⭐⭐ |
+| [OperatorController](./operator-api/src/main/java/com/operator/api/controller/OperatorController.java) | 算子 REST API 控制器 | ⭐⭐⭐ |
+| [OperatorServiceImpl](./operator-service/src/main/java/com/operator/service/operator/OperatorServiceImpl.java) | 算子业务逻辑实现 | ⭐⭐⭐⭐ |
+| [前端类型定义](./operator-manager-web/src/types/index.ts) | TypeScript 类型定义 | ⭐⭐⭐ |
+| [前端 API 客户端](./operator-manager-web/src/api/) | 前端 API 调用函数 | ⭐⭐⭐ |
+| [前端算子创建页面](./operator-manager-web/src/pages/operator/create.tsx) | 算子创建/编辑页面 | ⭐⭐⭐ |
+| [前端算子详情页面](./operator-manager-web/src/pages/operator/detail.tsx) | 算子详情展示页面 | ⭐⭐⭐ |
+
+### 后端模块说明
+
+**operator-api/ (API 层)**
 ```
-Frontend (React) → REST API → Controllers → Services → Repositories → PostgreSQL
-                                         ↓
-                                    Redis (Cache + Queue)
-                                         ↓
-                                    MinIO (File Storage)
+operator-api/
+├── src/main/java/com/operator/api/
+│   ├── controller/                   # REST 控制器
+│   │   ├── AuthController.java        # 认证 API
+│   │   ├── OperatorController.java     # 算子 API
+│   │   ├── PackageController.java     # 算子包 API
+│   │   ├── CategoryController.java    # 分类 API
+│   │   ├── ExecutionController.java   # 执行 API
+│   │   ├── VersionController.java     # 版本 API
+│   │   ├── MarketController.java      # 市场 API
+│   │   └── UserController.java       # 用户 API
+│   ├── handler/                     # 全局异常处理器
+│   │   └── GlobalExceptionHandler.java
+│   ├── security/                     # 安全配置
+│   │   ├── SecurityConfig.java
+│   │   ├── JwtAuthenticationFilter.java
+│   │   └── UserPrincipal.java
+│   └── config/                      # 配置类
+├── src/main/resources/
+│   ├── application.yml               # 主配置文件
+│   ├── application-dev.yml           # 开发环境配置
+│   └── application-prod.yml          # 生产环境配置
+└── pom.xml                        # Maven 配置
+```
+
+**operator-core/ (领域层)**
+```
+operator-core/
+├── src/main/java/com/operator/core/
+│   ├── domain/                      # JPA 实体
+│   │   ├── operator/
+│   │   │   ├── Operator.java          # 算子实体
+│   │   │   ├── Parameter.java        # 参数实体
+│   │   │   └── Category.java         # 分类实体
+│   │   ├── user/
+│   │   │   └── User.java            # 用户实体
+│   │   └── pkg/
+│   │       ├── OperatorPackage.java    # 算子包实体
+│   │       └── PackageOperator.java    # 包算子关联实体
+│   └── repository/                  # Spring Data JPA 仓库接口
+└── pom.xml                        # Maven 配置
+```
+
+**operator-service/ (业务逻辑层)**
+```
+operator-service/
+├── src/main/java/com/operator/service/
+│   ├── operator/
+│   │   ├── OperatorService.java      # 算子服务接口
+│   │   └── OperatorServiceImpl.java # 算子服务实现
+│   ├── pkg/
+│   │   ├── PackageService.java       # 算子包服务接口
+│   │   └── PackageServiceImpl.java   # 算子包服务实现
+│   └── scheduler/                  # 任务调度服务
+│       ├── TaskScheduler.java
+│       ├── TaskExecutorService.java
+│       └── TaskLogWebSocketHandler.java
+└── pom.xml                        # Maven 配置
+```
+
+**operator-infrastructure/ (基础设施层)**
+```
+operator-infrastructure/
+├── src/main/java/com/operator/infrastructure/
+│   ├── storage/
+│   │   └── MinioStorageService.java      # MinIO 文件存储服务
+│   ├── git/
+│   │   └── GitIntegrationService.java    # Git 集成服务
+│   ├── scheduler/
+│   │   ├── TaskScheduler.java           # 任务调度器
+│   │   └── RedisQueueService.java       # Redis 队列服务
+│   └── publisher/
+│       ├── RestPublisherService.java      # REST 发布服务
+│       └── FilePublisherService.java     # 文件发布服务
+└── pom.xml                        # Maven 配置
+```
+
+**operator-common/ (公共模块)**
+```
+operator-common/
+├── src/main/java/com/operator/common/
+│   ├── constants/                   # 常量定义
+│   ├── dto/                         # 数据传输对象
+│   │   ├── operator/
+│   │   │   ├── OperatorRequest.java
+│   │   │   └── OperatorResponse.java
+│   │   └── pkg/
+│   ├── enums/                       # 枚举定义
+│   │   ├── LanguageType.java           # 编程语言枚举
+│   │   ├── OperatorStatus.java         # 算子状态枚举
+│   │   ├── Generator.java             # 生成方式枚举
+│   │   └── DataFormat.java           # 数据格式枚举
+│   ├── exception/                    # 异常类
+│   │   ├── BusinessException.java
+│   │   └── ResourceNotFoundException.java
+│   ├── security/                     # 安全相关
+│   │   ├── JwtTokenProvider.java      # JWT Token 生成器
+│   │   └── UserPrincipal.java       # 用户信息
+│   ├── util/                        # 工具类
+│   ├── validation/                   # 验证注解
+│   │   ├── OperatorCode.java          # 算子编码验证注解
+│   │   └── OperatorCodeValidator.java # 验证器实现
+│   └── wrapper/                     # API 响应包装
+│       └── ApiResponse.java           # 统一 API 响应格式
+└── pom.xml                        # Maven 配置
+```
+
+### 前端项目说明
+
+**operator-manager-web/ (前端项目)**
+```
+operator-manager-web/
+├── src/
+│   ├── api/                        # API 调用
+│   │   ├── operator.ts             # 算子 API
+│   │   ├── auth.ts                 # 认证 API
+│   │   └── ...
+│   ├── components/                  # 可复用组件
+│   │   ├── code/
+│   │   │   └── CodeEditor.tsx    # 代码编辑器
+│   │   ├── operator/
+│   │   │   └── ParameterForm.tsx  # 参数表单
+│   │   ├── editor/
+│   │   │   ├── BusinessLogicEditor.tsx     # 业务逻辑编辑器
+│   │   │   └── BusinessLogicViewer.tsx     # 业务逻辑查看器
+│   │   └── common/
+│   │       ├── Header.tsx        # 页面头部
+│   │       ├── Layout.tsx        # 布局
+│   │       └── Sidebar.tsx       # 侧边栏
+│   ├── pages/                      # 路由页面
+│   │   ├── operator/
+│   │   │   ├── create.tsx        # 算子创建/编辑
+│   │   │   ├── detail.tsx        # 算子详情
+│   │   │   └── list.tsx          # 算子列表
+│   │   └── package/
+│   ├── stores/                     # Zustand 状态管理
+│   ├── hooks/                     # 自定义 React Hooks
+│   ├── types/                     # TypeScript 类型定义
+│   ├── utils/                     # 工具函数
+│   ├── App.tsx                    # 根组件
+│   └── main.tsx                   # 入口文件
+├── public/                      # 静态资源
+├── index.html                   # HTML 模板
+├── vite.config.ts               # Vite 配置
+├── tsconfig.json               # TypeScript 配置
+└── package.json               # NPM 配置
 ```
 
 ---
 
-### Key Domain Entities
+## Technology Stack
 
-All entities are in `operator-core/src/main/java/com/operator/core/`:
+### Backend
 
-- **Security**: User, UserPrincipal
-- **Operators**: Operator, Category, Parameter
-- **Packages**: OperatorPackage, PackageOperator
-- **Versions**: Version, PackageVersion
-- **Execution**: Task, TaskLog, TaskArtifact
-- **Marketplace**: MarketItem, Rating, Review
-- **Publishing**: PublishDestination, PublishHistory
-- **Audit**: AuditLog
+- Spring Boot 3.2.x
+- Java 21 LTS
+- PostgreSQL 15+
+- Redis 7.x
+- MinIO (S3-compatible storage)
+- JWT + Spring Security
+- Groovy 4.x (for dynamic operators)
+- JGit (Git integration)
+- SpringDoc OpenAPI
 
----
+### Frontend
 
-### API Controllers (All Complete)
-
-All 8 controllers in `operator-api/src/main/java/com/operator/api/controller/`:
-
-1. **AuthController** - `/api/v1/auth/*` (login, register, token refresh, change password)
-2. **OperatorController** - `/api/v1/operators/*` (CRUD, search, parameters, status)
-3. **PackageController** - `/api/v1/packages/*` (CRUD, operator management, reordering)
-4. **CategoryController** - `/api/v1/categories/*` (tree management, operators by category)
-5. **ExecutionController** - `/api/v1/execution/*` (tasks, logs, cancellation, statistics)
-6. **VersionController** - `/api/v1/versions/*` (version management, release, comparison)
-7. **MarketController** - `/api/v1/market/*` (search, ratings, reviews, publish/unpublish)
-8. **UserController** - `/api/v1/users/*` (profile management, role/status updates)
-
----
-
-### Infrastructure Services
-
-All infrastructure components are in `operator-infrastructure/src/main/java/com/operator/infrastructure/`:
-
-- **MinIO Storage Service** (`storage/MinioStorageService.java`) - File upload/download with presigned URLs
-- **Redis Cache Service** (`RedisCacheService.java`) - String, Hash, List, Set, ZSet operations with TTL
-- **Git Integration Service** (`git/GitIntegrationService.java`) - Repo operations, commits, tags, changelog
-- **Task Scheduler** (`scheduler/TaskScheduler.java`) - Priority polling, timeout detection
-- **Redis Queue Service** (`scheduler/RedisQueueService.java`) - Priority queue using Sorted Set
-- **Task Executor Service** (`scheduler/TaskExecutorService.java`) - Execution orchestration and cleanup
-- **WebSocket Handler** (`scheduler/TaskLogWebSocketHandler.java`) - Real-time logs and progress
-- **Publish Services** (`publisher/`) - REST and file-based publishing
-
----
-
-### Frontend Structure
-
-```
-operator-manager-web/src/
-├── components/      # Reusable UI components
-├── pages/          # Route pages
-├── api/            # API client functions
-├── stores/         # Zustand state stores
-├── hooks/          # Custom React hooks
-├── utils/          # Utility functions
-├── types/          # TypeScript type definitions
-└── App.tsx         # Root component
-```
-
----
-
-## Configuration
-
-### Backend Configuration
-
-Main config: `operator-api/src/main/resources/application.yml`
-
-Environment-specific configs:
-- `application-dev.yml` - Development
-- `application-prod.yml` - Production
-
-Key configuration sections:
-- `spring.datasource` - PostgreSQL connection
-- `spring.data.redis` - Redis connection
-- `minio` - MinIO storage settings
-- `jwt` - JWT token configuration
-
----
-
-### Database
-
-Initialize database:
-```bash
-createdb operator_manager_dev
-psql -d operator_manager_dev -f db/migration/V1__init_schema.sql
-```
-
-Default admin credentials:
-- Username: `admin`
-- Password: `admin123`
+- React 18 + TypeScript 5.x
+- Vite 5.x (build tool)
+- Ant Design 5.x (UI library)
+- Zustand (state management)
+- React Router 6.x
+- Axios (HTTP client)
+- Monaco Editor (code editor)
+- ByteMD (Markdown editor with Mermaid support)
+- ECharts (charts)
 
 ---
 
@@ -407,49 +298,19 @@ Default admin credentials:
 
 ---
 
-## Technology Stack
+## Default Admin Credentials
 
-**Backend:**
-- Spring Boot 3.2.x
-- Java 21 LTS
-- PostgreSQL 15+
-- Redis 7.x
-- MinIO (S3-compatible storage)
-- JWT + Spring Security
-- Groovy 4.x (for dynamic operators)
-- JGit (Git integration)
-- SpringDoc OpenAPI
-
-**Frontend:**
-- React 18 + TypeScript 5.x
-- Vite 5.x (build tool)
-- Ant Design 5.x (UI library)
-- Zustand (state management)
-- React Router 6.x
-- Axios (HTTP client)
-- Monaco Editor (code editor)
-- ECharts (charts)
+- Username: `admin`
+- Password: `admin123`
 
 ---
 
-## Important Notes
-
-### JWT Authentication
-
-All API endpoints except `/api/v1/auth/*` require a JWT token in the `Authorization` header:
-
-```
-Authorization: Bearer <jwt_token>
-```
-
----
-
-### Adding a New Feature
+## Adding a New Feature
 
 1. **Backend** - Follows established pattern:
    - Create entity in `operator-core` (domain package)
    - Create repository interface in `operator-core`
-   - Create DTOs in `operator-api/src/main/java/com/operator/api/controller/dto/`
+   - Create DTOs in `operator-common` (dto package)
    - Create service in `operator-service`
    - Create controller in `operator-api`
 
@@ -461,23 +322,30 @@ Authorization: Bearer <jwt_token>
 
 ---
 
-### Testing
+## Testing
 
 The test framework uses shell scripts with curl for API testing:
-
 - Test utilities are in `tests/utils/` (logger.sh, assertions.sh)
 - API base URL: `http://localhost:8080/api/v1`
 - Test scripts must be executable: `chmod +x <script>.sh`
 
 ---
 
-### Error Handling
+## Error Handling
 
 All API responses use `ApiResponse<T>` wrapper with:
-
 - `success`: boolean
 - `message`: string
 - `data`: T | null
 - `error`: string | null
 
 Global exception handler is in `operator-api/src/main/java/com/operator/api/handler/GlobalExceptionHandler.java`
+
+---
+
+## JWT Authentication
+
+All API endpoints except `/api/v1/auth/*` require a JWT token in the `Authorization` header:
+```
+Authorization: Bearer <jwt_token>
+```
