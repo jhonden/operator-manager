@@ -407,6 +407,7 @@ public class OperatorController {
                 .objectCode(operator.getObjectCode())
                 .dataFormat(operator.getDataFormat())
                 .generator(operator.getGenerator())
+                .businessLogic(operator.getBusinessLogic())
                 .build();
     }
 
