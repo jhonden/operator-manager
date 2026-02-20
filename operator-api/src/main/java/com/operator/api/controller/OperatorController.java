@@ -5,6 +5,7 @@ import com.operator.common.enums.LanguageType;
 import com.operator.common.enums.OperatorStatus;
 import com.operator.common.utils.ApiResponse;
 import com.operator.common.utils.PageResponse;
+import com.operator.common.validation.ValidationGroups;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.service.operator.OperatorService;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -103,7 +105,7 @@ public class OperatorController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<OperatorResponse>> updateOperator(
             @Parameter(description = "Operator ID") @PathVariable Long id,
-            @Valid @RequestBody OperatorRequest request,
+            @Validated(ValidationGroups.Publish.class) @RequestBody OperatorRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         log.info("Updating operator: {} by user: {}", id, userPrincipal.getUsername());
 

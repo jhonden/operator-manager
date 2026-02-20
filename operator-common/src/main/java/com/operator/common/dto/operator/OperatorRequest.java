@@ -49,11 +49,11 @@ public class OperatorRequest {
 
     private List<ParameterRequest> parameters;
 
-    @NotBlank(message = "Operator code is required")
+    @NotBlank(message = "Operator code is required", groups = {ValidationGroups.Draft.class})
     @OperatorCode
     private String operatorCode;
 
-    @NotBlank(message = "Object code is required")
+    @NotBlank(message = "Object code is required", groups = {ValidationGroups.Draft.class})
     @OperatorCode
     private String objectCode;
 
