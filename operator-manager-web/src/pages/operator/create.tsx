@@ -101,13 +101,14 @@ const OperatorCreatePage: React.FC = () => {
 
   const handleSubmit = async (publish = false) => {
     try {
-      // For draft, only get filled fields; for publish, validate all required fields
+      // For publish: get all fields; for draft: only validate current step
       let values;
       if (publish) {
-        values = await form.validateFields();
-      } else {
-        // Get all fields without validation
+        // Publish：获取所有字段（包括未填写的）
         values = form.getFieldsValue(true); // true to get all fields including undefined
+      } else {
+        // Save Draft：只验证当前步骤的必填字段
+        values = await form.validateFields();
       }
 
       console.log('Form values:', values);
