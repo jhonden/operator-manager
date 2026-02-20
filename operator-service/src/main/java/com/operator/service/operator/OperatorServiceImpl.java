@@ -158,6 +158,10 @@ public class OperatorServiceImpl implements OperatorService {
                     request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
         }
 
+        // Log existing parameters before update
+        List<Parameter> existingParams = parameterRepository.findByOperatorIdOrderByOrderIndexAsc(id);
+        log.info("=== SERVICE updateOperator: Existing parameters count: {}", existingParams.size());
+
         operator.setUpdatedBy(username);
         operator = operatorRepository.save(operator);
 
@@ -167,6 +171,31 @@ public class OperatorServiceImpl implements OperatorService {
         log.info("=== SERVICE updateOperator: After save - business logic present: {}, business logic length: {}",
                 operator.getBusinessLogic() != null,
                 operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
+
+        // Handle parameters - update if provided, or delete all if null/empty
+        if (request.getParameters() != null) {
+            log.info("=== SERVICE updateOperator: Request parameters count: {}", request.getParameters().size());
+
+            // Delete all existing parameters first
+            parameterRepository.deleteByOperatorId(id);
+            log.info("=== SERVICE updateOperator: Deleted {} existing parameters", existingParams.size());
+
+            // Create new parameters
+            for (ParameterRequest paramRequest : request.getParameters()) {
+                Parameter parameter = mapToParameter(paramRequest);
+                parameter.setOperator(operator);
+                parameter.setCreatedBy(username);
+                parameter.setUpdatedBy(username);
+                Parameter savedParam = parameterRepository.save(parameter);
+                log.info("=== SERVICE updateOperator: Saved parameter: {} (type: {}, order: {})",
+                        savedParam.getName(),
+                        savedParam.getIoType(),
+                        savedParam.getOrderIndex());
+            }
+            log.info("=== SERVICE updateOperator: Saved {} new parameters", request.getParameters().size());
+        } else {
+            log.info("=== SERVICE updateOperator: No parameters in request, skipping parameter update");
+        }
 
         return mapToResponse(operator);
     }

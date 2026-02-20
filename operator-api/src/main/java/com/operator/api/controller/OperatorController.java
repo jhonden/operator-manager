@@ -107,9 +107,14 @@ public class OperatorController {
             @Parameter(description = "Operator ID") @PathVariable Long id,
             @Validated(ValidationGroups.Publish.class) @RequestBody OperatorRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        log.info("Updating operator: {} by user: {}", id, userPrincipal.getUsername());
+        log.info("=== CONTROLLER updateOperator: Updating operator: {} by user: {}", id, userPrincipal.getUsername());
+        log.info("=== CONTROLLER updateOperator: Request parameters count: {}",
+                request.getParameters() != null ? request.getParameters().size() : 0);
 
         OperatorResponse response = operatorService.updateOperator(id, request, userPrincipal.getUsername());
+
+        log.info("=== CONTROLLER updateOperator: Response parameters count: {}",
+                response.getParameters() != null ? response.getParameters().size() : 0);
 
         return ResponseEntity.ok(ApiResponse.success("Operator updated successfully", response));
     }
