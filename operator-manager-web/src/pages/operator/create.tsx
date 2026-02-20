@@ -145,6 +145,11 @@ const OperatorCreatePage: React.FC = () => {
       delete operatorData.inputParameters;
       delete operatorData.outputParameters;
 
+      // Ensure businessLogic is properly handled
+      if (operatorData.businessLogic === undefined || operatorData.businessLogic === null) {
+        operatorData.businessLogic = null; // Explicitly set to null if undefined
+      }
+
       console.log('Operator data to send:', operatorData);
       console.log('Business logic in operatorData:', operatorData.businessLogic);
 

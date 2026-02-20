@@ -126,15 +126,17 @@ public class OperatorServiceImpl implements OperatorService {
         if (request.getGenerator() != null) {
             operator.setGenerator(request.getGenerator());
         }
+
+        // Always update businessLogic if it's present in request (including empty string)
         if (request.getBusinessLogic() != null) {
             operator.setBusinessLogic(request.getBusinessLogic());
-            log.info("Updated business logic: {}", request.getBusinessLogic());
+            log.info("Updated business logic, length: {}", request.getBusinessLogic() != null ? request.getBusinessLogic().length() : 0);
         }
 
         operator.setUpdatedBy(username);
         operator = operatorRepository.save(operator);
 
-        log.info("Business logic after update save: {}", operator.getBusinessLogic());
+        log.info("Business logic after update save, length: {}", operator.getBusinessLogic() != null ? operator.getBusinessLogic().length() : 0);
 
         return mapToResponse(operator);
     }
