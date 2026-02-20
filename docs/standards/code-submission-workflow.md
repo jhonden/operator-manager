@@ -6,6 +6,38 @@
 
 ## 1. 验证要求
 
+### 1.0 路径检查规则（新增）
+
+**⚠️ 重要：执行路径相关命令前必须检查当前工作目录**
+
+在执行编译、打包、启动等与路径强相关的命令前，**必须先检查当前路径是否正确**，避免在错误目录下执行命令。
+
+**✅ 正确做法：**
+```bash
+# 执行前先检查路径
+pwd
+# 确认在项目根目录：/Users/gaowen/Code/operator-manager
+
+# 检查目标文件/脚本是否存在
+ls -la start-backend-local.sh
+
+# 然后再执行命令
+./start-backend-local.sh
+```
+
+**❌ 错误做法：**
+```bash
+# 不检查路径直接执行，可能已在 operator-api 目录下
+./start-backend-local.sh  # 错误：no such file or directory
+```
+
+**需要检查路径的命令：**
+- 后端启动：`./start-backend-local.sh`、`./start-backend.sh`
+- 后端编译：`mvn clean install`
+- 前端启动：`npm run dev`
+- 前端编译：`npm run build`
+- 切换到子模块目录：`cd operator-*`
+
 ### 1.1 修改完成后必须验证
 
 - 确保所有模块能够编译通过
