@@ -52,6 +52,9 @@ public class Operator extends BaseEntity {
     @Column(name = "code_file_path", length = 500)
     private String codeFilePath;
 
+    @Column(name = "code", columnDefinition = "TEXT")
+    private String code;
+
     @Column(name = "file_name", length = 255)
     private String fileName;
 

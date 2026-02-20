@@ -61,10 +61,17 @@ public class OperatorServiceImpl implements OperatorService {
         operator.setDataFormat(request.getDataFormat());
         operator.setGenerator(request.getGenerator());
         operator.setBusinessLogic(request.getBusinessLogic());
+        operator.setCode(request.getCode());
 
         log.info("Business logic from request: {}", request.getBusinessLogic());
+        log.info("Code from request: {} (length: {})",
+                 request.getCode() != null ? "present" : "null",
+                 request.getCode() != null ? request.getCode().length() : 0);
 
         operator = operatorRepository.save(operator);
+
+        log.info("Code after save, length: {}",
+                 operator.getCode() != null ? operator.getCode().length() : 0);
 
         log.info("Business logic after save: {}", operator.getBusinessLogic());
 
@@ -125,6 +132,10 @@ public class OperatorServiceImpl implements OperatorService {
         }
         if (request.getGenerator() != null) {
             operator.setGenerator(request.getGenerator());
+        }
+        if (request.getCode() != null) {
+            operator.setCode(request.getCode());
+            log.info("Updated code, length: {}", request.getCode().length());
         }
 
         // Always update businessLogic if it's present in request (including empty string)
@@ -366,6 +377,7 @@ public class OperatorServiceImpl implements OperatorService {
                 .status(convertToDtoOperatorStatus(operator.getStatus()))
                 .version(operator.getVersion())
                 .codeFilePath(operator.getCodeFilePath())
+                .code(operator.getCode())
                 .fileName(operator.getFileName())
                 .fileSize(operator.getFileSize())
                 .tags(new ArrayList<>()) // Empty list since tags are removed
