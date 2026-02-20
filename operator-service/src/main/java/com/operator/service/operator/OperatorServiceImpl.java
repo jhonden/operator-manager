@@ -8,6 +8,7 @@ import com.operator.common.enums.ParameterType;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
 import com.operator.core.operator.domain.Operator;
+import com.operator.common.exception.BadRequestException;
 import com.operator.core.operator.domain.Parameter;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.core.operator.repository.ParameterRepository;
@@ -44,7 +45,7 @@ public class OperatorServiceImpl implements OperatorService {
 
         // Check if operatorCode is unique
         if (request.getOperatorCode() != null && operatorRepository.existsByOperatorCode(request.getOperatorCode())) {
-            throw new IllegalArgumentException("Operator code '" + request.getOperatorCode() + "' already exists");
+            throw new BadRequestException("算子编码已存在，请修改后重试");
         }
 
         Operator operator = new Operator();
@@ -113,7 +114,7 @@ public class OperatorServiceImpl implements OperatorService {
         // Check if operatorCode is unique (if changed)
         if (request.getOperatorCode() != null && !request.getOperatorCode().equals(operator.getOperatorCode())) {
             if (operatorRepository.existsByOperatorCode(request.getOperatorCode())) {
-                throw new IllegalArgumentException("Operator code '" + request.getOperatorCode() + "' already exists");
+                throw new BadRequestException("算子编码已存在，请修改后重试");
             }
             operator.setOperatorCode(request.getOperatorCode());
         }
