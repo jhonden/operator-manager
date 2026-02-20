@@ -77,6 +77,7 @@ export interface Operator {
   objectCode: string;
   dataFormat?: string;
   generator?: Generator;
+  businessLogic?: string;
 }
 
 export type ParameterType = 'STRING' | 'INTEGER' | 'FLOAT' | 'BOOLEAN' | 'JSON' | 'FILE' | 'DATE' | 'ARRAY';
@@ -262,6 +263,7 @@ export interface OperatorRequest {
   objectCode: string;
   dataFormat?: string;
   generator?: Generator;
+  businessLogic?: string;
 }
 
 export interface ParameterRequest {

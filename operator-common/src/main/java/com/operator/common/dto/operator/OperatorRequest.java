@@ -60,4 +60,6 @@ public class OperatorRequest {
     private String dataFormat;
 
     private String generator;
+
+    private String businessLogic;
 }

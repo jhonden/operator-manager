@@ -60,6 +60,7 @@ public class OperatorServiceImpl implements OperatorService {
         operator.setObjectCode(request.getObjectCode());
         operator.setDataFormat(request.getDataFormat());
         operator.setGenerator(request.getGenerator());
+        operator.setBusinessLogic(request.getBusinessLogic());
 
         operator = operatorRepository.save(operator);
 
@@ -120,6 +121,9 @@ public class OperatorServiceImpl implements OperatorService {
         }
         if (request.getGenerator() != null) {
             operator.setGenerator(request.getGenerator());
+        }
+        if (request.getBusinessLogic() != null) {
+            operator.setBusinessLogic(request.getBusinessLogic());
         }
 
         operator.setUpdatedBy(username);
@@ -369,6 +373,7 @@ public class OperatorServiceImpl implements OperatorService {
                 .objectCode(operator.getObjectCode())
                 .dataFormat(operator.getDataFormat())
                 .generator(operator.getGenerator())
+                .businessLogic(operator.getBusinessLogic())
                 .build();
     }
 

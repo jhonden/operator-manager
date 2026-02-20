@@ -43,4 +43,5 @@ public class OperatorResponse {
     private String objectCode;
     private String dataFormat;
     private String generator;
+    private String businessLogic;
 }

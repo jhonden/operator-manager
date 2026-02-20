@@ -1,0 +1,295 @@
+// BusinessLogicEditor 和 BusinessLogicViewer 样式
+
+.business-logic-editor {
+  width: 100%;
+  min-height: 500px;
+  margin-bottom: 24px;
+
+  // ByteMD 编辑器容器
+  :global(.bytemd) {
+    height: 100%;
+    min-height: 500px;
+
+    // 编辑区域
+    :global(.bytemd-editor) {
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    // 预览区域
+    :global(.bytemd-preview) {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+
+      // 标题样式
+      h1, h2, h3, h4, h5, h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 2em;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3em;
+      }
+
+      h2 {
+        font-size: 1.5em;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3em;
+      }
+
+      h3 {
+        font-size: 1.25em;
+      }
+
+      // 代码块样式
+      pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow-x: auto;
+        margin: 16px 0;
+      }
+
+      code {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.85em;
+        background-color: rgba(175, 184, 193, 0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+      }
+
+      pre code {
+        background-color: transparent;
+        padding: 0;
+      }
+
+      // 表格样式
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 16px 0;
+
+        th, td {
+          padding: 8px 12px;
+          border: 1px solid #d0d7de;
+          text-align: left;
+        }
+
+        th {
+          background-color: #f6f8fa;
+          font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+          background-color: #f6f8fa;
+        }
+
+        tr:hover {
+          background-color: #eaecef;
+        }
+      }
+
+      // 列表样式
+      ul, ol {
+        padding-left: 24px;
+        margin: 16px 0;
+
+        li {
+          margin: 8px 0;
+        }
+      }
+
+      // 引用样式
+      blockquote {
+        border-left: 4px solid #dfe2e5;
+        padding: 0 16px;
+        color: #6a737d;
+        margin: 16px 0;
+      }
+
+      // Mermaid 图表样式
+      :global(.mermaid) {
+        text-align: center;
+        margin: 24px 0;
+        padding: 16px;
+        background-color: #ffffff;
+        border: 1px solid #eaecef;
+        border-radius: 6px;
+      }
+
+      // 链接样式
+      a {
+        color: #0969da;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      // 图片样式
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        margin: 16px 0;
+      }
+    }
+  }
+}
+
+.business-logic-viewer {
+  width: 100%;
+  padding: 24px;
+  background-color: #ffffff;
+  border: 1px solid #eaecef;
+  border-radius: 6px;
+  margin-bottom: 24px;
+
+  // ByteMD 查看器样式（与编辑器预览区域保持一致）
+  :global(.bytemd) {
+    :global(.bytemd-preview) {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+
+      // 复用编辑器预览区域的样式
+      h1, h2, h3, h4, h5, h6 {
+        margin-top: 24px;
+        margin-bottom: 16px;
+        font-weight: 600;
+        line-height: 1.25;
+      }
+
+      h1 {
+        font-size: 2em;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3em;
+      }
+
+      h2 {
+        font-size: 1.5em;
+        border-bottom: 1px solid #eaecef;
+        padding-bottom: 0.3em;
+      }
+
+      h3 {
+        font-size: 1.25em;
+      }
+
+      // 代码块
+      pre {
+        background-color: #f6f8fa;
+        border-radius: 6px;
+        padding: 16px;
+        overflow-x: auto;
+        margin: 16px 0;
+      }
+
+      code {
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+        font-size: 0.85em;
+        background-color: rgba(175, 184, 193, 0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+      }
+
+      pre code {
+        background-color: transparent;
+        padding: 0;
+      }
+
+      // 表格
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 16px 0;
+
+        th, td {
+          padding: 8px 12px;
+          border: 1px solid #d0d7de;
+          text-align: left;
+        }
+
+        th {
+          background-color: #f6f8fa;
+          font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+          background-color: #f6f8fa;
+        }
+
+        tr:hover {
+          background-color: #eaecef;
+        }
+      }
+
+      // 列表
+      ul, ol {
+        padding-left: 24px;
+        margin: 16px 0;
+
+        li {
+          margin: 8px 0;
+        }
+      }
+
+      // 引用
+      blockquote {
+        border-left: 4px solid #dfe2e5;
+        padding: 0 16px;
+        color: #6a737d;
+        margin: 16px 0;
+      }
+
+      // Mermaid 图表
+      :global(.mermaid) {
+        text-align: center;
+        margin: 24px 0;
+        padding: 16px;
+        background-color: #ffffff;
+        border: 1px solid #eaecef;
+        border-radius: 6px;
+      }
+
+      // 链接
+      a {
+        color: #0969da;
+        text-decoration: none;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      // 图片
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 6px;
+        margin: 16px 0;
+      }
+    }
+  }
+}
+
+.business-logic-viewer-empty,
+.business-logic-viewer-loading {
+  width: 100%;
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 0;
+  background-color: #fafbfc;
+  border: 1px solid #eaecef;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}

@@ -9,20 +9,20 @@ import {
   Tabs,
   Table,
   message,
-  Modal,
   Popconfirm,
 } from 'antd';
 import {
   ArrowLeftOutlined,
   EditOutlined,
   DeleteOutlined,
-  PlayCircleOutlined,
   SettingOutlined,
   CodeOutlined,
+  BookOutlined,
 } from '@ant-design/icons';
-import type { Operator, Parameter, Version } from '@/types';
+import type { Operator } from '@/types';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
 import { operatorApi } from '@/api/operator';
+import BusinessLogicViewer from '@/components/editor/BusinessLogicViewer';
 
 // Helper function to convert data format codes to labels
 const formatDataFormat = (dataFormat?: string) => {
@@ -41,12 +41,10 @@ const { TabPane } = Tabs;
 const OperatorDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
   const [operator, setOperator] = useState<Operator | null>(null);
 
   const fetchOperator = async () => {
     if (!id) return;
-    setLoading(true);
     try {
       const response = await operatorApi.getOperator(Number(id));
       if (response.data) {
@@ -54,8 +52,6 @@ const OperatorDetailPage: React.FC = () => {
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to fetch operator');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -267,6 +263,10 @@ const OperatorDetailPage: React.FC = () => {
                 {operator.code || '// No code available'}
               </pre>
             </div>
+          </TabPane>
+
+          <TabPane tab={<span><BookOutlined /> 业务逻辑</span>} key="businessLogic">
+            <BusinessLogicViewer value={operator.businessLogic} />
           </TabPane>
 
         </Tabs>

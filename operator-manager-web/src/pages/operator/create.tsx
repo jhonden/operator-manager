@@ -16,6 +16,7 @@ import {
 import { ArrowLeftOutlined, SaveOutlined, SendOutlined } from '@ant-design/icons';
 import CodeEditor from '@/components/code/CodeEditor';
 import ParameterForm from '@/components/operator/ParameterForm';
+import BusinessLogicEditor from '@/components/editor/BusinessLogicEditor';
 import { operatorApi } from '@/api/operator';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
 
@@ -82,6 +83,7 @@ const OperatorCreatePage: React.FC = () => {
           objectCode: op.objectCode,
           dataFormat: op.dataFormat ? op.dataFormat.split(',') : [],
           generator: op.generator,
+          businessLogic: op.businessLogic,
           inputParameters: inputParams,
           outputParameters: outputParams,
         });
@@ -300,6 +302,14 @@ const OperatorCreatePage: React.FC = () => {
                     </Option>
                   ))}
                 </Select>
+              </Form.Item>
+
+              <Form.Item
+                label="业务逻辑"
+                name="businessLogic"
+                tooltip="使用 Markdown 描述算子的业务规则，支持 Mermaid 绘制流程图、序列图等"
+              >
+                <BusinessLogicEditor />
               </Form.Item>
 
               <Form.Item

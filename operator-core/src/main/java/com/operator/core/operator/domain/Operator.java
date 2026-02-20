@@ -88,6 +88,9 @@ public class Operator extends BaseEntity {
     @Column(name = "generator", length = 20)
     private String generator;
 
+    @Column(name = "business_logic", columnDefinition = "TEXT")
+    private String businessLogic;
+
     @OneToMany(mappedBy = "operator", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<Parameter> parameters = new ArrayList<>();
