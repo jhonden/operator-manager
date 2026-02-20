@@ -146,8 +146,7 @@ public class OperatorController {
 
         // Filter by language
         if (language != null && !language.isEmpty()) {
-            com.operator.core.operator.domain.Operator.LanguageType langFilter =
-                    com.operator.core.operator.domain.Operator.LanguageType.valueOf(language);
+            LanguageType langFilter = LanguageType.valueOf(language);
             filteredOperators = filteredOperators.stream()
                     .filter(op -> op.getLanguage() == langFilter)
                     .toList();
@@ -155,8 +154,7 @@ public class OperatorController {
 
         // Filter by status
         if (status != null && !status.isEmpty()) {
-            com.operator.core.operator.domain.Operator.OperatorStatus statusFilter =
-                    com.operator.core.operator.domain.Operator.OperatorStatus.valueOf(status);
+            OperatorStatus statusFilter = OperatorStatus.valueOf(status);
             filteredOperators = filteredOperators.stream()
                     .filter(op -> op.getStatus() == statusFilter)
                     .toList();
@@ -414,19 +412,17 @@ public class OperatorController {
 
     // Helper methods for enum conversion
 
-    private LanguageType convertToDtoLanguageType(
-            com.operator.core.operator.domain.Operator.LanguageType entityType) {
+    private LanguageType convertToDtoLanguageType(LanguageType entityType) {
         if (entityType == null) {
             return LanguageType.JAVA;
         }
-        return LanguageType.valueOf(entityType.name());
+        return entityType;
     }
 
-    private OperatorStatus convertToDtoOperatorStatus(
-            com.operator.core.operator.domain.Operator.OperatorStatus entityType) {
+    private OperatorStatus convertToDtoOperatorStatus(OperatorStatus entityType) {
         if (entityType == null) {
             return OperatorStatus.DRAFT;
         }
-        return OperatorStatus.valueOf(entityType.name());
+        return entityType;
     }
 }

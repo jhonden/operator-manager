@@ -6,7 +6,7 @@
 BACKEND_PORT=8080
 JAVA_VERSION_MIN=21
 
-echo "🚀 Starting Operator Manager Backend..."
+echo "🚀 Starting Operator Manager Backend (Local Mode - No Docker)..."
 
 # ========================================
 # 1. 检查 Java 和 Maven
@@ -60,18 +60,7 @@ else
 fi
 
 # ========================================
-# 3. 启动 Docker 服务
-# ========================================
-
-echo "📦 Starting Docker services (PostgreSQL, Redis, MinIO)..."
-docker-compose up -d
-
-# 等待服务就绪（等待数据库连接可用）
-echo "⏳ Waiting for Docker services to be ready..."
-sleep 8
-
-# ========================================
-# 4. 编译项目
+# 3. 编译项目
 # ========================================
 
 echo "🔨 Building project in operator-api directory..."
@@ -96,33 +85,14 @@ fi
 echo "✅ Build successful"
 
 # ========================================
-# 5. 启动应用
+# 4. 启动应用
 # ========================================
 
 echo "🎯 Starting backend application..."
 echo "   Running from: operator-api directory"
 echo "   Profile: dev"
 echo "   Port: $BACKEND_PORT"
+echo "   Mode: Local (No Docker)"
 
-# 在后台启动，这样不会阻塞后续操作
-nohup mvn spring-boot:run -Dspring-boot.run.profiles=dev > /tmp/backend.log 2>&1 &
-
-# 保存新的 PID
-BACKEND_PID=$!
-
-# 等待几秒，让服务有机会启动
-echo "⏳ Waiting for backend to start..."
-sleep 5
-
-# 验证服务是否成功启动
-if lsof -ti:$BACKEND_PORT -p > /dev/null 2>&1 | grep -q $BACKEND_PID; then
-    echo "✅ Backend started successfully (PID: $BACKEND_PID)"
-    echo ""
-    echo "📍 Access: http://localhost:$BACKEND_PORT/api"
-    echo "📄 Logs: tail -f /tmp/backend.log"
-    echo ""
-    echo "To stop: kill -9 $BACKEND_PID"
-else
-    echo "❌ Backend failed to start. Check /tmp/backend.log for details"
-    exit 1
-fi
+# 在前台启动，方便调试时查看日志
+mvn spring-boot:run -Dspring-boot.run.profiles=dev

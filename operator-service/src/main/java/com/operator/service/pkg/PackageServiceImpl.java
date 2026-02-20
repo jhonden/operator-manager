@@ -2,6 +2,7 @@ package com.operator.service.pkg;
 
 import com.operator.common.dto.pkg.*;
 import com.operator.common.enums.PackageStatus;
+import com.operator.common.enums.LanguageType;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
 import com.operator.core.operator.domain.Operator;
@@ -307,11 +308,10 @@ public class PackageServiceImpl implements PackageService {
         return PackageStatus.valueOf(entityType.name());
     }
 
-    private com.operator.common.enums.LanguageType convertToDtoLanguageType(
-            com.operator.core.operator.domain.Operator.LanguageType entityType) {
+    private LanguageType convertToDtoLanguageType(LanguageType entityType) {
         if (entityType == null) {
-            return com.operator.common.enums.LanguageType.JAVA;
+            return LanguageType.JAVA;
         }
-        return com.operator.common.enums.LanguageType.valueOf(entityType.name());
+        return entityType;
     }
 }

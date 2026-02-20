@@ -226,7 +226,7 @@ public class OperatorServiceImpl implements OperatorService {
         Operator operator = operatorRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", id));
 
-        Operator.OperatorStatus entityStatus = Operator.OperatorStatus.valueOf(status);
+        OperatorStatus entityStatus = OperatorStatus.valueOf(status);
         operator.setStatus(entityStatus);
         operator.setUpdatedBy(username);
 
@@ -399,31 +399,31 @@ public class OperatorServiceImpl implements OperatorService {
                 .build();
     }
 
-    private Operator.LanguageType convertToEntityLanguageType(LanguageType dtoType) {
+    private LanguageType convertToEntityLanguageType(LanguageType dtoType) {
         if (dtoType == null) {
-            return Operator.LanguageType.JAVA;
+            return LanguageType.JAVA;
         }
-        return Operator.LanguageType.valueOf(dtoType.name());
+        return dtoType;
     }
 
-    private LanguageType convertToDtoLanguageType(Operator.LanguageType entityType) {
+    private LanguageType convertToDtoLanguageType(LanguageType entityType) {
         if (entityType == null) {
             return LanguageType.JAVA;
         }
-        return LanguageType.valueOf(entityType.name());
+        return entityType;
     }
 
-    private Operator.OperatorStatus convertToEntityOperatorStatus(OperatorStatus dtoType) {
+    private OperatorStatus convertToEntityOperatorStatus(OperatorStatus dtoType) {
         if (dtoType == null) {
-            return Operator.OperatorStatus.DRAFT;
+            return OperatorStatus.DRAFT;
         }
-        return Operator.OperatorStatus.valueOf(dtoType.name());
+        return dtoType;
     }
 
-    private OperatorStatus convertToDtoOperatorStatus(Operator.OperatorStatus entityType) {
+    private OperatorStatus convertToDtoOperatorStatus(OperatorStatus entityType) {
         if (entityType == null) {
             return OperatorStatus.DRAFT;
         }
-        return OperatorStatus.valueOf(entityType.name());
+        return entityType;
     }
 }

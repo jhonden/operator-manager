@@ -91,18 +91,4 @@ public class Operator extends BaseEntity {
     @OneToMany(mappedBy = "operator", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<Parameter> parameters = new ArrayList<>();
-
-    /**
-     * Language type enum for operators
-     */
-    public enum LanguageType {
-        JAVA, PYTHON
-    }
-
-    /**
-     * Operator status enum
-     */
-    public enum OperatorStatus {
-        DRAFT, PUBLISHED, ARCHIVED
-    }
 }

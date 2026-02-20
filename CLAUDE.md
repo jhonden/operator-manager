@@ -8,6 +8,152 @@ This is a **Code Operator Management System** - a full-stack platform for managi
 
 ## Development Commands
 
+### Backend Development Workflow
+
+**重要：启动后端服务时请使用提供的脚本，不要直接执行 mvn 命令！**
+
+#### 启动后端服务
+
+**推荐方式：**
+```bash
+# 完整启动（Docker + PostgreSQL + Redis + MinIO）
+./start-backend.sh
+
+# 本地调试启动（仅 Spring Boot，无 Docker）
+./start-backend-local.sh
+```
+
+**脚本选择说明：**
+
+| 脚本 | 适用场景 | 特点 |
+|-------|---------|------|
+| `start-backend.sh` | 正常启动，需要 Docker 服务 | 1. 自动停止旧进程<br>2. 等待 Docker 就绪<br>3. 后台运行<br>4. 日志输出到文件 |
+| `start-backend-local.sh` | 本地调试，无 Docker | 1. 前台启动<br>2. 直接查看日志<br>3. 适合 IDE 调试 |
+
+**常见问题及解决方法：**
+
+| 问题 | 原因 | 解决方法 |
+|------|--------|----------|
+| 端口 8080 被占用 | 脚本会自动停止旧进程并验证 |
+| 找不到 main class | 从错误的目录启动（如在根目录）| 必须从 operator-api 目录启动 |
+| 编译失败 | 代码语法错误或依赖问题 | 检查错误信息并修复 |
+| Docker 服务未启动 | 数据库不可用 | 脚本会先启动 Docker 并等待 8 秒 |
+
+**手动启动（不推荐，仅在脚本出问题时使用）：**
+
+如果 `start-backend.sh` 脚本无法工作，可以手动执行以下步骤：
+
+1. **停止旧进程：**
+   ```bash
+   lsof -ti:8080 | xargs kill -9
+   ```
+
+2. **启动 Docker 服务：**
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **等待服务就绪（等待数据库连接可用）：**
+   ```bash
+   sleep 8
+   ```
+
+4. **清理编译缓存并编译：**
+   ```bash
+   cd operator-api
+   mvn clean package -DskipTests
+   ```
+
+5. **启动应用（从 operator-api 目录）：**
+   ```bash
+   cd operator-api
+   mvn spring-boot:run -Dspring-boot.run.profiles=dev
+   ```
+
+---
+
+#### 停止后端服务
+
+**推荐方式：**
+```bash
+# 使用脚本中输出的 PID 停止
+kill -9 <PID>
+```
+
+**手动停止：**
+```bash
+# 查找占用端口的进程
+lsof -ti:8080 | xargs kill -9
+```
+
+---
+
+#### Git 提交流程
+
+#### 查看修改
+
+```bash
+# 查看所有修改的文件
+git status
+
+# 查看未暂存的修改
+git diff
+
+# 查看暂存的文件
+git diff --cached
+```
+
+#### 暂存和提交
+
+```bash
+# 暂存所有修改的文件
+git add .
+
+# 查看即将提交的内容
+git status
+
+# 提交（包含中文 commit message）
+git commit -m "修复：算子列表查询 500 错误，移除 Operator 实体内部枚举定义，使用 common 模块枚举；添加新字段 operatorCode、objectCode、dataFormat、generator"
+
+# 提交（英文 commit message）
+git commit -m "fix: resolve GROOVY enum error, add operator basic fields (operatorCode, objectCode, dataFormat, generator)"
+
+# 提交并推送到远程仓库
+git push
+```
+
+#### 推送更改
+
+```bash
+# 推送当前分支到远程
+git push
+
+# 强制推送（如果需要）
+git push -f
+```
+
+#### 回滚和分支管理
+
+```bash
+# 查看所有分支
+git branch -a
+
+# 创建新分支
+git branch feature/new-feature
+
+# 切换分支
+git checkout feature/new-feature
+
+# 合并分支到 main
+git checkout main
+git merge feature/new-feature
+
+# 删除分支
+git branch -d feature/new-feature
+```
+
+---
+
 ### Quick Start
 
 ```bash
@@ -23,6 +169,8 @@ This is a **Code Operator Management System** - a full-stack platform for managi
 # Start Docker services (PostgreSQL, Redis, MinIO)
 docker-compose up -d
 ```
+
+---
 
 ### Backend Commands
 
@@ -40,6 +188,8 @@ java -jar operator-api/target/operator-api-1.0.0-SNAPSHOT.jar
 # Build without tests
 mvn clean install -DskipTests
 ```
+
+---
 
 ### Frontend Commands
 
@@ -60,6 +210,8 @@ npm run lint
 npm run lint:fix
 ```
 
+---
+
 ### Test Commands
 
 ```bash
@@ -73,6 +225,8 @@ cd tests
 ./02-auth-test.sh         # Authentication tests
 ./03-operator-crud-test.sh # Operator CRUD tests
 ```
+
+---
 
 ## Architecture
 
@@ -98,6 +252,8 @@ Frontend (React) → REST API → Controllers → Services → Repositories → 
                                     MinIO (File Storage)
 ```
 
+---
+
 ### Key Domain Entities
 
 All entities are in `operator-core/src/main/java/com/operator/core/`:
@@ -110,6 +266,8 @@ All entities are in `operator-core/src/main/java/com/operator/core/`:
 - **Marketplace**: MarketItem, Rating, Review
 - **Publishing**: PublishDestination, PublishHistory
 - **Audit**: AuditLog
+
+---
 
 ### API Controllers (All Complete)
 
@@ -124,6 +282,8 @@ All 8 controllers in `operator-api/src/main/java/com/operator/api/controller/`:
 7. **MarketController** - `/api/v1/market/*` (search, ratings, reviews, publish/unpublish)
 8. **UserController** - `/api/v1/users/*` (profile management, role/status updates)
 
+---
+
 ### Infrastructure Services
 
 All infrastructure components are in `operator-infrastructure/src/main/java/com/operator/infrastructure/`:
@@ -136,6 +296,8 @@ All infrastructure components are in `operator-infrastructure/src/main/java/com/
 - **Task Executor Service** (`scheduler/TaskExecutorService.java`) - Execution orchestration and cleanup
 - **WebSocket Handler** (`scheduler/TaskLogWebSocketHandler.java`) - Real-time logs and progress
 - **Publish Services** (`publisher/`) - REST and file-based publishing
+
+---
 
 ### Frontend Structure
 
@@ -150,6 +312,8 @@ operator-manager-web/src/
 ├── types/          # TypeScript type definitions
 └── App.tsx         # Root component
 ```
+
+---
 
 ## Configuration
 
@@ -167,6 +331,8 @@ Key configuration sections:
 - `minio` - MinIO storage settings
 - `jwt` - JWT token configuration
 
+---
+
 ### Database
 
 Initialize database:
@@ -179,6 +345,8 @@ Default admin credentials:
 - Username: `admin`
 - Password: `admin123`
 
+---
+
 ## Service URLs
 
 | Service | URL |
@@ -189,6 +357,8 @@ Default admin credentials:
 | PostgreSQL | localhost:5432 |
 | Redis | localhost:6379 |
 | MinIO Console | http://localhost:9001 |
+
+---
 
 ## Technology Stack
 
@@ -213,18 +383,23 @@ Default admin credentials:
 - Monaco Editor (code editor)
 - ECharts (charts)
 
+---
+
 ## Important Notes
 
 ### JWT Authentication
 
 All API endpoints except `/api/v1/auth/*` require a JWT token in the `Authorization` header:
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
+---
+
 ### Adding a New Feature
 
-1. **Backend** - Follow the established pattern:
+1. **Backend** - Follows established pattern:
    - Create entity in `operator-core` (domain package)
    - Create repository interface in `operator-core`
    - Create DTOs in `operator-api/src/main/java/com/operator/api/controller/dto/`
@@ -237,16 +412,22 @@ Authorization: Bearer <jwt_token>
    - Create page components in `pages/`
    - Add route to `App.tsx`
 
+---
+
 ### Testing
 
 The test framework uses shell scripts with curl for API testing:
+
 - Test utilities are in `tests/utils/` (logger.sh, assertions.sh)
 - API base URL: `http://localhost:8080/api/v1`
 - Test scripts must be executable: `chmod +x <script>.sh`
 
+---
+
 ### Error Handling
 
 All API responses use `ApiResponse<T>` wrapper with:
+
 - `success`: boolean
 - `message`: string
 - `data`: T | null
