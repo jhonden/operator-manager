@@ -223,7 +223,11 @@ const OperatorCreatePage: React.FC = () => {
           </Space>
         }
       >
-        <Steps current={currentStep} style={{ marginBottom: 32 }}>
+        <Steps
+          current={currentStep}
+          onChange={(current) => setCurrentStep(current)}
+          style={{ marginBottom: 32 }}
+        >
           {steps.map((step, index) => (
             <Step
               key={index}
