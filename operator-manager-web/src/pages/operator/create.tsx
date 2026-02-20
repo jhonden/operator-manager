@@ -73,6 +73,8 @@ const OperatorCreatePage: React.FC = () => {
             type: p.parameterType || p.type,
           }));
 
+        console.log('Setting form values, businessLogic:', op.businessLogic);
+
         form.setFieldsValue({
           name: op.name,
           description: op.description,
@@ -87,6 +89,8 @@ const OperatorCreatePage: React.FC = () => {
           inputParameters: inputParams,
           outputParameters: outputParams,
         });
+
+        console.log('Form values after set:', form.getFieldsValue(['businessLogic']));
       }
     } catch (error: any) {
       message.error(error.message || 'Failed to fetch operator');

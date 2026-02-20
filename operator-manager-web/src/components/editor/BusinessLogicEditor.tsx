@@ -43,6 +43,7 @@ const BusinessLogicEditor: React.FC<BusinessLogicEditorProps> = ({
   const plugins = React.useMemo(() => [gfm(), mermaid()], []);
 
   const handleChange = (val: string) => {
+    console.log('BusinessLogicEditor onChange triggered, value:', val);
     if (onChange) {
       onChange(val);
     }
