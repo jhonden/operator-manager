@@ -12,26 +12,65 @@
 
 在执行编译、打包、启动等与路径强相关的命令前，**必须先检查当前路径是否正确**，避免在错误目录下执行命令。
 
-**✅ 正确做法：**
+#### 项目根目录表示
+
+本规约使用 `$PROJECT_ROOT` 表示项目根目录。此变量的值为动态获取：
+
+**获取方式（按优先级）：**
+
+1. **环境变量**（最高优先级）
+   ```bash
+   # 在 ~/.zshrc 或 ~/.bash_profile 中设置
+   export OPERATOR_MANAGER_HOME=/path/to/operator-manager
+   ```
+
+2. **Git 仓库根目录检测**（默认方式）
+   ```bash
+   # 自动检测 Git 仓库根目录
+   git rev-parse --show-toplevel
+   ```
+
+3. **CLAUDE.md 文件检测**（备用方式）
+   ```bash
+   # 查找包含 CLAUDE.md 的目录
+   find . -maxdepth 3 -name "CLAUDE.md" -type f | head -1
+   ```
+
+#### AI 助手行为要求
+
+在会话开始时，AI 助手必须：
+1. 读取规约文档
+2. **动态获取并记住** `$PROJECT_ROOT` 的实际值
+3. **在后续所有命令中优先使用** `$PROJECT_ROOT` 而非硬编码路径
+4. 在执行路径相关命令前，检查当前目录是否为 `$PROJECT_ROOT`
+
+#### 正确做法
+
 ```bash
-# 执行前先检查路径
-pwd
-# 确认在项目根目录：/Users/gaowen/Code/operator-manager
-
-# 检查目标文件/脚本是否存在
-ls -la start-backend-local.sh
-
-# 然后再执行命令
+# ✅ 使用 $PROJECT_ROOT 变量
+cd $PROJECT_ROOT
 ./start-backend-local.sh
+
+# 或者在命令前检查
+if [ "$PWD" != "$PROJECT_ROOT" ]; then
+    echo "错误：当前目录不是项目根目录"
+    echo "请切换到项目根目录：$PROJECT_ROOT"
+    return 1
+fi
 ```
 
-**❌ 错误做法：**
+#### 错误做法
+
 ```bash
-# 不检查路径直接执行，可能已在 operator-api 目录下
-./start-backend-local.sh  # 错误：no such file or directory
+# ❌ 硬编码路径
+cd /Users/gaowen/Code/operator-manager
+
+# ❌ 不检查路径直接执行
+./start-backend-local.sh  # 可能不在项目根目录
 ```
 
-**需要检查路径的命令：**
+#### 需要检查路径的命令
+
 - 后端启动：`./start-backend-local.sh`、`./start-backend.sh`
 - 后端编译：`mvn clean install`
 - 前端启动：`npm run dev`
