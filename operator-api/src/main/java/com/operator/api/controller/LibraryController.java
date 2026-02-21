@@ -175,4 +175,76 @@ public class LibraryController {
 
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    /**
+     * 创建库文件（空文件）
+     */
+    @PostMapping(value = "/{libraryId}/files")
+    @Operation(summary = "创建库文件", description = "在公共库中创建新文件（空文件）")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<LibraryFileResponse>> createLibraryFile(
+            @Parameter(description = "公共库ID") @PathVariable(name = "libraryId") Long id,
+            @Valid @RequestBody LibraryFileCreateRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("创建库文件：libraryId={}, fileName={}", id, request.getFileName());
+
+        LibraryFileResponse response = libraryService.createLibraryFile(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("文件创建成功", response));
+    }
+
+    /**
+     * 更新库文件名
+     */
+    @PutMapping(value = "/{libraryId}/files/{fileId}")
+    @Operation(summary = "更新库文件名", description = "更新库文件的元数据（文件名）")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateLibraryFileName(
+            @Parameter(description = "公共库ID") @PathVariable(name = "libraryId") Long id,
+            @Parameter(description = "文件ID") @PathVariable(name = "fileId") Long fileId,
+            @Valid @RequestBody LibraryFileRenameRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新库文件名：libraryId={}, fileId={}, newFileName={}", id, fileId, request.getFileName());
+
+        libraryService.updateLibraryFileName(id, fileId, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("文件名更新成功"));
+    }
+
+    /**
+     * 更新库文件内容
+     */
+    @PutMapping(value = "/{libraryId}/files/{fileId}/content")
+    @Operation(summary = "更新库文件内容", description = "更新库文件的代码内容")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateLibraryFileContent(
+            @Parameter(description = "公共库ID") @PathVariable(name = "libraryId") Long id,
+            @Parameter(description = "文件ID") @PathVariable(name = "fileId") Long fileId,
+            @Valid @RequestBody LibraryFileContentUpdateRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新库文件内容：libraryId={}, fileId={}", id, fileId);
+
+        libraryService.updateLibraryFileContent(id, fileId, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("文件内容更新成功"));
+    }
+
+    /**
+     * 删除库文件
+     */
+    @DeleteMapping(value = "/{libraryId}/files/{fileId}")
+    @Operation(summary = "删除库文件", description = "删除公共库中的文件")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> deleteLibraryFile(
+            @Parameter(description = "公共库ID") @PathVariable(name = "libraryId") Long id,
+            @Parameter(description = "文件ID") @PathVariable(name = "fileId") Long fileId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("删除库文件：libraryId={}, fileId={}", id, fileId);
+
+        libraryService.deleteLibraryFile(id, fileId, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("文件删除成功"));
+    }
 }

@@ -48,4 +48,24 @@ public interface CommonLibraryService {
      * 根据分类获取公共库
      */
     Page<LibraryResponse> getLibrariesByCategory(String category, Pageable pageable);
+
+    /**
+     * 创建库文件（空文件，不包含代码）
+     */
+    LibraryFileResponse createLibraryFile(Long libraryId, LibraryFileCreateRequest request, String username);
+
+    /**
+     * 更新库文件元数据（文件名）
+     */
+    void updateLibraryFileName(Long libraryId, Long fileId, LibraryFileRenameRequest request, String username);
+
+    /**
+     * 更新库文件内容（代码）
+     */
+    void updateLibraryFileContent(Long libraryId, Long fileId, LibraryFileContentUpdateRequest request, String username);
+
+    /**
+     * 删除库文件
+     */
+    void deleteLibraryFile(Long libraryId, Long fileId, String username);
 }

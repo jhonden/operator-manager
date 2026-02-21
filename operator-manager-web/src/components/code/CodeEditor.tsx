@@ -32,6 +32,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
   const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const isUpdatingValueRef = useRef(false);  // 标记是否正在通过 setValue 更新内容
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -59,6 +60,11 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
 
     // Handle content changes
     const changeHandler = monacoEditor.onDidChangeModelContent(() => {
+      // 如果正在通过 setValue 更新内容，不触发 onChange 回调
+      if (isUpdatingValueRef.current) {
+        isUpdatingValueRef.current = false;  // 重置标志
+        return;
+      }
       const newValue = monacoEditor.getValue();
       onChange?.(newValue);
     });
@@ -73,6 +79,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   // Update editor content when value prop changes
   useEffect(() => {
     if (editor && value !== editor.getValue()) {
+      isUpdatingValueRef.current = true;  // 标记正在通过 setValue 更新
       editor.setValue(value);
     }
   }, [value, editor]);

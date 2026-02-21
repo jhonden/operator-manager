@@ -19,6 +19,7 @@ import {
   FileOutlined,
   SearchOutlined,
   ReloadOutlined,
+  CodeOutlined,
 } from '@ant-design/icons';
 import type { LibraryResponse, LibraryType } from '@/types/library';
 import { libraryApi } from '@/api/library';
@@ -133,6 +134,11 @@ const LibraryListPage: React.FC = () => {
     setEditModalVisible(true);
   };
 
+  // 编辑代码
+  const handleEditCode = (library: LibraryResponse) => {
+    window.location.href = `/libraries/${library.id}/code-editor`;
+  };
+
 
   // 新建
   const handleCreate = () => {
@@ -232,7 +238,7 @@ const LibraryListPage: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 200,
+      width: 260,
       fixed: 'right' as const,
       render: (_: any, record: LibraryResponse) => (
         <Space size="small">
@@ -251,6 +257,14 @@ const LibraryListPage: React.FC = () => {
             onClick={() => handleEdit(record)}
           >
             编辑
+          </Button>
+          <Button
+            type="link"
+            size="small"
+            icon={<CodeOutlined />}
+            onClick={() => handleEditCode(record)}
+          >
+            编辑代码
           </Button>
           <Popconfirm
             title="确认删除"

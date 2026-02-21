@@ -1,9 +1,6 @@
 package com.operator.service.library;
 
-import com.operator.common.dto.library.LibraryFileRequest;
-import com.operator.common.dto.library.LibraryFileResponse;
-import com.operator.common.dto.library.LibraryRequest;
-import com.operator.common.dto.library.LibraryResponse;
+import com.operator.common.dto.library.*;
 import com.operator.common.enums.LibraryType;
 import com.operator.common.exception.BadRequestException;
 import com.operator.common.exception.ResourceNotFoundException;
@@ -289,5 +286,82 @@ public class CommonLibraryServiceImpl implements CommonLibraryService {
                 .createdAt(file.getCreatedAt())
                 .updatedAt(file.getUpdatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public LibraryFileResponse createLibraryFile(Long libraryId, LibraryFileCreateRequest request, String username) {
+        log.info("创建库文件：libraryId={}, fileName={}", libraryId, request.getFileName());
+
+        CommonLibrary library = libraryRepository.findById(libraryId)
+                .orElseThrow(() -> new ResourceNotFoundException("公共库不存在"));
+
+        CommonLibraryFile file = CommonLibraryFile.builder()
+                .library(library)
+                .fileName(request.getFileName())
+                .code("")  // 创建空文件，不包含代码
+                .orderIndex(request.getOrderIndex() != null ? request.getOrderIndex() : 0)
+                .build();
+
+        file = libraryFileRepository.save(file);
+
+        log.info("库文件创建成功：fileId={}", file.getId());
+
+        return convertFileToResponse(file);
+    }
+
+    @Override
+    @Transactional
+    public void updateLibraryFileName(Long libraryId, Long fileId, LibraryFileRenameRequest request, String username) {
+        log.info("更新库文件名：libraryId={}, fileId={}, newFileName={}", libraryId, fileId, request.getFileName());
+
+        CommonLibraryFile file = libraryFileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("文件不存在"));
+
+        // 验证文件属于该库
+        if (file.getLibrary().getId().equals(libraryId)) {
+            file.setFileName(request.getFileName());
+            file.setUpdatedBy(username);
+            libraryFileRepository.save(file);
+            log.info("库文件名更新成功：fileId={}", fileId);
+        } else {
+            throw new BadRequestException("文件不属于该公共库");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateLibraryFileContent(Long libraryId, Long fileId, LibraryFileContentUpdateRequest request, String username) {
+        log.info("更新库文件内容：libraryId={}, fileId={}", libraryId, fileId);
+
+        CommonLibraryFile file = libraryFileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("文件不存在"));
+
+        // 验证文件属于该库
+        if (file.getLibrary().getId().equals(libraryId)) {
+            file.setCode(request.getCode());
+            file.setUpdatedBy(username);
+            libraryFileRepository.save(file);
+            log.info("库文件内容更新成功：fileId={}", fileId);
+        } else {
+            throw new BadRequestException("文件不属于该公共库");
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteLibraryFile(Long libraryId, Long fileId, String username) {
+        log.info("删除库文件：libraryId={}, fileId={}", libraryId, fileId);
+
+        CommonLibraryFile file = libraryFileRepository.findById(fileId)
+                .orElseThrow(() -> new ResourceNotFoundException("文件不存在"));
+
+        // 验证文件属于该库
+        if (file.getLibrary().getId().equals(libraryId)) {
+            libraryFileRepository.delete(file);
+            log.info("库文件删除成功：fileId={}", fileId);
+        } else {
+            throw new BadRequestException("文件不属于该公共库");
+        }
     }
 }

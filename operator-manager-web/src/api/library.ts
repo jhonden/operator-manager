@@ -65,4 +65,32 @@ export const libraryApi = {
       { params: { page, size } }
     );
   },
+
+  /**
+   * 创建库文件（空文件）
+   */
+  createLibraryFile: (libraryId: number, data: { fileName: string; orderIndex?: number }): Promise<ApiResponse<LibraryFileResponse>> => {
+    return request.post<ApiResponse<LibraryFileResponse>>(`/v1/libraries/${libraryId}/files`, data);
+  },
+
+  /**
+   * 更新库文件名
+   */
+  updateLibraryFileName: (libraryId: number, fileId: number, fileName: string): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(`/v1/libraries/${libraryId}/files/${fileId}`, { fileName });
+  },
+
+  /**
+   * 更新库文件内容
+   */
+  updateLibraryFileContent: (libraryId: number, fileId: number, code: string): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(`/v1/libraries/${libraryId}/files/${fileId}/content`, { code });
+  },
+
+  /**
+   * 删除库文件
+   */
+  deleteLibraryFile: (libraryId: number, fileId: number): Promise<ApiResponse<void>> => {
+    return request.delete<ApiResponse<void>>(`/v1/libraries/${libraryId}/files/${fileId}`);
+  },
 };
