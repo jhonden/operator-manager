@@ -338,6 +338,14 @@ operator-manager/
 | `MINIO_ACCESS_KEY` | MinIO access key | minioadmin |
 | `MINIO_SECRET_KEY` | MinIO secret key | minioadmin |
 
+## Requirements Documents
+
+需求设计文档（中文）：
+
+- [算子基本信息扩展需求设计](./docs/requirements/2026-02-20-算子基本信息扩展-需求设计.md)
+- [算子业务逻辑字段](./docs/requirements/2026-02-20-算子业务逻辑字段.md)
+- [算子包打包路径配置与公共库管理需求设计](./docs/requirements/2026-02-21-算子包打包路径配置与公共库管理-需求设计.md)
+
 ## Development Guide
 
 ### Adding a New Entity
