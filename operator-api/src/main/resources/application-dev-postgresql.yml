@@ -1,0 +1,90 @@
+operator:
+  storage:
+    type: local  # 使用本地存储，禁用 MinIO
+
+spring:
+  # 禁用 Redis
+  data:
+    redis:
+      enabled: false
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/operator_manager
+    username: operator_user
+    password: operator_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        default_schema: public
+        jdbc:
+          batch_size: 50
+          order_inserts: true
+          order_updates: true
+          open-in-view: false
+
+  # Jackson Configuration
+  jackson:
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: GMT+8
+    date-format: yyyy-MM-dd HH:mm:ss
+
+  # JWT Configuration
+  jwt:
+    secret: 5fZ2bE8xK9mP3qR7tU1wY4aC6dF8gH2jL5nO9pQ3sT6vW0zA4bD7eG1hJ5mN8pQ2s
+    expiration: 86400000  # 24 hours in milliseconds
+    refresh-expiration: 604800000  # 7 days in milliseconds
+
+  # Actuator Configuration
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health,info,metrics
+      base-path: /actuator
+    endpoint:
+      health:
+        show-details: always
+
+  # SpringDoc Configuration
+  springdoc:
+    api-docs:
+      path: /v3/api-docs
+    swagger-ui:
+      path: /swagger-ui.html
+      tags-sorter: alpha
+      operations-sorter: alpha
+      show-actuator: true
+
+  # Logging Configuration
+  logging:
+    level:
+      root: INFO
+      com.operator: DEBUG
+      org.springframework.web: INFO
+      org.springframework.security: INFO
+      org.hibernate.SQL: DEBUG
+      org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    pattern:
+      console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{traceId},%X{spanId}] %logger{36} - %msg%n'
+    file:
+      name: logs/operator-manager.log
+      max-size: 100MB
+      max-history: 30
+      total-size-cap: 3GB

@@ -2,11 +2,13 @@ package com.operator.api.controller;
 
 import com.operator.common.dto.pkg.PackageResponse;
 import com.operator.common.dto.pkg.PackageRequest;
+import com.operator.common.dto.library.*;
 import com.operator.common.dto.pkg.PackageOperatorRequest;
 import com.operator.common.dto.pkg.PackageOperatorResponse;
 import com.operator.common.dto.pkg.ReorderOperatorsRequest;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.common.utils.ApiResponse;
+import com.operator.service.library.CommonLibraryService;
 import com.operator.service.pkg.PackageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,6 +40,7 @@ import java.util.List;
 public class PackageController {
 
     private final PackageService packageService;
+    private final CommonLibraryService commonLibraryService;
 
     /**
      * Create a new operator package
@@ -285,5 +288,145 @@ public class PackageController {
         packageService.incrementDownloadCount(id);
 
         return ResponseEntity.ok(ApiResponse.success("Download count incremented"));
+    }
+
+    // ========== 公共库相关端点 ==========
+
+    /**
+     * 向算子包添加公共库
+     */
+    @PostMapping("/{id}/libraries")
+    @Operation(summary = "添加公共库到算子包", description = "向算子包添加公共库")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<LibraryPathConfigResponse>> addLibraryToPackage(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody AddLibraryToPackageRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("向算子包添加公共库：packageId={}, libraryId={}", id, request.getLibraryId());
+
+        LibraryPathConfigResponse response = packageService.addLibraryToPackage(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("公共库添加成功", response));
+    }
+
+    /**
+     * 从算子包移除公共库
+     */
+    @DeleteMapping("/{id}/libraries/{packageCommonLibraryId}")
+    @Operation(summary = "移除公共库", description = "从算子包移除公共库")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> removeLibraryFromPackage(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Parameter(description = "算子包-公共库关联ID") @PathVariable Long packageCommonLibraryId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("从算子包移除公共库：packageId={}, packageCommonLibraryId={}", id, packageCommonLibraryId);
+
+        packageService.removeLibraryFromPackage(id, packageCommonLibraryId, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("公共库移除成功"));
+    }
+
+    /**
+     * 获取算子包的打包路径配置
+     */
+    @GetMapping("/{id}/path-config")
+    @Operation(summary = "获取打包路径配置", description = "获取算子包的打包路径配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<PackagePathConfigResponse>> getPackagePathConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id) {
+        log.debug("获取算子包路径配置：packageId={}", id);
+
+        PackagePathConfigResponse response = packageService.getPackagePathConfig(id);
+
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    /**
+     * 更新算子包整体配置
+     */
+    @PutMapping("/{id}/config")
+    @Operation(summary = "更新算子包配置", description = "更新算子包的整体配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<PackagePathConfigResponse>> updatePackageConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody PackageConfigRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新算子包配置：packageId={}, template={}", id, request.getPackageTemplate());
+
+        PackagePathConfigResponse response = packageService.updatePackageConfig(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("算子包配置更新成功", response));
+    }
+
+    /**
+     * 更新算子打包路径配置
+     */
+    @PutMapping("/{id}/operators/{operatorId}/path-config")
+    @Operation(summary = "更新算子路径配置", description = "更新算子的打包路径配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateOperatorPathConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Parameter(description = "算子ID") @PathVariable Long operatorId,
+            @Valid @RequestBody OperatorPathConfigRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新算子路径配置：packageId={}, operatorId={}", id, operatorId);
+
+        packageService.updateOperatorPathConfig(id, operatorId, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("算子路径配置更新成功"));
+    }
+
+    /**
+     * 批量更新算子路径配置
+     */
+    @PutMapping("/{id}/operators/batch-path-config")
+    @Operation(summary = "批量更新算子路径配置", description = "批量更新算子的打包路径配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> batchUpdateOperatorPathConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody BatchPathConfigRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("批量更新算子路径配置：packageId={}", id);
+
+        packageService.batchUpdateOperatorPathConfig(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("批量更新算子路径配置成功"));
+    }
+
+    /**
+     * 更新公共库打包路径配置
+     */
+    @PutMapping("/{id}/libraries/{libraryId}/path-config")
+    @Operation(summary = "更新公共库路径配置", description = "更新公共库的打包路径配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateLibraryPathConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Parameter(description = "算子包-公共库关联ID") @PathVariable Long packageCommonLibraryId,
+            @Valid @RequestBody LibraryPathConfigRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新公共库路径配置：packageId={}, packageCommonLibraryId={}", id, packageCommonLibraryId);
+
+        packageService.updateLibraryPathConfig(id, packageCommonLibraryId, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("公共库路径配置更新成功"));
+    }
+
+    /**
+     * 批量更新公共库路径配置
+     */
+    @PutMapping("/{id}/libraries/batch-path-config")
+    @Operation(summary = "批量更新公共库路径配置", description = "批量更新公共库的打包路径配置")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> batchUpdateLibraryPathConfig(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody BatchPathConfigRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("批量更新公共库路径配置：packageId={}", id);
+
+        packageService.batchUpdateLibraryPathConfig(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("批量更新公共库路径配置成功"));
     }
 }

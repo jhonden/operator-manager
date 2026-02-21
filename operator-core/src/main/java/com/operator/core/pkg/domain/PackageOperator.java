@@ -54,4 +54,17 @@ public class PackageOperator extends BaseEntity {
 
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
+
+    /**
+     * 自定义打包路径
+     */
+    @Column(name = "custom_package_path", length = 500)
+    private String customPackagePath;
+
+    /**
+     * 是否使用自定义路径
+     */
+    @Column(name = "use_custom_path", nullable = false)
+    @Builder.Default
+    private Boolean useCustomPath = false;
 }

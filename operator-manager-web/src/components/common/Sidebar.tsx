@@ -2,9 +2,9 @@ import { Menu, Layout } from 'antd';
 import {
   CodeOutlined,
   AppstoreOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
-import useAuthStore from '@/stores/useAuthStore';
 
 const { Sider } = Layout;
 
@@ -18,7 +18,6 @@ interface Props {
 const Sidebar: React.FC<Props> = ({ collapsed }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuthStore();
 
   const menuItems = [
     {
@@ -47,6 +46,19 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
         },
       ],
     },
+    {
+      key: 'libraries-group',
+      label: 'Libraries',
+      type: 'group' as const,
+      children: [
+        {
+          key: '/libraries',
+          icon: <DatabaseOutlined />,
+          label: 'Common Libraries',
+          onClick: () => navigate('/libraries'),
+        },
+      ],
+    },
   ];
 
   // Get current selected key based on location
@@ -58,6 +70,9 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
     }
     if (path.startsWith('/packages')) {
       return '/packages';
+    }
+    if (path.startsWith('/libraries')) {
+      return '/libraries';
     }
 
     return path;

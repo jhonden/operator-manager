@@ -13,6 +13,7 @@ import OperatorCreatePage from './pages/operator/create';
 import PackageListPage from './pages/package/list';
 import PackageDetailPage from './pages/package/detail';
 import PackageCreatePage from './pages/package/create';
+import LibraryListPage from './pages/library/list';
 
 // Placeholder components for unimplemented pages
 const PlaceholderPage: React.FC<{ title: string }> = ({ title }) => (
@@ -65,6 +66,11 @@ function App() {
                 <Route path="create" element={<PackageCreatePage />} />
                 <Route path=":id" element={<PackageDetailPage />} />
                 <Route path=":id/edit" element={<PackageCreatePage />} />
+              </Route>
+
+              {/* Library routes */}
+              <Route path="libraries">
+                <Route index element={<LibraryListPage />} />
               </Route>
 
               {/* Execution routes */}

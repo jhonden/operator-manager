@@ -17,14 +17,16 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
     "com.operator.core.security.domain",
     "com.operator.core.operator.domain",
     "com.operator.core.pkg.domain",
-    "com.operator.core.publish.domain"
+    "com.operator.core.publish.domain",
+    "com.operator.core.library.domain"
 })
 @EnableJpaAuditing
 @EnableJpaRepositories(basePackages = {
     "com.operator.core.security.repository",
     "com.operator.core.operator.repository",
     "com.operator.core.pkg.repository",
-    "com.operator.core.publish.repository"
+    "com.operator.core.publish.repository",
+    "com.operator.core.library.repository"
 })
 public class OperatorManagerApplication {
 

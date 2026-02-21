@@ -1,6 +1,7 @@
 package com.operator.core.pkg.domain;
 
 import com.operator.core.domain.BaseEntity;
+import com.operator.core.library.domain.PackageCommonLibrary;
 import com.operator.common.enums.*;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -68,9 +69,24 @@ public class OperatorPackage extends BaseEntity {
     @Builder.Default
     private String version = "1.0";
 
+    /**
+     * 打包模板（legacy/modern/custom）
+     */
+    @Column(name = "package_template", length = 50)
+    @Builder.Default
+    private String packageTemplate = "legacy";
+
     @OneToMany(mappedBy = "operatorPackage", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("orderIndex ASC")
     private List<PackageOperator> packageOperators = new ArrayList<>();
+
+    /**
+     * 算子包-公共库关联列表
+     */
+    @OneToMany(mappedBy = "operatorPackage", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("orderIndex ASC")
+    @Builder.Default
+    private List<PackageCommonLibrary> packageCommonLibraries = new ArrayList<>();
 
     /**
      * Package status enum

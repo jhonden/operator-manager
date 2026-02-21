@@ -315,3 +315,25 @@ export interface ReviewRequest {
   content: string;
   rating?: number;
 }
+
+// Library types - from library.ts
+export type { LibraryType } from './library';
+export type {
+  LibraryRequest,
+  LibraryFileRequest,
+  LibraryResponse,
+  LibraryFileResponse,
+  PackagePathConfigRequest,
+  OperatorPathConfigRequest,
+  LibraryPathConfigRequest,
+  PackagePathConfigResponse,
+  OperatorPathConfigResponse,
+  LibraryPathConfigResponse,
+  AddLibraryToPackageRequest,
+  BatchPathConfigRequest,
+  PackagePreviewTreeNode,
+  PackagePreviewSource,
+  PackagePreviewConflict,
+  PackagePreviewResponse,
+  LibrarySearchRequest,
+} from './library';

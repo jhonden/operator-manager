@@ -29,5 +29,7 @@ public class PackageOperatorResponse {
     private String parameterMapping;
     private Boolean enabled;
     private String notes;
+    private String customPackagePath;
+    private Boolean useCustomPath;
     private LocalDateTime createdAt;
 }

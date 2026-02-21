@@ -1,16 +1,22 @@
 package com.operator.service.pkg;
 
+import com.operator.common.dto.library.*;
 import com.operator.common.dto.pkg.*;
+import com.operator.common.enums.LibraryType;
 import com.operator.common.enums.PackageStatus;
 import com.operator.common.enums.LanguageType;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
+import com.operator.core.library.domain.PackageCommonLibrary;
+import com.operator.core.library.repository.CommonLibraryRepository;
+import com.operator.core.library.repository.PackageCommonLibraryRepository;
 import com.operator.core.operator.domain.Operator;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.core.pkg.domain.OperatorPackage;
 import com.operator.core.pkg.domain.PackageOperator;
 import com.operator.core.pkg.repository.OperatorPackageRepository;
 import com.operator.core.pkg.repository.PackageOperatorRepository;
+import com.operator.service.library.PackagePathResolver;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +44,9 @@ public class PackageServiceImpl implements PackageService {
     private final OperatorPackageRepository packageRepository;
     private final PackageOperatorRepository packageOperatorRepository;
     private final OperatorRepository operatorRepository;
+    private final PackageCommonLibraryRepository packageCommonLibraryRepository;
+    private final CommonLibraryRepository commonLibraryRepository;
+    private final PackagePathResolver pathResolver;
 
     @Override
     @Transactional
@@ -266,13 +275,28 @@ public class PackageServiceImpl implements PackageService {
         response.setBusinessScenario(pkg.getBusinessScenario());
         response.setStatus(pkg.getStatus() != null ? pkg.getStatus().name() : null);
         response.setVersion(pkg.getVersion());
+        response.setPackageTemplate(pkg.getPackageTemplate());
         response.setOperators(loadPackageOperators(pkg.getId()));
+        response.setCommonLibraries(loadPackageCommonLibraries(pkg.getId()));
         return response;
     }
 
     private List<PackageOperatorResponse> loadPackageOperators(Long packageId) {
-        return packageOperatorRepository.findByOperatorPackageIdOrderByOrderIndexAsc(packageId).stream()
+        return packageOperatorRepository.findByOperatorPackageIdOrderByOrderIndexAscWithFetch(packageId).stream()
                 .map(this::mapPackageOperatorToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private List<LibraryPathConfigResponse> loadPackageCommonLibraries(Long packageId) {
+        PackagePathResolver.PackageTemplate packageTemplate = PackagePathResolver.PackageTemplate.LEGACY;
+        OperatorPackage pkg = packageRepository.findById(packageId).orElse(null);
+        if (pkg != null && pkg.getPackageTemplate() != null) {
+            packageTemplate = PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+        }
+
+        final PackagePathResolver.PackageTemplate template = packageTemplate;
+        return packageCommonLibraryRepository.findByOperatorPackageIdWithLibrary(packageId).stream()
+                .map(pcl -> convertToLibraryPathConfig(pcl, template))
                 .collect(Collectors.toList());
     }
 
@@ -288,6 +312,8 @@ public class PackageServiceImpl implements PackageService {
                 .parameterMapping(po.getParameterMapping())
                 .enabled(po.getEnabled())
                 .notes(po.getNotes())
+                .customPackagePath(po.getCustomPackagePath())
+                .useCustomPath(po.getUseCustomPath())
                 .createdAt(po.getCreatedAt())
                 .build();
     }
@@ -313,5 +339,290 @@ public class PackageServiceImpl implements PackageService {
             return LanguageType.JAVA;
         }
         return entityType;
+    }
+
+    // ========== 公共库相关方法 ==========
+
+    @Override
+    @Transactional
+    public LibraryPathConfigResponse addLibraryToPackage(Long packageId, AddLibraryToPackageRequest request, String username) {
+        log.info("向算子包添加公共库：packageId={}, libraryId={}", packageId, request.getLibraryId());
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        var commonLibrary = packageCommonLibraryRepository.findByOperatorPackageIdAndLibraryId(packageId, request.getLibraryId());
+        if (commonLibrary.isPresent()) {
+            throw new IllegalArgumentException("该公共库已存在于算子包中");
+        }
+
+        com.operator.core.library.domain.CommonLibrary library =
+                commonLibraryRepository.findById(request.getLibraryId())
+                        .orElseThrow(() -> new ResourceNotFoundException("公共库", request.getLibraryId()));
+
+        PackageCommonLibrary pcl = PackageCommonLibrary.builder()
+                .operatorPackage(pkg)
+                .library(library)
+                .version(request.getVersion())
+                .orderIndex(request.getOrderIndex())
+                .useCustomPath(false)
+                .build();
+
+        pcl = packageCommonLibraryRepository.save(pcl);
+
+        return convertToLibraryPathConfig(pcl, PackagePathResolver.PackageTemplate.LEGACY);
+    }
+
+    @Override
+    @Transactional
+    public void removeLibraryFromPackage(Long packageId, Long packageCommonLibraryId, String username) {
+        log.info("从算子包移除公共库：packageId={}, packageCommonLibraryId={}", packageId, packageCommonLibraryId);
+
+        PackageCommonLibrary pcl = packageCommonLibraryRepository.findById(packageCommonLibraryId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包-公共库关联", packageCommonLibraryId));
+
+        packageCommonLibraryRepository.delete(pcl);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PackagePathConfigResponse getPackagePathConfig(Long packageId) {
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+
+        // 获取算子配置
+        List<OperatorPathConfigResponse> operatorConfigs = packageOperatorRepository
+                .findByOperatorPackageIdOrderByOrderIndexAsc(packageId).stream()
+                .map(po -> convertToOperatorPathConfig(po, template))
+                .collect(Collectors.toList());
+
+        // 获取公共库配置
+        List<LibraryPathConfigResponse> libraryConfigs = packageCommonLibraryRepository
+                .findByOperatorPackageIdWithLibrary(packageId).stream()
+                .map(pcl -> convertToLibraryPathConfig(pcl, template))
+                .collect(Collectors.toList());
+
+        return PackagePathConfigResponse.builder()
+                .packageTemplate(pkg.getPackageTemplate())
+                .operatorConfigs(operatorConfigs)
+                .libraryConfigs(libraryConfigs)
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public PackagePathConfigResponse updatePackageConfig(Long packageId, PackageConfigRequest request, String username) {
+        log.info("更新算子包整体配置：packageId={}, template={}", packageId, request.getPackageTemplate());
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        // 更新打包模板
+        pkg.setPackageTemplate(request.getPackageTemplate());
+        pkg.setUpdatedBy(username);
+        packageRepository.save(pkg);
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(request.getPackageTemplate().toUpperCase());
+
+        // 更新算子路径配置
+        if (request.getOperatorConfigs() != null) {
+            for (OperatorPathConfigRequest config : request.getOperatorConfigs()) {
+                updateOperatorPathConfigInternal(packageId, config, template);
+            }
+        }
+
+        // 更新公共库路径配置
+        if (request.getLibraryConfigs() != null) {
+            for (LibraryPathConfigRequest config : request.getLibraryConfigs()) {
+                updateLibraryPathConfigInternal(packageId, config, template);
+            }
+        }
+
+        return getPackagePathConfig(packageId);
+    }
+
+    @Override
+    @Transactional
+    public void updateOperatorPathConfig(Long packageId, Long operatorId, OperatorPathConfigRequest request, String username) {
+        log.info("更新算子路径配置：packageId={}, operatorId={}", packageId, operatorId);
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+
+        updateOperatorPathConfigInternal(packageId, request, template);
+    }
+
+    @Override
+    @Transactional
+    public void batchUpdateOperatorPathConfig(Long packageId, BatchPathConfigRequest request, String username) {
+        log.info("批量更新算子路径配置：packageId={}", packageId);
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+
+        if (request.getUseRecommendedPath()) {
+            // 使用推荐路径
+            for (Long operatorId : request.getOperatorIds()) {
+                OperatorPathConfigRequest config = OperatorPathConfigRequest.builder()
+                        .useCustomPath(false)
+                        .build();
+                updateOperatorPathConfigByOperatorId(packageId, operatorId, config);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void updateLibraryPathConfig(Long packageId, Long packageCommonLibraryId, LibraryPathConfigRequest request, String username) {
+        log.info("更新公共库路径配置：packageId={}, packageCommonLibraryId={}", packageId, packageCommonLibraryId);
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+
+        updateLibraryPathConfigInternal(packageId, request, template);
+    }
+
+    @Override
+    @Transactional
+    public void batchUpdateLibraryPathConfig(Long packageId, BatchPathConfigRequest request, String username) {
+        log.info("批量更新公共库路径配置：packageId={}", packageId);
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        PackagePathResolver.PackageTemplate template =
+                PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
+
+        if (request.getUseRecommendedPath()) {
+            // 使用推荐路径
+            for (Long libraryId : request.getLibraryIds()) {
+                LibraryPathConfigRequest config = LibraryPathConfigRequest.builder()
+                        .libraryId(libraryId)
+                        .useCustomPath(false)
+                        .build();
+                updateLibraryPathConfigByLibraryId(packageId, libraryId, config);
+            }
+        }
+    }
+
+    // ========== 私有辅助方法 ==========
+
+    private void updateOperatorPathConfigInternal(Long packageId, OperatorPathConfigRequest request,
+                                             PackagePathResolver.PackageTemplate template) {
+        PackageOperator packageOperator = packageOperatorRepository
+                .findByOperatorPackageIdAndOperatorId(packageId, request.getOperatorId())
+                .orElseThrow(() -> new ResourceNotFoundException("算子包-算子关联", packageId));
+
+        if (request.getUseCustomPath() != null) {
+            packageOperator.setUseCustomPath(request.getUseCustomPath());
+        }
+        if (request.getCustomPackagePath() != null) {
+            packageOperator.setCustomPackagePath(request.getCustomPackagePath());
+        }
+        if (request.getOrderIndex() != null) {
+            packageOperator.setOrderIndex(request.getOrderIndex());
+        }
+
+        packageOperatorRepository.save(packageOperator);
+    }
+
+    private void updateOperatorPathConfigByOperatorId(Long packageId, Long operatorId, OperatorPathConfigRequest request) {
+        PackageOperator packageOperator = packageOperatorRepository
+                .findByOperatorPackageIdAndOperatorId(packageId, operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包-算子关联", packageId));
+
+        if (request.getUseCustomPath() != null) {
+            packageOperator.setUseCustomPath(request.getUseCustomPath());
+        }
+        if (request.getCustomPackagePath() != null) {
+            packageOperator.setCustomPackagePath(request.getCustomPackagePath());
+        }
+        if (request.getOrderIndex() != null) {
+            packageOperator.setOrderIndex(request.getOrderIndex());
+        }
+
+        packageOperatorRepository.save(packageOperator);
+    }
+
+    private void updateLibraryPathConfigInternal(Long packageId, LibraryPathConfigRequest request,
+                                             PackagePathResolver.PackageTemplate template) {
+        PackageCommonLibrary pcl = packageCommonLibraryRepository
+                .findByOperatorPackageIdAndLibraryId(packageId, request.getLibraryId())
+                .orElseThrow(() -> new ResourceNotFoundException("算子包-公共库关联", packageId));
+
+        if (request.getUseCustomPath() != null) {
+            pcl.setUseCustomPath(request.getUseCustomPath());
+        }
+        if (request.getCustomPackagePath() != null) {
+            pcl.setCustomPackagePath(request.getCustomPackagePath());
+        }
+        if (request.getOrderIndex() != null) {
+            pcl.setOrderIndex(request.getOrderIndex());
+        }
+
+        packageCommonLibraryRepository.save(pcl);
+    }
+
+    private void updateLibraryPathConfigByLibraryId(Long packageId, Long libraryId, LibraryPathConfigRequest request) {
+        PackageCommonLibrary pcl = packageCommonLibraryRepository
+                .findByOperatorPackageIdAndLibraryId(packageId, libraryId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包-公共库关联", packageId));
+
+        if (request.getUseCustomPath() != null) {
+            pcl.setUseCustomPath(request.getUseCustomPath());
+        }
+        if (request.getCustomPackagePath() != null) {
+            pcl.setCustomPackagePath(request.getCustomPackagePath());
+        }
+        if (request.getOrderIndex() != null) {
+            pcl.setOrderIndex(request.getOrderIndex());
+        }
+
+        packageCommonLibraryRepository.save(pcl);
+    }
+
+    private OperatorPathConfigResponse convertToOperatorPathConfig(PackageOperator packageOperator,
+                                                             PackagePathResolver.PackageTemplate template) {
+        Operator operator = packageOperator.getOperator();
+        String fileName = operator.getOperatorCode() + ".groovy";
+
+        return OperatorPathConfigResponse.builder()
+                .operatorId(operator.getId())
+                .operatorCode(operator.getOperatorCode())
+                .operatorName(operator.getName())
+                .currentPath(pathResolver.resolveOperatorPath(operator, packageOperator, template, fileName))
+                .recommendedPath(pathResolver.getRecommendedOperatorPath(template))
+                .useCustomPath(packageOperator.getUseCustomPath())
+                .orderIndex(packageOperator.getOrderIndex())
+                .build();
+    }
+
+    private LibraryPathConfigResponse convertToLibraryPathConfig(PackageCommonLibrary pcl,
+                                                             PackagePathResolver.PackageTemplate template) {
+        com.operator.core.library.domain.CommonLibrary library = pcl.getLibrary();
+
+        return LibraryPathConfigResponse.builder()
+                .libraryId(library.getId())
+                .libraryName(library.getName())
+                .libraryType(library.getLibraryType())
+                .version(pcl.getVersion())
+                .currentPath(pathResolver.resolveLibraryPath(library, pcl, template, "file"))
+                .recommendedPath(pathResolver.getRecommendedLibraryPath(template, library.getLibraryType()))
+                .useCustomPath(pcl.getUseCustomPath())
+                .orderIndex(pcl.getOrderIndex())
+                .build();
     }
 }

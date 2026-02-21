@@ -1,5 +1,18 @@
 import request from '@/utils/request';
-import type { ApiResponse, OperatorPackage, PackageRequest, PageResponse, PackageOperator } from '@/types';
+import type {
+  ApiResponse,
+  OperatorPackage,
+  PackageRequest,
+  PageResponse,
+  PackageOperator,
+  PackagePathConfigRequest,
+  PackagePathConfigResponse,
+  OperatorPathConfigRequest,
+  LibraryPathConfigRequest,
+  BatchPathConfigRequest,
+  AddLibraryToPackageRequest,
+  PackagePreviewResponse,
+} from '@/types';
 
 export const packageApi = {
   /**
@@ -155,5 +168,121 @@ export const packageApi = {
    */
   toggleFeatured: (id: number): Promise<ApiResponse<OperatorPackage>> => {
     return request.patch<ApiResponse<OperatorPackage>>(`/v1/packages/${id}/featured`);
+  },
+
+  // ========== 公共库和打包配置相关接口 ==========
+
+  /**
+   * 向算子包添加公共库
+   */
+  addLibraryToPackage: (
+    packageId: number,
+    data: AddLibraryToPackageRequest
+  ): Promise<ApiResponse<{ id: number; libraryId: number; version: string }>> => {
+    return request.post<ApiResponse<{ id: number; libraryId: number; version: string }>>(
+      `/v1/packages/${packageId}/libraries`,
+      data
+    );
+  },
+
+  /**
+   * 从算子包移除公共库
+   */
+  removeLibraryFromPackage: (
+    packageId: number,
+    packageCommonLibraryId: number
+  ): Promise<ApiResponse<void>> => {
+    return request.delete<ApiResponse<void>>(
+      `/v1/packages/${packageId}/libraries/${packageCommonLibraryId}`
+    );
+  },
+
+  /**
+   * 获取算子包的打包路径配置
+   */
+  getPackagePathConfig: (packageId: number): Promise<ApiResponse<PackagePathConfigResponse>> => {
+    return request.get<ApiResponse<PackagePathConfigResponse>>(
+      `/v1/packages/${packageId}/path-config`
+    );
+  },
+
+  /**
+   * 更新算子包整体配置
+   */
+  updatePackageConfig: (
+    packageId: number,
+    data: PackagePathConfigRequest
+  ): Promise<ApiResponse<PackagePathConfigResponse>> => {
+    return request.put<ApiResponse<PackagePathConfigResponse>>(
+      `/v1/packages/${packageId}/config`,
+      data
+    );
+  },
+
+  /**
+   * 更新算子打包路径配置
+   */
+  updateOperatorPathConfig: (
+    packageId: number,
+    operatorId: number,
+    data: OperatorPathConfigRequest
+  ): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/operators/${operatorId}/path-config`,
+      data
+    );
+  },
+
+  /**
+   * 批量更新算子路径配置
+   */
+  batchUpdateOperatorPathConfig: (
+    packageId: number,
+    data: BatchPathConfigRequest
+  ): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/operators/batch-path-config`,
+      data
+    );
+  },
+
+  /**
+   * 更新公共库打包路径配置
+   */
+  updateLibraryPathConfig: (
+    packageId: number,
+    packageCommonLibraryId: number,
+    data: LibraryPathConfigRequest
+  ): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/libraries/${packageCommonLibraryId}/path-config`,
+      data
+    );
+  },
+
+  /**
+   * 批量更新公共库路径配置
+   */
+  batchUpdateLibraryPathConfig: (
+    packageId: number,
+    data: BatchPathConfigRequest
+  ): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/libraries/batch-path-config`,
+      data
+    );
+  },
+
+  /**
+   * 获取打包预览
+   */
+  generatePreview: (
+    packageId: number,
+    template: 'legacy' | 'modern' | 'custom' = 'legacy'
+  ): Promise<ApiResponse<PackagePreviewResponse>> => {
+    return request.get<ApiResponse<PackagePreviewResponse>>(
+      `/v1/packages/${packageId}/preview`,
+      { params: { template } }
+    );
   },
 };

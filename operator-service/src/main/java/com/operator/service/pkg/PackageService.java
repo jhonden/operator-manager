@@ -1,6 +1,7 @@
 package com.operator.service.pkg;
 
 import com.operator.common.dto.*;
+import com.operator.common.dto.library.*;
 import com.operator.common.dto.pkg.*;
 import com.operator.common.utils.PageResponse;
 
@@ -89,4 +90,46 @@ public interface PackageService {
      * Increment download count
      */
     void incrementDownloadCount(Long id);
+
+    // ========== 公共库相关方法 ==========
+
+    /**
+     * 向算子包添加公共库
+     */
+    LibraryPathConfigResponse addLibraryToPackage(Long packageId, AddLibraryToPackageRequest request, String username);
+
+    /**
+     * 从算子包移除公共库
+     */
+    void removeLibraryFromPackage(Long packageId, Long packageCommonLibraryId, String username);
+
+    /**
+     * 获取算子包的打包路径配置
+     */
+    PackagePathConfigResponse getPackagePathConfig(Long packageId);
+
+    /**
+     * 更新算子包整体配置
+     */
+    PackagePathConfigResponse updatePackageConfig(Long packageId, PackageConfigRequest request, String username);
+
+    /**
+     * 更新算子打包路径配置
+     */
+    void updateOperatorPathConfig(Long packageId, Long operatorId, OperatorPathConfigRequest request, String username);
+
+    /**
+     * 批量更新算子打包路径配置
+     */
+    void batchUpdateOperatorPathConfig(Long packageId, BatchPathConfigRequest request, String username);
+
+    /**
+     * 更新公共库打包路径配置
+     */
+    void updateLibraryPathConfig(Long packageId, Long packageCommonLibraryId, LibraryPathConfigRequest request, String username);
+
+    /**
+     * 批量更新公共库打包路径配置
+     */
+    void batchUpdateLibraryPathConfig(Long packageId, BatchPathConfigRequest request, String username);
 }
