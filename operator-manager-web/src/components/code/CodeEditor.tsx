@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import * as monaco from 'monaco-editor';
 
+// 配置 Monaco Worker（避免 Web Worker 警告）
+// 对于 Groovy 等非官方语言，返回 undefined 避免警告
+(window as any).MonacoEnvironment = {
+  getWorkerUrl: () => undefined,
+  getWorker: () => undefined,
+};
+
 interface CodeEditorProps {
   language: 'java' | 'groovy' | 'javascript' | 'typescript';
   value?: string;
   onChange?: (value: string) => void;
+  onMount?: (editor: any) => void;
   height?: number | string;
   readOnly?: boolean;
   theme?: 'vs-light' | 'vs-dark';
@@ -17,6 +25,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
   language,
   value = '',
   onChange,
+  onMount,
   height = 500,
   readOnly = false,
   theme = 'vs-light',
@@ -44,6 +53,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({
     });
 
     setEditor(monacoEditor);
+
+    // 通知父组件编辑器已挂载
+    onMount?.(monacoEditor);
 
     // Handle content changes
     const changeHandler = monacoEditor.onDidChangeModelContent(() => {
