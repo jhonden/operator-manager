@@ -340,11 +340,7 @@ operator-manager/
 
 ## Requirements Documents
 
-需求设计文档（中文）：
-
-- [算子基本信息扩展需求设计](./docs/requirements/2026-02-20-算子基本信息扩展-需求设计.md)
-- [算子业务逻辑字段](./docs/requirements/2026-02-20-算子业务逻辑字段.md)
-- [算子包打包路径配置与公共库管理需求设计](./docs/requirements/2026-02-21-算子包打包路径配置与公共库管理-需求设计.md)
+需求设计文档（中文）：[点击查看](./docs/requirements/README.md)
 
 ## Development Guide
 
