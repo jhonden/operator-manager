@@ -76,8 +76,8 @@ export const libraryApi = {
   /**
    * 更新库文件名
    */
-  updateLibraryFileName: (libraryId: number, fileId: number, fileName: string): Promise<ApiResponse<void>> => {
-    return request.put<ApiResponse<void>>(`/v1/libraries/${libraryId}/files/${fileId}`, { fileName });
+  updateLibraryFileName: (libraryId: number, fileId: number, data: { fileName: string }): Promise<ApiResponse<void>> => {
+    return request.put<ApiResponse<void>>(`/v1/libraries/${libraryId}/files/${fileId}`, data);
   },
 
   /**
