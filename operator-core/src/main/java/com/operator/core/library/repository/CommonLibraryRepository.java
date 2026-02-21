@@ -50,6 +50,23 @@ public interface CommonLibraryRepository extends JpaRepository<CommonLibrary, Lo
     Page<CommonLibrary> searchLibraries(@Param("keyword") String keyword, Pageable pageable);
 
     /**
+     * 根据类型搜索公共库（按名称或描述）
+     */
+    @Query("SELECT l FROM CommonLibrary l WHERE " +
+           "l.libraryType = :libraryType AND (" +
+           "LOWER(l.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(l.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<CommonLibrary> searchLibrariesByType(@Param("libraryType") LibraryType libraryType,
+                                             @Param("keyword") String keyword,
+                                             Pageable pageable);
+
+    /**
+     * 根据类型查找公共库（分页）
+     */
+    @Query("SELECT l FROM CommonLibrary l WHERE l.libraryType = :libraryType")
+    Page<CommonLibrary> findByLibraryType(@Param("libraryType") LibraryType libraryType, Pageable pageable);
+
+    /**
      * 查找所有公共库及其文件
      */
     @Query("SELECT DISTINCT l FROM CommonLibrary l " +

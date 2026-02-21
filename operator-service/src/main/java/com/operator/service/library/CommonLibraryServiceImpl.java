@@ -164,6 +164,8 @@ public class CommonLibraryServiceImpl implements CommonLibraryService {
     @Transactional(readOnly = true)
     public PageResponse<LibraryResponse> searchLibraries(String keyword, String libraryType,
                                                      Integer page, Integer size) {
+        log.debug("搜索公共库：keyword={}, libraryType={}, page={}, size={}", keyword, libraryType, page, size);
+
         Pageable pageable = PageRequest.of(
                 page != null ? page : 0,
                 size != null ? size : 10,
@@ -171,11 +173,33 @@ public class CommonLibraryServiceImpl implements CommonLibraryService {
         );
 
         Page<CommonLibrary> libraryPage;
-        if (StringUtils.hasText(keyword)) {
-            libraryPage = libraryRepository.searchLibraries(keyword, pageable);
+
+        // 判断是否有 libraryType 参数
+        if (StringUtils.hasText(libraryType)) {
+            LibraryType type = LibraryType.valueOf(libraryType);
+            log.debug("按类型搜索：libraryType={}", type);
+            if (StringUtils.hasText(keyword)) {
+                // 同时按类型和关键词搜索
+                log.debug("同时按类型和关键词搜索");
+                libraryPage = libraryRepository.searchLibrariesByType(type, keyword, pageable);
+            } else {
+                // 仅按类型搜索
+                log.debug("仅按类型搜索");
+                libraryPage = libraryRepository.findByLibraryType(type, pageable);
+            }
         } else {
-            libraryPage = libraryRepository.findAll(pageable);
+            // 未指定类型，搜索所有
+            log.debug("搜索所有库");
+            if (StringUtils.hasText(keyword)) {
+                log.debug("按关键词搜索：keyword={}", keyword);
+                libraryPage = libraryRepository.searchLibraries(keyword, pageable);
+            } else {
+                log.debug("查询所有库（无过滤条件）");
+                libraryPage = libraryRepository.findAll(pageable);
+            }
         }
+
+        log.debug("查询结果：totalElements={}, contentSize={}", libraryPage.getTotalElements(), libraryPage.getContent().size());
 
         List<LibraryResponse> responses = libraryPage.getContent().stream()
                 .map(lib -> {
