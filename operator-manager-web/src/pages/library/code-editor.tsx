@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
-import { Button, message } from 'antd';
-import { PlusOutlined, DeleteOutlined, SaveOutlined, FileOutlined, CheckCircleOutlined, EditOutlined } from '@ant-design/icons';
+import { Button, message, Modal, Input } from 'antd';
+import { PlusOutlined, DeleteOutlined, SaveOutlined, FileOutlined, CheckCircleOutlined, EditOutlined, CheckOutlined } from '@ant-design/icons';
 import { libraryApi } from '@/api/library';
 import type { LibraryResponse, LibraryFileResponse } from '@/types/library';
 import CodeEditor from '@/components/code/CodeEditor';
@@ -28,6 +28,12 @@ const LibraryCodeEditorPage: React.FC = () => {
   const [activeFileIndex, setActiveFileIndex] = useState<number>(0);
   const [fileStates, setFileStates] = useState<FileState[]>([]);
   const activeFileIndexRef = useRef(activeFileIndex);  // 使用 ref 保存最新的 activeFileIndex
+
+  // 文件名编辑相关状态
+  const [addFileModalVisible, setAddFileModalVisible] = useState(false);
+  const [newFileName, setNewFileName] = useState('');
+  const [editingFileId, setEditingFileId] = useState<number | null>(null);  // 正在编辑文件名的文件 ID
+  const [editingFileName, setEditingFileName] = useState('');  // 编辑中的文件名
 
   // 加载公共库详情
   const fetchLibrary = async () => {
@@ -72,11 +78,27 @@ const LibraryCodeEditorPage: React.FC = () => {
     activeFileIndexRef.current = activeFileIndex;
   }, [activeFileIndex]);
 
-  // 添加文件（立即调用后端创建空文件）
-  const handleAddFile = async () => {
-    if (!library) return;
+  // 显示添加文件对话框
+  const handleShowAddFileModal = () => {
+    setNewFileName('');
+    setAddFileModalVisible(true);
+  };
 
-    const fileName = `File${fileStates.length + 1}.groovy`;
+  // 确认添加文件
+  const handleConfirmAddFile = async () => {
+    if (!library || !newFileName.trim()) {
+      message.warning('请输入文件名');
+      return;
+    }
+
+    // 检查文件名是否已存在
+    const fileNameExists = fileStates.some(state => state.data.fileName === newFileName.trim());
+    if (fileNameExists) {
+      message.warning('文件名已存在');
+      return;
+    }
+
+    const fileName = newFileName.trim();
     const orderIndex = fileStates.length;
 
     try {
@@ -102,6 +124,9 @@ const LibraryCodeEditorPage: React.FC = () => {
 
         // 选中新创建的文件
         setActiveFileIndex(orderIndex);
+
+        // 关闭对话框
+        setAddFileModalVisible(false);
         message.success('文件添加成功');
       } else {
         message.error('创建文件失败');
@@ -109,6 +134,70 @@ const LibraryCodeEditorPage: React.FC = () => {
     } catch (error: any) {
       message.error(error.message || '添加文件失败');
     }
+  };
+
+  // 取消添加文件
+  const handleCancelAddFile = () => {
+    setAddFileModalVisible(false);
+    setNewFileName('');
+  };
+
+  // 开始编辑文件名
+  const handleStartEditFileName = (fileId: number, fileName: string) => {
+    setEditingFileId(fileId);
+    setEditingFileName(fileName);
+  };
+
+  // 确认编辑文件名
+  const handleConfirmEditFileName = async () => {
+    if (!library || editingFileId === null) return;
+
+    const fileName = editingFileName.trim();
+    if (!fileName) {
+      message.warning('文件名不能为空');
+      return;
+    }
+
+    // 检查文件名是否与其他文件重复
+    const fileNameExists = fileStates.some(state =>
+      state.data.id !== editingFileId && state.data.fileName === fileName
+    );
+    if (fileNameExists) {
+      message.warning('文件名已存在');
+      return;
+    }
+
+    const fileState = fileStates.find(state => state.data.id === editingFileId);
+    if (!fileState || fileState.data.fileName === fileName) {
+      setEditingFileId(null);
+      setEditingFileName('');
+      return;
+    }
+
+    try {
+      await libraryApi.updateLibraryFileName(library.id, editingFileId, { fileName });
+
+      // 更新文件名
+      setFileStates(prevStates =>
+        prevStates.map(state =>
+          state.data.id === editingFileId
+            ? { ...state, data: { ...state.data, fileName } }
+            : state
+        )
+      );
+
+      message.success('文件名已保存');
+      setEditingFileId(null);
+      setEditingFileName('');
+    } catch (error: any) {
+      message.error(error.message || '保存文件名失败');
+    }
+  };
+
+  // 取消编辑文件名
+  const handleCancelEditFileName = () => {
+    setEditingFileId(null);
+    setEditingFileName('');
   };
 
   // 删除文件（立即调用后端删除）
@@ -124,34 +213,6 @@ const LibraryCodeEditorPage: React.FC = () => {
     } catch (error: any) {
       console.error('删除文件失败:', error);
       message.error(error.message || '删除文件失败');
-    }
-  };
-
-  // 更新文件名（失去焦点时自动保存）
-  const handleUpdateFileName = async (fileId: number, fileName: string) => {
-    if (!library) return;
-
-    const fileState = fileStates[fileId];
-    if (!fileState || fileState.data.fileName === fileName) return;
-
-    try {
-      await libraryApi.updateLibraryFileName(library.id, fileId, { fileName });
-
-      // 使用函数式更新确保状态一致性
-      setFileStates(prevStates => {
-        const newStates = [...prevStates];
-        if (newStates[fileId]) {
-          newStates[fileId] = {
-            data: { ...fileState.data, fileName },
-            isDirty: fileState.isDirty,  // 保持原有的草稿状态
-            isSaving: false,
-            originalCode: fileState.originalCode, // 保持 originalCode 不变
-          };
-        }
-        return newStates;
-      });
-    } catch (error: any) {
-      message.error(error.message || '保存文件名失败');
     }
   };
 
@@ -296,7 +357,7 @@ const LibraryCodeEditorPage: React.FC = () => {
               type="primary"
               size="small"
               icon={<PlusOutlined />}
-              onClick={handleAddFile}
+              onClick={handleShowAddFileModal}
             >
               添加文件
             </Button>
@@ -333,15 +394,58 @@ const LibraryCodeEditorPage: React.FC = () => {
                   </span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <div style={{ flex: 1, fontSize: 12 }}>
-                    <FileOutlined /> {state.data.fileName}
-                  </div>
+                  {editingFileId === state.data.id ? (
+                    // 编辑状态：显示输入框和确认按钮
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Input
+                        size="small"
+                        defaultValue={editingFileName}
+                        autoFocus
+                        onBlur={handleConfirmEditFileName}
+                        onChange={(e) => setEditingFileName(e.target.value)}
+                        onPressEnter={handleConfirmEditFileName}
+                        onClick={(e) => e.stopPropagation()}
+                        style={{ flex: 1 }}
+                      />
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<CheckOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleConfirmEditFileName();
+                        }}
+                        style={{ color: '#52c41a' }}
+                      />
+                    </div>
+                  ) : (
+                    // 非编辑状态：显示文件名和编辑按钮
+                    <>
+                      <div style={{ flex: 1, fontSize: 12, display: 'flex', alignItems: 'center' }}>
+                        <FileOutlined style={{ marginRight: 4 }} />
+                        {state.data.fileName}
+                      </div>
+                      <Button
+                        type="text"
+                        size="small"
+                        icon={<EditOutlined />}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartEditFileName(state.data.id, state.data.fileName);
+                        }}
+                        style={{ color: '#1890ff' }}
+                      />
+                    </>
+                  )}
                   <Button
                     type="text"
                     size="small"
                     danger
                     icon={<DeleteOutlined />}
-                    onClick={() => handleDeleteFile(state.data.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFile(state.data.id);
+                    }}
                   >
                     删除
                   </Button>
@@ -399,6 +503,24 @@ const LibraryCodeEditorPage: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* 添加文件对话框 */}
+      <Modal
+        title="添加文件"
+        open={addFileModalVisible}
+        onOk={handleConfirmAddFile}
+        onCancel={handleCancelAddFile}
+        okText="确定"
+        cancelText="取消"
+      >
+        <Input
+          placeholder="请输入文件名（例如：Example.groovy）"
+          value={newFileName}
+          onChange={(e) => setNewFileName(e.target.value)}
+          onPressEnter={handleConfirmAddFile}
+          autoFocus
+        />
+      </Modal>
     </div>
   );
 };
