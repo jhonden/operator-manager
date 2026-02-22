@@ -60,26 +60,32 @@
 
 #### 启动脚本
 
-- **本地模式（H2/PostgreSQL）**: `start-backend-local.sh`
+- **本地模式（支持 H2 和 PostgreSQL）**: `start-backend-local.sh`
+  - 默认使用 PostgreSQL（profile: postgresql）
+  - 使用 H2：`./start-backend-local.sh h2`
+  - 使用 PostgreSQL：`./start-backend-local.sh postgresql` 或 `./start-backend-local.sh`（默认）
 - **Docker 模式**: `start-backend.sh`
-- **专用 PostgreSQL 模式**: `start-backend-local-postgresql.sh`
 
 #### 启动要求
 
 - 使用提供的启动脚本，不要直接执行 `mvn spring-boot:run`
 - 脚本会自动处理进程清理、端口冲突等问题
+- 支持的 profile：h2（使用 H2 内存数据库）、postgresql（使用 PostgreSQL）
 
 ### 7.2 服务停止
 
 #### 停止脚本
 
 - **本地模式停止**: `stop-backend-local.sh`
+  - 默认停止 PostgreSQL（profile: postgresql）
+  - 停止 H2：`./stop-backend-local.sh h2`
+  - 停止 PostgreSQL：`./stop-backend-local.sh postgresql` 或 `./stop-backend-local.sh`（默认）
 
 #### 停止要求
 
 - 使用停止脚本前先检查服务是否在运行
 - 停止后必须确认进程已终止（再次检查端口）
-- 停止脚本支持指定 Profile 参数（默认 dev-postgresql）
+- 停止脚本支持指定 Profile 参数（默认 postgresql）
 
 #### 使用方式
 
