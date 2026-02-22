@@ -19,6 +19,8 @@ import {
   Form,
   Switch,
   Collapse,
+  Tree,
+  Alert,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -33,6 +35,9 @@ import {
   SettingOutlined,
   ReloadOutlined,
   ToolOutlined,
+  FolderOpenOutlined,
+  FileTextOutlined,
+  FileZipOutlined,
 } from '@ant-design/icons';
 import type {
   OperatorPackage,
@@ -293,27 +298,40 @@ const PackageDetailPage: React.FC = () => {
     }
   };
 
-  // 渲染路径预览树
-  const renderPreviewTree = (node: PackagePreviewTreeNode, level = 0) => {
-    const indent = level * 24;
-    return (
-      <div key={node.path} style={{ paddingLeft: indent }}>
-        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {node.type === 'directory' ? (
-            <FolderOutlined style={{ color: '#1890ff' }} />
-          ) : (
-            <FileOutlined style={{ color: '#52c41a' }} />
-          )}
-          <span>{node.path.split('/').pop()}</span>
-          {node.source && (
-            <Tag style={{ marginLeft: 8 }} color="blue">
-              {node.source.type === 'operator' ? '算子' : '库'}: {node.source.name}
-            </Tag>
-          )}
-        </span>
-        {node.children && node.children.map(child => renderPreviewTree(child, level + 1))}
-      </div>
-    );
+  // 将 PackagePreviewTreeNode 转换为 Tree 组件的数据格式
+  const convertToTreeData = (nodes: PackagePreviewTreeNode[]): any[] => {
+    return nodes.map(node => {
+      const fileName = node.path.split('/').pop() || node.path;
+
+      return {
+        title: (
+          <Space style={{ flex: 1 }}>
+            {node.source && (
+              <Tag style={{ marginLeft: 0 }} color={node.source.type === 'operator' ? 'blue' : 'purple'} size="small">
+                {node.source.type === 'operator' ? '算子' : '库'}
+              </Tag>
+            )}
+            <span style={{ fontSize: 13 }}>{fileName}</span>
+          </Space>
+        ),
+        key: node.path,
+        icon: node.type === 'directory'
+          ? <FolderOutlined style={{ color: '#1890ff' }} />
+          : <FileTextOutlined style={{ color: '#52c41a', fontSize: 12 }} />,
+        children: node.children ? convertToTreeData(node.children) : undefined,
+      };
+    });
+  };
+
+  // 自定义 Tree 节点的图标渲染
+  const getIcon = (node: any) => {
+    if (!node) return <FileTextOutlined />;
+
+    if (node.expanded) {
+      return <FolderOpenOutlined style={{ color: '#1890ff' }} />;
+    }
+
+    return node.icon || <FileTextOutlined style={{ color: '#52c41a', fontSize: 12 }} />;
   };
 
   if (!packageData) {
@@ -687,39 +705,58 @@ const PackageDetailPage: React.FC = () => {
               {/* 打包预览 */}
               <Card size="small" title="打包结构预览">
                 {preview ? (
-                  <div style={{ maxHeight: 400, overflowY: 'auto', background: '#fafafa', padding: 16 }}>
-                    <div style={{ marginBottom: 16 }}>
-                      <Text strong>{preview.packageName}/</Text>
-                    </div>
-                    {preview.structure.map(node => renderPreviewTree(node))}
+                  <div>
+                    {/* 冲突提示 */}
                     {preview.conflicts && preview.conflicts.length > 0 && (
-                      <div style={{ marginTop: 16 }}>
-                        <Text type="danger">
-                          ⚠️ 检测到 {preview.conflicts.length} 个冲突：
-                        </Text>
-                        <ul style={{ marginTop: 8 }}>
-                          {preview.conflicts.map((conflict, index) => (
-                            <li key={index}>
-                              <Text type="danger">{conflict.message}</Text>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      <Alert
+                        type="error"
+                        message={`检测到 ${preview.conflicts.length} 个冲突`}
+                        description={
+                          <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 20 }}>
+                            {preview.conflicts.map((conflict, index) => (
+                              <li key={index}>{conflict.message}</li>
+                            ))}
+                          </ul>
+                        }
+                        style={{ marginBottom: 16 }}
+                        showIcon
+                      />
                     )}
+
+                    {/* 警告提示 */}
                     {preview.warnings && preview.warnings.length > 0 && (
-                      <div style={{ marginTop: 16 }}>
-                        <Text type="warning">
-                          ⚠️ 检测到 {preview.warnings.length} 个警告：
-                        </Text>
-                        <ul style={{ marginTop: 8 }}>
-                          {preview.warnings.map((warning, index) => (
-                            <li key={index}>
-                              <Text type="warning">{warning}</Text>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                      <Alert
+                        type="warning"
+                        message={`检测到 ${preview.warnings.length} 个警告`}
+                        description={
+                          <ul style={{ marginTop: 8, marginBottom: 0, paddingLeft: 20 }}>
+                            {preview.warnings.map((warning, index) => (
+                              <li key={index}>{warning}</li>
+                            ))}
+                          </ul>
+                        }
+                        style={{ marginBottom: 16 }}
+                        showIcon
+                      />
                     )}
+
+                    {/* 文件树 */}
+                    <div style={{
+                      maxHeight: 400,
+                      overflowY: 'auto',
+                      background: '#fafafa',
+                      padding: 16,
+                      borderRadius: 4,
+                      border: '1px solid #f0f0f0'
+                    }}>
+                      <Tree
+                        showIcon
+                        defaultExpandAll
+                        icon={getIcon}
+                        treeData={convertToTreeData(preview.structure)}
+                        style={{ background: 'transparent' }}
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div style={{ padding: '40px', textAlign: 'center' }}>
