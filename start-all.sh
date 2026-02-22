@@ -105,7 +105,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "📝 提示: 请关闭 Terminal 窗口来停止服务"
 
     else
-        echo "❌ 不支持的模式: $MODE"
+        echo "❌ 不支持的操作系统: $OSTYPE"
         exit 1
     fi
 
