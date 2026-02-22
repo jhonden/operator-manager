@@ -507,4 +507,22 @@ public class OperatorController {
         }
         return entityType;
     }
+
+    /**
+     * 批量更新算子公共库依赖
+     */
+    @PostMapping("/batch-library-dependencies")
+    @Operation(summary = "Batch update operator library dependencies", description = "Batch update library dependencies for multiple operators")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> batchUpdateLibraryDependencies(
+            @Valid @RequestBody BatchLibraryDependenciesRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("=== CONTROLLER: Batch update operator library dependencies: operatorIds={}, libraryIds={}, user={}",
+                request.getOperatorIds(), request.getLibraryIds(), userPrincipal.getUsername());
+
+        operatorService.batchUpdateLibraryDependencies(request, userPrincipal.getUsername());
+
+        log.info("=== CONTROLLER: Batch update operator library dependencies completed successfully");
+        return ResponseEntity.ok(ApiResponse.success("批量更新公共库依赖成功"));
+    }
 }

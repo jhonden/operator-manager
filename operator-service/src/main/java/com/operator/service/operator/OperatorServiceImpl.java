@@ -672,4 +672,65 @@ public class OperatorServiceImpl implements OperatorService {
                 .createdAt(dependency.getCreatedAt())
                 .build();
     }
+
+    @Override
+    @Transactional
+    public void batchUpdateLibraryDependencies(BatchLibraryDependenciesRequest request, String username) {
+        log.info("批量更新算子公共库依赖：operatorIds={}, libraryIds={}, user={}",
+                request.getOperatorIds(), request.getLibraryIds(), username);
+
+        for (Long operatorId : request.getOperatorIds()) {
+            // 获取算子
+            Operator operator = operatorRepository.findById(operatorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("算子不存在"));
+
+            // 获取算子当前依赖的公共库列表
+            List<OperatorCommonLibrary> currentLibraries = operatorCommonLibraryRepository.findByOperatorId(operatorId);
+            List<Long> currentLibraryIds = currentLibraries.stream()
+                    .map(d -> d.getLibrary().getId())
+                    .collect(Collectors.toList());
+
+            // 计算需要删除的库（A - A ∩ B）
+            List<Long> toDelete = currentLibraryIds.stream()
+                    .filter(id -> !request.getLibraryIds().contains(id))
+                    .collect(Collectors.toList());
+
+            // 计算需要添加的库（B - A ∩ B）
+            List<Long> toAdd = request.getLibraryIds().stream()
+                    .filter(id -> !currentLibraryIds.contains(id))
+                    .collect(Collectors.toList());
+
+            log.debug("Operator {}: currentLibraries={}, toDelete={}, toAdd={}",
+                    operatorId, currentLibraryIds, toDelete, toAdd);
+
+            // 如果没有需要删除和添加的库，跳过
+            if (toDelete.isEmpty() && toAdd.isEmpty()) {
+                log.info("Operator {} 的公共库依赖无需更新", operatorId);
+                continue;
+            }
+
+            // 删除该算子的所有依赖，然后重新添加所有需要的依赖
+            operatorCommonLibraryRepository.deleteByOperatorId(operatorId);
+            log.debug("Deleted all existing library dependencies for operator: {}", operatorId);
+
+            // 添加所有需要的依赖（仅添加请求中指定的库）
+            for (Long libraryId : request.getLibraryIds()) {
+                OperatorCommonLibrary dependency = OperatorCommonLibrary.builder()
+                        .operator(operator)
+                        .library(commonLibraryRepository.findById(libraryId)
+                                .orElseThrow(() -> new ResourceNotFoundException("公共库不存在")))
+                        .build();
+                operatorCommonLibraryRepository.save(dependency);
+                log.debug("Added library dependency: operatorId={}, libraryId={}", operatorId, libraryId);
+            }
+
+            // 自动同步到算子包（如果需要）
+            syncToPackages(operatorId);
+
+            log.info("批量更新算子公共库依赖完成：operatorId={}, deleted={}, added={}",
+                    operatorId, toDelete.size(), toAdd.size());
+        }
+
+        log.info("批量更新算子公共库依赖成功");
+    }
 }

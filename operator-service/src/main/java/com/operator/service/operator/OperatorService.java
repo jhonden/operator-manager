@@ -111,4 +111,9 @@ public interface OperatorService {
      * 移除公共库依赖
      */
     void removeLibraryDependency(Long operatorId, Long libraryId, String username);
+
+    /**
+     * 批量更新算子公共库依赖
+     */
+    void batchUpdateLibraryDependencies(BatchLibraryDependenciesRequest request, String username);
 }
