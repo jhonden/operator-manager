@@ -10,16 +10,17 @@ import {
   message,
   Popconfirm,
   Tooltip,
+  Modal,
 } from 'antd';
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
   EyeOutlined,
-  FileOutlined,
   SearchOutlined,
   ReloadOutlined,
   CodeOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import type { LibraryResponse, LibraryType } from '@/types/library';
 import { libraryApi } from '@/api/library';
@@ -65,6 +66,10 @@ const LibraryListPage: React.FC = () => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedLibrary, setSelectedLibrary] = useState<LibraryResponse | null>(null);
+
+  // 批量选择状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedLibraries, setSelectedLibraries] = useState<LibraryResponse[]>([]);
 
   // 获取公共库列表
   const fetchLibraries = async () => {
@@ -120,6 +125,60 @@ const LibraryListPage: React.FC = () => {
     } catch (error: any) {
       message.error(error.message || '删除公共库失败');
     }
+  };
+
+  // 批量选择处理
+  const handleRowSelectionChange = (selectedRowKeys: React.Key[], selectedRows: LibraryResponse[]) => {
+    console.log('[Library Page] 选择公共库, selectedRowKeys:', selectedRowKeys, 'selectedRows:', selectedRows);
+    setSelectedRowKeys(selectedRowKeys);
+    setSelectedLibraries(selectedRows);
+  };
+
+  // 批量删除公共库
+  const handleBatchDelete = async () => {
+    if (selectedLibraries.length === 0) {
+      message.warning('请先选择公共库');
+      return;
+    }
+
+    Modal.confirm({
+      title: '确认删除',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div>
+          <p>您确定要删除选中的 <strong>{selectedLibraries.length}</strong> 个公共库吗？</p>
+          <p style={{ color: '#ff4d4f', fontSize: '12px' }}>此操作不可恢复！</p>
+        </div>
+      ),
+      okText: '确定',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        console.log('[Library Page] 开始批量删除公共库, 数量:', selectedLibraries.length);
+        setLoading(true);
+        try {
+          // 循环调用单个删除接口
+          const deletePromises = selectedLibraries.map(library => {
+            console.log('[Library Page] 删除公共库, id:', library.id, 'name:', library.name);
+            return libraryApi.deleteLibrary(library.id);
+          });
+
+          await Promise.all(deletePromises);
+          message.success(`成功删除 ${selectedLibraries.length} 个公共库`);
+          console.log('[Library Page] 批量删除成功');
+
+          // 清空选择并刷新列表
+          setSelectedRowKeys([]);
+          setSelectedLibraries([]);
+          fetchLibraries();
+        } catch (error: any) {
+          console.error('[Library Page] 批量删除失败:', error);
+          message.error(error.message || '批量删除公共库失败');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   // 查看详情
@@ -297,13 +356,23 @@ const LibraryListPage: React.FC = () => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={handleCreate}
-          >
-            新建公共库
-          </Button>
+          <Space>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleBatchDelete}
+              disabled={selectedLibraries.length === 0}
+            >
+              批量删除
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={handleCreate}
+            >
+              新建公共库
+            </Button>
+          </Space>
         }
       >
         {/* 搜索和过滤 */}
@@ -347,6 +416,10 @@ const LibraryListPage: React.FC = () => {
           dataSource={libraries}
           rowKey="id"
           loading={loading}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: handleRowSelectionChange,
+          }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
