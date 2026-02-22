@@ -7,6 +7,11 @@ import com.operator.common.enums.OperatorStatus;
 import com.operator.common.enums.ParameterType;
 import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
+import com.operator.core.library.domain.CommonLibrary;
+import com.operator.core.library.domain.OperatorCommonLibrary;
+import com.operator.core.library.repository.CommonLibraryRepository;
+import com.operator.core.library.repository.OperatorCommonLibraryRepository;
+import com.operator.core.library.repository.CommonLibraryFileRepository;
 import com.operator.core.operator.domain.Operator;
 import com.operator.common.exception.BadRequestException;
 import com.operator.core.operator.domain.Parameter;
@@ -37,6 +42,9 @@ public class OperatorServiceImpl implements OperatorService {
 
     private final OperatorRepository operatorRepository;
     private final ParameterRepository parameterRepository;
+    private final OperatorCommonLibraryRepository operatorCommonLibraryRepository;
+    private final CommonLibraryRepository commonLibraryRepository;
+    private final CommonLibraryFileRepository commonLibraryFileRepository;
 
     @Override
     @Transactional
@@ -508,5 +516,99 @@ public class OperatorServiceImpl implements OperatorService {
             return OperatorStatus.DRAFT;
         }
         return entityType;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LibraryDependencyResponse> getOperatorLibraries(Long operatorId) {
+        log.info("Getting libraries for operator: {}", operatorId);
+
+        // 验证算子存在
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子不存在"));
+
+        // 获取算子依赖的公共库
+        List<OperatorCommonLibrary> dependencies = operatorCommonLibraryRepository
+                .findByOperatorIdWithLibrary(operatorId);
+
+        return dependencies.stream()
+                .map(this::mapToLibraryDependencyResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public LibraryDependencyResponse addLibraryDependency(Long operatorId, AddLibraryDependencyRequest request, String username) {
+        log.info("Adding library {} to operator {} by user: {}", request.getLibraryId(), operatorId, username);
+
+        // 验证算子存在
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子不存在"));
+
+        // 验证公共库存在
+        CommonLibrary library = commonLibraryRepository.findById(request.getLibraryId())
+                .orElseThrow(() -> new ResourceNotFoundException("公共库不存在"));
+
+        // 检查是否已经依赖该库
+        if (operatorCommonLibraryRepository.existsByOperatorIdAndLibraryId(operatorId, request.getLibraryId())) {
+            throw new BadRequestException("算子已依赖该公共库");
+        }
+
+        // 创建关联
+        OperatorCommonLibrary dependency = OperatorCommonLibrary.builder()
+                .operator(operator)
+                .library(library)
+                .build();
+
+        dependency = operatorCommonLibraryRepository.save(dependency);
+
+        return mapToLibraryDependencyResponse(dependency);
+    }
+
+    @Override
+    @Transactional
+    public void removeLibraryDependency(Long operatorId, Long libraryId, String username) {
+        log.info("Removing library {} from operator {} by user: {}", libraryId, operatorId, username);
+
+        // 验证算子存在
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子不存在"));
+
+        // 验证公共库存在
+        CommonLibrary library = commonLibraryRepository.findById(libraryId)
+                .orElseThrow(() -> new ResourceNotFoundException("公共库不存在"));
+
+        // 查找关联
+        List<OperatorCommonLibrary> dependencies = operatorCommonLibraryRepository.findByOperatorId(operatorId);
+        OperatorCommonLibrary dependency = dependencies.stream()
+                .filter(d -> d.getLibrary().getId().equals(libraryId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("算子未依赖该公共库"));
+
+        // 删除关联
+        operatorCommonLibraryRepository.delete(dependency);
+
+        log.info("Removed library dependency successfully");
+    }
+
+    private LibraryDependencyResponse mapToLibraryDependencyResponse(OperatorCommonLibrary dependency) {
+        CommonLibrary library = dependency.getLibrary();
+
+        // 获取文件数量
+        Integer fileCount = commonLibraryFileRepository
+                .findByLibraryIdOrderByOrderIndex(library.getId())
+                .size();
+
+        return LibraryDependencyResponse.builder()
+                .id(dependency.getId())
+                .libraryId(library.getId())
+                .libraryName(library.getName())
+                .libraryDescription(library.getDescription())
+                .version(library.getVersion())
+                .category(library.getCategory())
+                .libraryType(library.getLibraryType())
+                .fileCount(fileCount)
+                .createdAt(dependency.getCreatedAt())
+                .build();
     }
 }

@@ -242,7 +242,16 @@
    - 批量配置按钮
    - 打包预览功能
 
-3. **弹窗组件**
+3. **算子引用公共库（后端完成，前端待开发）**
+   - ✅ 后端 DTO：AddLibraryDependencyRequest、LibraryDependencyResponse
+   - ✅ 后端 Service：OperatorService 添加公共库依赖相关方法
+   - ✅ 后端 Controller：OperatorController 添加 API 接口
+   - ✅ 后端编译验证：BUILD SUCCESS
+   - ✅ 后端功能测试：所有测试通过
+   - ❌ 前端：算子编辑页面的"公共库依赖"标签页
+   - ❌ 前端：选择/移除公共库依赖
+
+4. **弹窗组件**
    - 路径编辑弹窗（支持变量提示）
    - 批量配置弹窗（算子/公共库）
 
@@ -327,5 +336,5 @@
 
 ---
 
-**最后更新时间**：2026-02-21
+**最后更新时间**：2026-02-22
 **更新人**：Claude Sonnet 4.5

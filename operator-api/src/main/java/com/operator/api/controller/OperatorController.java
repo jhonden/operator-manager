@@ -404,6 +404,57 @@ public class OperatorController {
     }
 
     /**
+     * 获取算子依赖的公共库列表
+     */
+    @GetMapping("/{id}/library-dependencies")
+    @Operation(summary = "Get operator libraries", description = "Get all libraries that the operator depends on")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<List<LibraryDependencyResponse>>> getOperatorLibraries(
+            @Parameter(description = "Operator ID") @PathVariable Long id) {
+        log.info("Getting libraries for operator: {}", id);
+
+        List<LibraryDependencyResponse> libraries = operatorService.getOperatorLibraries(id);
+
+        return ResponseEntity.ok(ApiResponse.success(libraries));
+    }
+
+    /**
+     * 添加公共库依赖
+     */
+    @PostMapping("/{id}/library-dependencies")
+    @Operation(summary = "Add library dependency", description = "Add a library dependency to the operator")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<LibraryDependencyResponse>> addLibraryDependency(
+            @Parameter(description = "Operator ID") @PathVariable Long id,
+            @Valid @RequestBody AddLibraryDependencyRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("Adding library {} to operator {} by user: {}", request.getLibraryId(), id, userPrincipal.getUsername());
+
+        LibraryDependencyResponse response = operatorService.addLibraryDependency(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success("公共库依赖添加成功", response));
+    }
+
+    /**
+     * 移除公共库依赖
+     */
+    @DeleteMapping("/{id}/library-dependencies/{libraryId}")
+    @Operation(summary = "Remove library dependency", description = "Remove a library dependency from the operator")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> removeLibraryDependency(
+            @Parameter(description = "Operator ID") @PathVariable Long id,
+            @Parameter(description = "Library ID") @PathVariable Long libraryId,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("Removing library {} from operator {} by user: {}", libraryId, id, userPrincipal.getUsername());
+
+        operatorService.removeLibraryDependency(id, libraryId, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("公共库依赖移除成功"));
+    }
+
+    /**
      * Convert Operator domain object to OperatorResponse DTO
      * This is a helper method used within getAllOperators for manual conversion
      */

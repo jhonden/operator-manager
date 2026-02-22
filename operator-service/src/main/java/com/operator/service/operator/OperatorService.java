@@ -96,4 +96,19 @@ public interface OperatorService {
      * Increment download count
      */
     void incrementDownloadCount(Long id);
+
+    /**
+     * 获取算子依赖的公共库列表
+     */
+    List<LibraryDependencyResponse> getOperatorLibraries(Long operatorId);
+
+    /**
+     * 添加公共库依赖
+     */
+    LibraryDependencyResponse addLibraryDependency(Long operatorId, AddLibraryDependencyRequest request, String username);
+
+    /**
+     * 移除公共库依赖
+     */
+    void removeLibraryDependency(Long operatorId, Long libraryId, String username);
 }
