@@ -49,21 +49,21 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "📱 Detected macOS"
 
     if [ "$MODE" == "local" ]; then
-        # 本地模式：使用 start-backend-local.sh 和 start-frontend.sh
+        # 本地模式：在新的 Terminal 窗口中启动服务
         echo "🔧 Starting backend (Local Mode - $DATABASE_TYPE)..."
-        bash start-backend-local.sh $PROFILE &
-        BACKEND_PID=$!
+        echo "🔧 Starting frontend..."
 
-        # 等待后端启动
-        echo "⏳ Waiting for backend to start..."
-        sleep 15
+        # 打开新的 Terminal 窗口并执行命令
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend-local.sh '"$1"'" &'
 
-        echo "🎨 Starting frontend..."
-        bash start-frontend.sh &
-        FRONTEND_PID=$!
+        # 等待一段时间让服务启动
+        sleep 20
+
+        # 在另一个新窗口中启动前端
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh"'
 
         echo ""
-        echo "✅ Services are starting in background..."
+        echo "✅ Services are starting in separate Terminal windows!"
         echo "📊 Backend API: http://localhost:8080"
         echo "📱 Frontend: http://localhost:5173"
         echo ""
@@ -71,90 +71,25 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "📚 API Documentation: http://localhost:8080/swagger-ui.html"
         echo ""
         echo "⚠️  Stop services: ./stop-all.sh $MODE $PROFILE"
-
-        # 监控进程
-        wait $BACKEND_PID $FRONTEND_PID
+        echo ""
+        echo "📝 提示: 请关闭 Terminal 窗口来停止服务"
 
     elif [ "$MODE" == "docker" ]; then
-        # Docker 模式：使用 start-backend.sh 和 start-frontend.sh
+        # Docker 模式：在新的 Terminal 窗口中启动服务
         echo "🐳 Starting backend (Docker Mode)..."
-        bash start-backend.sh &
-        BACKEND_PID=$!
+        echo "🔧 Starting frontend..."
 
-        # 等待后端启动
-        echo "⏳ Waiting for backend to start..."
-        sleep 15
+        # 打开新的 Terminal 窗口并执行命令
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend.sh"'
 
-        echo "🎨 Starting frontend..."
-        bash start-frontend.sh &
-        FRONTEND_PID=$!
+        # 等待一段时间让服务启动
+        sleep 20
 
-        echo ""
-        echo "✅ Services are starting in background..."
-        echo "📊 Backend API: http://localhost:8080"
-        echo "📱 Frontend: http://localhost:5173"
-        echo ""
-        echo "🐳 Docker Services:"
-        echo "   - PostgreSQL: localhost:5432"
-        echo "   - Redis: localhost:6379"
-        echo "   - MinIO: http://localhost:9000 (Console: http://localhost:9001)"
-        echo ""
-        echo "📚 API Documentation: http://localhost:8080/swagger-ui.html"
-        echo ""
-        echo "⚠️  Stop services: ./stop-all.sh $MODE"
-
-        # 监控进程
-        wait $BACKEND_PID $FRONTEND_PID
-
-    else
-        echo "❌ 不支持的模式: $MODE"
-        exit 1
-    fi
-
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    echo "📱 Detected Linux"
-
-    if [ "$MODE" == "local" ]; then
-        # Linux 本地模式
-        echo "🔧 Starting backend (Local Mode - $DATABASE_TYPE)..."
-        bash start-backend-local.sh $PROFILE &
-        BACKEND_PID=$!
-
-        echo "⏳ Waiting for backend to start..."
-        sleep 15
-
-        echo "🎨 Starting frontend..."
-        bash start-frontend.sh &
-        FRONTEND_PID=$!
+        # 在另一个新窗口中启动前端
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh"'
 
         echo ""
-        echo "✅ Services are starting in background..."
-        echo "📊 Backend API: http://localhost:8080"
-        echo "📱 Frontend: http://localhost:5173"
-        echo ""
-        echo "🔧 Backend Database: $DATABASE_TYPE"
-        echo "📚 API Documentation: http://localhost:8080/swagger-ui.html"
-        echo ""
-        echo "⚠️  Stop services: ./stop-all.sh $MODE $PROFILE"
-
-        # 监控进程
-        wait $BACKEND_PID $FRONTEND_PID
-
-    elif [ "$MODE" == "docker" ]; then
-        # Linux Docker 模式
-        echo "🐳 Starting backend (Docker Mode)..."
-        bash start-backend.sh &
-        BACKEND_PID=$!
-
-        echo "⏳ Waiting for backend to start..."
-        sleep 15
-
-        echo "🎨 Starting frontend..."
-        bash start-frontend.sh &
-        FRONTEND_PID=$!
-
-        echo ""
-        echo "✅ Services are starting in background..."
+        echo "✅ Services are starting in separate Terminal windows!"
         echo "📊 Backend API: http://localhost:8080"
         echo "📱 Frontend: http://localhost:5173"
         echo ""
@@ -166,20 +101,14 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "📚 API Documentation: http://localhost:8080/swagger-ui.html"
         echo ""
         echo "⚠️  Stop services: ./stop-all.sh $MODE $PROFILE"
-
-        # 监控进程
-        wait $BACKEND_PID $FRONTEND_PID
+        echo ""
+        echo "📝 提示: 请关闭 Terminal 窗口来停止服务"
 
     else
         echo "❌ 不支持的模式: $MODE"
         exit 1
     fi
-
-else
-    echo "❌ 不支持的操作系统: $OSTYPE"
-    echo "Please run start-backend.sh and start-frontend.sh separately in different terminals."
-    exit 1
-fi
 
 echo ""
 echo "✅ All services stopped"
+echo ""
