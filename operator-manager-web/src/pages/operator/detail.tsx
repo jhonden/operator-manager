@@ -21,6 +21,7 @@ import {
 } from '@ant-design/icons';
 import type { Operator } from '@/types';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
+import type { LibraryDependencyResponse, LibraryType } from '@/types/library';
 import { operatorApi } from '@/api/operator';
 import BusinessLogicViewer from '@/components/editor/BusinessLogicViewer';
 
@@ -42,6 +43,8 @@ const OperatorDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [operator, setOperator] = useState<Operator | null>(null);
+  const [libraries, setLibraries] = useState<LibraryDependencyResponse[]>([]);
+  const [librariesLoading, setLibrariesLoading] = useState(false);
 
   const fetchOperator = async () => {
     if (!id) return;
@@ -55,8 +58,29 @@ const OperatorDetailPage: React.FC = () => {
     }
   };
 
+  const fetchOperatorLibraries = async () => {
+    if (!id) return;
+    setLibrariesLoading(true);
+    try {
+      console.log('[Operator Detail Page] Fetching operator libraries for operatorId:', id);
+      const response = await operatorApi.getOperatorLibraries(Number(id));
+      console.log('[Operator Detail Page] Fetch operator libraries response:', response);
+
+      if (response.data) {
+        console.log('[Operator Detail Page] Operator libraries fetched:', response.data);
+        setLibraries(response.data);
+      }
+    } catch (error: any) {
+      console.error('[Operator Detail Page] Error fetching operator libraries:', error);
+      message.error(error.message || '获取公共库列表失败');
+    } finally {
+      setLibrariesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOperator();
+    fetchOperatorLibraries();
   }, [id]);
 
   const handleDelete = async () => {
@@ -120,6 +144,35 @@ const OperatorDetailPage: React.FC = () => {
     },
   ];
 
+  const libraryColumns = [
+    {
+      title: '公共库名称',
+      dataIndex: 'libraryName',
+      key: 'libraryName',
+      width: 200,
+    },
+    {
+      title: '类型',
+      dataIndex: 'libraryType',
+      key: 'libraryType',
+      width: 120,
+      render: (type: LibraryType) => {
+        const colorMap: Record<string, string> = {
+          CONSTANT: 'blue',
+          METHOD: 'green',
+          MODEL: 'purple',
+          CUSTOM: 'orange',
+        };
+        return <Tag color={colorMap[type]}>{type}</Tag>;
+      },
+    },
+    {
+      title: '描述',
+      dataIndex: 'libraryDescription',
+      key: 'libraryDescription',
+      ellipsis: true,
+    },
+  ];
 
   const inputParameters = operator.parameters?.filter((p) => p.ioType === 'INPUT' || p.direction === 'INPUT') || [];
   const outputParameters = operator.parameters?.filter((p) => p.ioType === 'OUTPUT' || p.direction === 'OUTPUT') || [];
@@ -267,6 +320,16 @@ const OperatorDetailPage: React.FC = () => {
                 {operator.code || '// No code available'}
               </pre>
             </div>
+          </TabPane>
+
+          <TabPane tab={<span><BookOutlined /> 代码库</span>} key="libraries">
+            <Table
+              loading={librariesLoading}
+              rowKey="id"
+              columns={libraryColumns}
+              dataSource={libraries}
+              pagination={false}
+            />
           </TabPane>
 
         </Tabs>
