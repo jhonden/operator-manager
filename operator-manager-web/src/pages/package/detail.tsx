@@ -30,6 +30,7 @@ import {
 import type { OperatorPackage, PackageOperator } from '@/types';
 import { packageApi } from '@/api/package';
 import { operatorApi } from '@/api/operator';
+import { t } from '@/utils/i18n';
 
 const { TabPane } = Tabs;
 const { Text } = Typography;
@@ -57,7 +58,7 @@ const PackageDetailPage: React.FC = () => {
         setOperators(response.data.operators || []);
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch package');
+      message.error(error.message || '获取算子包失败');
     }
   };
 
@@ -73,13 +74,13 @@ const PackageDetailPage: React.FC = () => {
         setAvailableOperators(available);
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch operators');
+      message.error(error.message || '获取算子列表失败');
     }
   };
 
   const handleAddOperator = async () => {
     if (!id || !selectedOperatorId) {
-      message.warning('Please select an operator');
+      message.warning('请选择一个算子');
       return;
     }
 
@@ -91,13 +92,13 @@ const PackageDetailPage: React.FC = () => {
         enabled: true,
         orderIndex: operators.length,
       });
-      message.success('Operator added to package successfully');
+      message.success('算子添加到包成功');
       setAddOperatorModalVisible(false);
       setSelectedOperatorId(undefined);
       addForm.resetFields();
       fetchPackage();
     } catch (error: any) {
-      message.error(error.response?.data?.error || error.message || 'Failed to add operator to package');
+      message.error(error.response?.data?.error || error.message || '添加算子到包失败');
     } finally {
       setAddOperatorLoading(false);
     }
@@ -116,10 +117,10 @@ const PackageDetailPage: React.FC = () => {
     if (!id) return;
     try {
       await packageApi.deletePackage(Number(id));
-      message.success('Package deleted successfully');
+      message.success('算子包删除成功');
       navigate('/packages');
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete package');
+      message.error(error.message || '删除算子包失败');
     }
   };
 
@@ -127,10 +128,10 @@ const PackageDetailPage: React.FC = () => {
     if (!id) return;
     try {
       await packageApi.updatePackageStatus(Number(id), 'PUBLISHED');
-      message.success('Package published successfully');
+      message.success('算子包发布成功');
       fetchPackage();
     } catch (error: any) {
-      message.error(error.message || 'Failed to publish package');
+      message.error(error.message || '发布算子包失败');
     }
   };
 
@@ -138,10 +139,10 @@ const PackageDetailPage: React.FC = () => {
     if (!id) return;
     try {
       await packageApi.removeOperator(Number(id), operatorId);
-      message.success('Operator removed from package');
+      message.success('算子已从包中移除');
       fetchPackage();
     } catch (error: any) {
-      message.error(error.message || 'Failed to remove operator');
+      message.error(error.message || '移除算子失败');
     }
   };
 
@@ -149,20 +150,20 @@ const PackageDetailPage: React.FC = () => {
     if (!id) return;
     try {
       await packageApi.reorderOperators(Number(id), operatorId, direction);
-      message.success('Operator reordered successfully');
+      message.success('算子重排序成功');
       fetchPackage();
     } catch (error: any) {
-      message.error(error.message || 'Failed to reorder operator');
+      message.error(error.message || '重排序算子失败');
     }
   };
 
   if (!packageData) {
-    return <div>Loading...</div>;
+    return <div>{t('common.loading')}</div>;
   }
 
   const operatorColumns = [
     {
-      title: 'Order',
+      title: '顺序',
       dataIndex: 'orderIndex',
       key: 'orderIndex',
       width: 80,
@@ -171,7 +172,7 @@ const PackageDetailPage: React.FC = () => {
       ),
     },
     {
-      title: 'Operator Name',
+      title: '算子名称',
       dataIndex: 'operatorName',
       key: 'operatorName',
       render: (name: string, record: PackageOperator) => (
@@ -179,7 +180,7 @@ const PackageDetailPage: React.FC = () => {
       ),
     },
     {
-      title: 'Language',
+      title: t('operator.language'),
       dataIndex: 'operatorLanguage',
       key: 'operatorLanguage',
       width: 100,
@@ -189,30 +190,30 @@ const PackageDetailPage: React.FC = () => {
       },
     },
     {
-      title: 'Version',
+      title: t('common.version'),
       dataIndex: 'versionNumber',
       key: 'versionNumber',
       width: 100,
     },
     {
-      title: 'Status',
+      title: '状态',
       dataIndex: 'enabled',
       key: 'enabled',
       width: 100,
       render: (enabled: boolean) => (
         <Tag color={enabled ? 'success' : 'default'}>
-          {enabled ? 'Enabled' : 'Disabled'}
+          {enabled ? '已启用' : '已禁用'}
         </Tag>
       ),
     },
     {
-      title: 'Notes',
+      title: '备注',
       dataIndex: 'notes',
       key: 'notes',
       ellipsis: true,
     },
     {
-      title: 'Actions',
+      title: t('common.actions'),
       key: 'actions',
       width: 180,
       render: (_: any, record: PackageOperator, index: number) => (
@@ -224,7 +225,7 @@ const PackageDetailPage: React.FC = () => {
             onClick={() => handleReorder(record.operatorId, 'up')}
             disabled={index === 0}
           >
-            Up
+            上移
           </Button>
           <Button
             type="link"
@@ -233,16 +234,16 @@ const PackageDetailPage: React.FC = () => {
             onClick={() => handleReorder(record.operatorId, 'down')}
             disabled={index === operators.length - 1}
           >
-            Down
+            下移
           </Button>
           <Popconfirm
-            title="Are you sure you want to remove this operator?"
+            title="确定要移除此算子吗？"
             onConfirm={() => handleRemoveOperator(record.operatorId)}
-            okText="Yes"
-            cancelText="No"
+            okText={t('common.yes')}
+            cancelText={t('common.no')}
           >
             <Button type="link" size="small" danger>
-              Remove
+              移除
             </Button>
           </Popconfirm>
         </Space>
@@ -261,7 +262,7 @@ const PackageDetailPage: React.FC = () => {
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate('/packages')}
             >
-              Back
+              {t('common.back')}
             </Button>
             {packageData.icon ? (
               <img
@@ -285,7 +286,7 @@ const PackageDetailPage: React.FC = () => {
               {packageData.status}
             </Tag>
             {packageData.featured && (
-              <Tag color="gold">Featured</Tag>
+              <Tag color="gold">精选</Tag>
             )}
           </Space>
         }
@@ -293,23 +294,23 @@ const PackageDetailPage: React.FC = () => {
           <Space>
             {packageData.status === 'DRAFT' && (
               <Button type="primary" onClick={handlePublish}>
-                Publish
+                {t('common.publish')}
               </Button>
             )}
             <Button
               icon={<EditOutlined />}
               onClick={() => navigate(`/packages/${packageData.id}/edit`)}
             >
-              Edit
+              {t('common.edit')}
             </Button>
             <Popconfirm
-              title="Are you sure you want to delete this package?"
+              title="确定要删除此算子包吗？"
               onConfirm={handleDelete}
-              okText="Yes"
-              cancelText="No"
+              okText={t('common.yes')}
+              cancelText={t('common.no')}
             >
               <Button danger icon={<DeleteOutlined />}>
-                Delete
+                {t('common.delete')}
               </Button>
             </Popconfirm>
           </Space>
@@ -319,36 +320,36 @@ const PackageDetailPage: React.FC = () => {
         <Row gutter={16}>
           <Col span={16}>
             <Descriptions column={1} bordered>
-              <Descriptions.Item label="Package Name">
+              <Descriptions.Item label="算子包名称">
                 {packageData.name}
               </Descriptions.Item>
-              <Descriptions.Item label="Business Scenario">
+              <Descriptions.Item label="业务场景">
                 {packageData.businessScenario}
               </Descriptions.Item>
-              <Descriptions.Item label="Description">
+              <Descriptions.Item label={t('common.description')}>
                 {packageData.description || '-'}
               </Descriptions.Item>
             </Descriptions>
           </Col>
           <Col span={8}>
-            <Card size="small" title="Statistics">
+            <Card size="small" title="统计信息">
               <Space direction="vertical" style={{ width: '100%' }}>
                 <div>
-                  <Text type="secondary">Total Operators</Text>
+                  <Text type="secondary">总算子数</Text>
                   <br />
                   <Text strong style={{ fontSize: 24 }}>
                     {packageData.operatorCount || 0}
                   </Text>
                 </div>
                 <div>
-                  <Text type="secondary">Downloads</Text>
+                  <Text type="secondary">下载次数</Text>
                   <br />
                   <Text strong style={{ fontSize: 24 }}>
                     {packageData.downloadsCount || 0}
                   </Text>
                 </div>
                 <div>
-                  <Text type="secondary">Status</Text>
+                  <Text type="secondary">状态</Text>
                   <br />
                   <Tag
                     color={
@@ -369,16 +370,16 @@ const PackageDetailPage: React.FC = () => {
         </Row>
         <div style={{ marginTop: 16 }}>
           <Descriptions column={2} bordered size="small">
-            <Descriptions.Item label="Created By">
+            <Descriptions.Item label={t('common.createdBy')}>
               {packageData.createdBy}
             </Descriptions.Item>
-            <Descriptions.Item label="Created At">
+            <Descriptions.Item label={t('common.createdAt')}>
               {new Date(packageData.createdAt).toLocaleString()}
             </Descriptions.Item>
-            <Descriptions.Item label="Updated At">
+            <Descriptions.Item label={t('common.updatedAt')}>
               {new Date(packageData.updatedAt).toLocaleString()}
             </Descriptions.Item>
-            <Descriptions.Item label="Version">
+            <Descriptions.Item label={t('common.version')}>
               {packageData.version || '-'}
             </Descriptions.Item>
           </Descriptions>
@@ -403,7 +404,7 @@ const PackageDetailPage: React.FC = () => {
                 icon={<PlusOutlined />}
                 onClick={handleOpenAddModal}
               >
-                Add Operator
+                添加算子
               </Button>
             </div>
             <Table
@@ -414,10 +415,10 @@ const PackageDetailPage: React.FC = () => {
             />
           </TabPane>
 
-          <TabPane tab="Data Flow" key="dataflow">
+          <TabPane tab="数据流" key="dataflow">
             <div style={{ padding: '24px', textAlign: 'center' }}>
               <Text type="secondary">
-                Data flow visualization coming soon...
+                数据流可视化即将推出...
               </Text>
             </div>
           </TabPane>
@@ -426,7 +427,7 @@ const PackageDetailPage: React.FC = () => {
 
       {/* Add Operator Modal */}
       <Modal
-        title="Add Operator to Package"
+        title="添加算子到包"
         open={addOperatorModalVisible}
         onOk={handleAddOperator}
         onCancel={() => {
@@ -439,12 +440,12 @@ const PackageDetailPage: React.FC = () => {
       >
         <Form form={addForm} layout="vertical">
           <Form.Item
-            label="Select Operator"
+            label="选择算子"
             name="operatorId"
-            rules={[{ required: true, message: 'Please select an operator' }]}
+            rules={[{ required: true, message: '请选择一个算子' }]}
           >
             <Select
-              placeholder="Select an operator"
+              placeholder="选择一个算子"
               showSearch
               filterOption={(input, option) =>
                 (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
@@ -465,7 +466,7 @@ const PackageDetailPage: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item label="Order Index">
+          <Form.Item label="顺序索引">
             <Input
               type="number"
               value={operators.length}

@@ -13,10 +13,10 @@ const RegisterPage: React.FC = () => {
   const onFinish = async (values: any) => {
     try {
       await register(values);
-      message.success('Registration successful');
+      message.success('注册成功');
       navigate('/login');
     } catch (error: any) {
-      message.error(error.message || 'Registration failed');
+      message.error(error.message || '注册失败');
     }
   };
 
@@ -29,7 +29,7 @@ const RegisterPage: React.FC = () => {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
     }}>
       <Card
-        title="Create Account"
+        title="创建账号"
         style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}
       >
         <Form
@@ -41,14 +41,14 @@ const RegisterPage: React.FC = () => {
           <Form.Item
             name="username"
             rules={[
-              { required: true, message: 'Please input your username!' },
-              { min: 3, message: 'Username must be at least 3 characters!' },
-              { pattern: /^[a-zA-Z0-9_]+$/, message: 'Username can only contain letters, numbers, and underscores!' }
+              { required: true, message: '请输入用户名' },
+              { min: 3, message: '用户名至少 3 个字符' },
+              { pattern: /^[a-zA-Z0-9_]+$/, message: '用户名只能包含字母、数字和下划线' }
             ]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Username"
+              placeholder="用户名"
               autoComplete="username"
             />
           </Form.Item>
@@ -56,24 +56,24 @@ const RegisterPage: React.FC = () => {
           <Form.Item
             name="email"
             rules={[
-              { required: true, message: 'Please input your email!' },
-              { type: 'email', message: 'Please enter a valid email address!' }
+              { required: true, message: '请输入邮箱地址' },
+              { type: 'email', message: '请输入有效的邮箱地址' }
             ]}
           >
             <Input
               prefix={<MailOutlined />}
-              placeholder="Email"
+              placeholder="邮箱地址"
               autoComplete="email"
             />
           </Form.Item>
 
           <Form.Item
             name="fullName"
-            rules={[{ required: true, message: 'Please input your full name!' }]}
+            rules={[{ required: true, message: '请输入真实姓名' }]}
           >
             <Input
               prefix={<UserOutlined />}
-              placeholder="Full Name"
+              placeholder="真实姓名"
               autoComplete="name"
             />
           </Form.Item>
@@ -81,13 +81,13 @@ const RegisterPage: React.FC = () => {
           <Form.Item
             name="password"
             rules={[
-              { required: true, message: 'Please input your password!' },
-              { min: 6, message: 'Password must be at least 6 characters!' }
+              { required: true, message: '请输入密码' },
+              { min: 6, message: '密码至少 6 个字符' }
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Password"
+              placeholder="密码"
               autoComplete="new-password"
             />
           </Form.Item>
@@ -96,32 +96,32 @@ const RegisterPage: React.FC = () => {
             name="confirmPassword"
             dependencies={['password']}
             rules={[
-              { required: true, message: 'Please confirm your password!' },
+              { required: true, message: '请确认密码' },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue('password') === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject(new Error('Passwords do not match!'));
+                  return Promise.reject(new Error('密码不匹配'));
                 },
               }),
             ]}
           >
             <Input.Password
               prefix={<LockOutlined />}
-              placeholder="Confirm Password"
+              placeholder="确认密码"
               autoComplete="new-password"
             />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
-              Register
+              注册
             </Button>
           </Form.Item>
 
           <div style={{ textAlign: 'center' }}>
-            Already have an account? <a onClick={() => navigate('/login')}>Log in</a>
+            已有账号？<a onClick={() => navigate('/login')}>登录</a>
           </div>
         </Form>
       </Card>
