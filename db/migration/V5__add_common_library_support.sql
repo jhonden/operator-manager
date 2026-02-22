@@ -12,7 +12,8 @@ CREATE TABLE common_libraries (
     library_type VARCHAR(50) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by BIGINT
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100)
 );
 
 -- 公共库文件表
@@ -25,7 +26,8 @@ CREATE TABLE common_library_files (
     order_index INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by BIGINT,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100),
     CONSTRAINT fk_library_file FOREIGN KEY (library_id)
         REFERENCES common_libraries(id) ON DELETE CASCADE
 );
@@ -37,6 +39,8 @@ CREATE TABLE operator_common_libraries (
     library_id BIGINT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100),
     CONSTRAINT fk_op_common_library FOREIGN KEY (operator_id)
         REFERENCES operators(id) ON DELETE CASCADE,
     CONSTRAINT fk_library_operator FOREIGN KEY (library_id)
@@ -52,6 +56,8 @@ CREATE TABLE package_common_libraries (
     order_index INTEGER,
     custom_package_path VARCHAR(500),
     use_custom_path BOOLEAN DEFAULT false,
+    created_by VARCHAR(100),
+    updated_by VARCHAR(100),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_pkg_common_library FOREIGN KEY (package_id)

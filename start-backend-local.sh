@@ -90,9 +90,9 @@ echo "✅ Build successful"
 
 echo "🎯 Starting backend application..."
 echo "   Running from: operator-api directory"
-echo "   Profile: dev"
+echo "   Profile: dev-postgresql"
 echo "   Port: $BACKEND_PORT"
 echo "   Mode: Local (No Docker)"
 
 # 在前台启动，方便调试时查看日志
-mvn spring-boot:run -Dspring-boot.run.profiles=dev
+mvn spring-boot:run -Dspring-boot.run.profiles=dev-postgresql
