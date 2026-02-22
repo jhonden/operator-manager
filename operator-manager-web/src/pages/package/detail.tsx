@@ -587,10 +587,12 @@ const PackageDetailPage: React.FC = () => {
             }
             key="libraries"
           >
-            <div style={{ marginBottom: 16, color: '#8c8c8c' }}>
-              <Text type="secondary">
-                公共库已从算子自动同步，无需手动添加或移除
-              </Text>
+            <div style={{ marginBottom: 16 }}>
+              <Space direction="vertical">
+                <Text type="secondary">
+                  公共库从算子自动同步，无需手动管理。可在「打包配置」标签页中配置打包路径。
+                </Text>
+              </Space>
             </div>
             {commonLibraries.length === 0 ? (
               <div style={{ padding: '40px', textAlign: 'center' }}>
@@ -611,7 +613,7 @@ const PackageDetailPage: React.FC = () => {
                     title: '类型',
                     dataIndex: 'libraryType',
                     key: 'libraryType',
-                    width: 120,
+                    width: 100,
                     render: (type: string) => {
                       const typeMap: Record<string, { color: string; label: string }> = {
                         CONSTANT: { color: 'blue', label: '常量' },
@@ -627,25 +629,21 @@ const PackageDetailPage: React.FC = () => {
                     title: '版本',
                     dataIndex: 'version',
                     key: 'version',
-                    width: 100,
+                    width: 80,
                   },
                   {
-                    title: '当前路径',
-                    dataIndex: 'currentPath',
-                    key: 'currentPath',
+                    title: '描述',
+                    dataIndex: 'description',
+                    key: 'description',
                     ellipsis: true,
-                    render: (path: string, record: any) => (
-                      <Space>
-                        <Text ellipsis style={{ maxWidth: 300 }}>{path}</Text>
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<EditOutlined />}
-                          onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
-                        >
-                          编辑
-                        </Button>
-                      </Space>
+                  },
+                  {
+                    title: '关联算子数',
+                    dataIndex: 'relatedOperators',
+                    key: 'relatedOperators',
+                    width: 120,
+                    render: (count?: number) => (
+                      <Tag color="cyan">{count || 0} 个算子</Tag>
                     ),
                   },
                 ]}

@@ -22,8 +22,10 @@ public class LibraryPathConfigResponse {
     private String libraryName;
     private LibraryType libraryType;
     private String version;
+    private String description;
     private String currentPath;
     private String recommendedPath;
     private Boolean useCustomPath;
     private Integer orderIndex;
+    private Integer relatedOperators;
 }

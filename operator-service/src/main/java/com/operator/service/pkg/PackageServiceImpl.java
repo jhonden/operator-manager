@@ -307,7 +307,11 @@ public class PackageServiceImpl implements PackageService {
 
         final PackagePathResolver.PackageTemplate template = packageTemplate;
         return packageCommonLibraryRepository.findByOperatorPackageIdWithLibrary(packageId).stream()
-                .map(pcl -> convertToLibraryPathConfig(pcl, template))
+                .map(pcl -> {
+                    Long libraryId = pcl.getLibrary().getId();
+                    long relatedCount = operatorCommonLibraryRepository.countByLibraryId(libraryId);
+                    return convertToLibraryPathConfig(pcl, template, (int) relatedCount);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -430,7 +434,11 @@ public class PackageServiceImpl implements PackageService {
         // 获取公共库配置
         List<LibraryPathConfigResponse> libraryConfigs = packageCommonLibraryRepository
                 .findByOperatorPackageIdWithLibrary(packageId).stream()
-                .map(pcl -> convertToLibraryPathConfig(pcl, template))
+                .map(pcl -> {
+                    Long libraryId = pcl.getLibrary().getId();
+                    long relatedCount = operatorCommonLibraryRepository.countByLibraryId(libraryId);
+                    return convertToLibraryPathConfig(pcl, template, (int) relatedCount);
+                })
                 .collect(Collectors.toList());
 
         return PackagePathConfigResponse.builder()
@@ -639,7 +647,8 @@ public class PackageServiceImpl implements PackageService {
     }
 
     private LibraryPathConfigResponse convertToLibraryPathConfig(PackageCommonLibrary pcl,
-                                                             PackagePathResolver.PackageTemplate template) {
+                                                             PackagePathResolver.PackageTemplate template,
+                                                             Integer relatedOperators) {
         com.operator.core.library.domain.CommonLibrary library = pcl.getLibrary();
 
         return LibraryPathConfigResponse.builder()
@@ -647,10 +656,12 @@ public class PackageServiceImpl implements PackageService {
                 .libraryName(library.getName())
                 .libraryType(library.getLibraryType())
                 .version(pcl.getVersion())
+                .description(library.getDescription())
                 .currentPath(pathResolver.resolveLibraryPath(library, pcl, template, "file"))
                 .recommendedPath(pathResolver.getRecommendedLibraryPath(template, library.getLibraryType()))
                 .useCustomPath(pcl.getUseCustomPath())
                 .orderIndex(pcl.getOrderIndex())
+                .relatedOperators(relatedOperators)
                 .build();
     }
 }

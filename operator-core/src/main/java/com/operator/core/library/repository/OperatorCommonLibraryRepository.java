@@ -49,4 +49,10 @@ public interface OperatorCommonLibraryRepository extends JpaRepository<OperatorC
      * 删除公共库的所有算子依赖
      */
     void deleteByLibraryId(Long libraryId);
+
+    /**
+     * 统计使用指定公共库的算子数量
+     */
+    @Query("SELECT COUNT(ocl) FROM OperatorCommonLibrary ocl WHERE ocl.library.id = :libraryId")
+    long countByLibraryId(@Param("libraryId") Long libraryId);
 }
