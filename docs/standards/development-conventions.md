@@ -54,6 +54,76 @@
 
 ---
 
+## 7. 服务管理规范
+
+### 7.1 服务启动
+
+#### 启动脚本
+
+- **本地模式（H2/PostgreSQL）**: `start-backend-local.sh`
+- **Docker 模式**: `start-backend.sh`
+- **专用 PostgreSQL 模式**: `start-backend-local-postgresql.sh`
+
+#### 启动要求
+
+- 使用提供的启动脚本，不要直接执行 `mvn spring-boot:run`
+- 脚本会自动处理进程清理、端口冲突等问题
+
+### 7.2 服务停止
+
+#### 停止脚本
+
+- **本地模式停止**: `stop-backend-local.sh`
+
+#### 停止要求
+
+- 使用停止脚本前先检查服务是否在运行
+- 停止后必须确认进程已终止（再次检查端口）
+- 停止脚本支持指定 Profile 参数（默认 dev-postgresql）
+
+#### 使用方式
+
+```bash
+# 默认使用 dev-postgresql
+./stop-backend-local.sh
+
+# 指定其他 profile
+./stop-backend-local.sh dev
+./stop-backend-local.sh h2
+```
+
+### 7.3 服务启动验证
+
+#### 7.3.1 启动服务
+
+- 使用提供的启动脚本：`start-backend-local.sh` 或 `start-backend.sh`
+- 不要直接执行 `mvn spring-boot:run`
+- 脚本会自动处理进程清理、端口冲突等问题
+
+#### 7.3.2 启动后行为
+
+**正确行为：**
+- ✅ 启动服务后**不要停止**
+- ✅ 等待用户自行验证
+- ✅ 用户测试功能、查看日志
+- ✅ 等待用户明确反馈
+
+**禁止行为：**
+- ❌ 启动后立即停止
+- ❌ 未经用户同意就重启服务
+- ❌ 频繁停止启动服务
+
+#### 7.3.3 停止服务时机
+
+**可以停止的情况：**
+- 用户明确要求停止
+- 用户确认功能测试完成
+- 需要重新编译启动（用户明确同意）
+
+**详细流程见**: [代码提交流程](./code-submission-workflow.md#3-服务启动验证)
+
+---
+
 ## 2. 后端开发规范
 
 ### 2.1 编码规范
