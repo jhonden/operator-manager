@@ -88,19 +88,14 @@ export interface OperatorFilters {
   status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
 }
 
-export interface PackageFilters {
-  keyword?: string;
-  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-}
-
 export interface Parameter {
   id: number;
   name: string;
   description?: string;
   type: ParameterType;
-  parameterType?: ParameterType; // Backend uses this
+  parameterType?: string; // Backend uses this
   direction?: 'INPUT' | 'OUTPUT'; // Frontend UI uses this
-  ioType?: 'INPUT' | 'OUTPUT'; // Backend API uses this
+  ioType?: 'INPUT' | 'OUTPUT'; // Backend API uses this (alias for direction)
   required?: boolean; // Frontend UI uses this
   isRequired?: boolean; // Backend API uses this
   defaultValue?: string;
@@ -327,7 +322,6 @@ export type {
   OperatorPathConfigRequest,
   LibraryPathConfigRequest,
   PackagePathConfigResponse,
-  OperatorPathConfigResponse,
   LibraryPathConfigResponse,
   AddLibraryToPackageRequest,
   BatchPathConfigRequest,
@@ -336,4 +330,6 @@ export type {
   PackagePreviewConflict,
   PackagePreviewResponse,
   LibrarySearchRequest,
+  LibraryDependencyResponse,
+  AddLibraryDependencyRequest,
 } from './library';

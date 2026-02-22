@@ -1,5 +1,6 @@
 import request from '@/utils/request';
 import type { ApiResponse, Operator, OperatorRequest, PageResponse, Parameter } from '@/types';
+import type { LibraryDependencyResponse, AddLibraryDependencyRequest } from '@/types/library';
 
 export const operatorApi = {
   /**
@@ -150,5 +151,29 @@ export const operatorApi = {
    */
   incrementDownload: (id: number): Promise<ApiResponse<void>> => {
     return request.post<ApiResponse<void>>(`/v1/operators/${id}/download`);
+  },
+
+  /**
+   * 获取算子依赖的公共库列表
+   */
+  getOperatorLibraries: (operatorId: number): Promise<ApiResponse<LibraryDependencyResponse[]>> => {
+    console.log('[Operator API] 获取算子依赖的公共库列表, operatorId:', operatorId);
+    return request.get<ApiResponse<LibraryDependencyResponse[]>>(`/v1/operators/${operatorId}/library-dependencies`);
+  },
+
+  /**
+   * 添加公共库依赖
+   */
+  addLibraryDependency: (operatorId: number, data: AddLibraryDependencyRequest): Promise<ApiResponse<LibraryDependencyResponse>> => {
+    console.log('[Operator API] 添加公共库依赖, operatorId:', operatorId, 'libraryId:', data.libraryId);
+    return request.post<ApiResponse<LibraryDependencyResponse>>(`/v1/operators/${operatorId}/library-dependencies`, data);
+  },
+
+  /**
+   * 移除公共库依赖
+   */
+  removeLibraryDependency: (operatorId: number, libraryId: number): Promise<ApiResponse<void>> => {
+    console.log('[Operator API] 移除公共库依赖, operatorId:', operatorId, 'libraryId:', libraryId);
+    return request.delete<ApiResponse<void>>(`/v1/operators/${operatorId}/library-dependencies/${libraryId}`);
   },
 };

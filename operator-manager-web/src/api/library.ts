@@ -3,6 +3,7 @@ import type { ApiResponse } from '@/types';
 import type {
   LibraryRequest,
   LibraryResponse,
+  LibraryFileResponse,
   LibrarySearchRequest,
   LibraryType,
 } from '@/types/library';
