@@ -44,7 +44,6 @@ echo ""
 # ========================================
 # 检查操作系统
 # ========================================
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo "📱 Detected macOS"
 
@@ -54,13 +53,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "🔧 Starting frontend..."
 
         # 打开新的 Terminal 窗口并执行命令
-        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend-local.sh '"$1"'" &'
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend-local.sh '"$PROFILE"' &"'
 
         # 等待一段时间让服务启动
         sleep 20
 
         # 在另一个新窗口中启动前端
-        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh"'
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh &"'
 
         echo ""
         echo "✅ Services are starting in separate Terminal windows!"
@@ -80,13 +79,13 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo "🔧 Starting frontend..."
 
         # 打开新的 Terminal 窗口并执行命令
-        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend.sh"'
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-backend.sh &"'
 
         # 等待一段时间让服务启动
         sleep 20
 
         # 在另一个新窗口中启动前端
-        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh"'
+        osascript -e 'tell app "Terminal" to do script "cd '"$(pwd)"' && bash start-frontend.sh &"'
 
         echo ""
         echo "✅ Services are starting in separate Terminal windows!"
@@ -104,11 +103,10 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         echo ""
         echo "📝 提示: 请关闭 Terminal 窗口来停止服务"
 
-    else
-        echo "❌ 不支持的操作系统: $OSTYPE"
-        exit 1
     fi
+else
+    echo "❌ 不支持的操作系统: $OSTYPE"
+    exit 1
+fi
 
-echo ""
-echo "✅ All services stopped"
 echo ""
