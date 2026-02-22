@@ -95,11 +95,21 @@ public class PackagePreviewService {
         Map<String, PackagePreviewResponse.TreeNode> directoryMap = new HashMap<>();
         List<PackagePreviewResponse.TreeNode> rootNodes = new ArrayList<>();
 
+        // 构建根目录：{算子包名称}/{算子包版本}
+        String packageName = pkg.getName();
+        String packageVersion = pkg.getVersion() != null ? pkg.getVersion() : "1.0.0";
+        String rootPrefix = packageName + "/" + packageVersion + "/";
+
+        log.info("构建打包结构树：根路径前缀={}", rootPrefix);
+
         // 处理算子代码
         for (PackageOperator packageOperator : packageOperators) {
             Operator operator = packageOperator.getOperator();
             String fileName = operator.getOperatorCode() + ".groovy";
             String path = pathResolver.resolveOperatorPath(operator, packageOperator, template, fileName);
+
+            // 添加根路径前缀
+            path = rootPrefix + path;
 
             addFileToStructure(rootNodes, directoryMap, path, PackagePreviewResponse.Source.builder()
                     .type("operator")
@@ -113,6 +123,9 @@ public class PackagePreviewService {
             CommonLibrary library = pcl.getLibrary();
             for (var file : library.getFiles()) {
                 String path = pathResolver.resolveLibraryPath(library, pcl, template, file.getFileName());
+
+                // 添加根路径前缀
+                path = rootPrefix + path;
 
                 addFileToStructure(rootNodes, directoryMap, path, PackagePreviewResponse.Source.builder()
                         .type("library")
