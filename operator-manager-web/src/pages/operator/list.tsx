@@ -24,6 +24,7 @@ import { useNavigate } from 'react-router-dom';
 import type { Operator, OperatorFilters } from '@/types';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
 import { operatorApi } from '@/api/operator';
+import { t } from '@/utils/i18n';
 
 // Helper function to convert data format codes to labels
 const formatDataFormat = (dataFormat?: string) => {
@@ -73,7 +74,7 @@ const OperatorListPage: React.FC = () => {
         });
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch operators');
+      message.error(error.message || t('message.operator.fetchFailed'));
     } finally {
       setLoading(false);
     }
@@ -101,22 +102,22 @@ const OperatorListPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await operatorApi.deleteOperator(id);
-      message.success('Operator deleted successfully');
+      message.success(t('message.operator.deletedSuccess'));
       fetchOperators();
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete operator');
+      message.error(error.message || t('message.operator.deletedFailed'));
     }
   };
 
   const columns = [
     {
-      title: 'ID',
+      title: t('common.id'),
       dataIndex: 'id',
       key: 'id',
       width: 80,
     },
     {
-      title: 'Name',
+      title: t('common.name'),
       dataIndex: 'name',
       key: 'name',
       width: 200,
@@ -125,14 +126,14 @@ const OperatorListPage: React.FC = () => {
       ),
     },
     {
-      title: 'Description',
+      title: t('common.description'),
       dataIndex: 'description',
       key: 'description',
       ellipsis: true,
       width: 300,
     },
     {
-      title: 'Language',
+      title: t('operator.language'),
       dataIndex: 'language',
       key: 'language',
       width: 100,
@@ -142,7 +143,7 @@ const OperatorListPage: React.FC = () => {
       },
     },
     {
-      title: 'Status',
+      title: t('operator.status'),
       dataIndex: 'status',
       key: 'status',
       width: 100,
@@ -156,13 +157,13 @@ const OperatorListPage: React.FC = () => {
       },
     },
     {
-      title: 'Version',
+      title: t('common.version'),
       dataIndex: 'version',
       key: 'version',
       width: 100,
     },
     {
-      title: 'Operator Code',
+      title: t('operator.operatorCode'),
       dataIndex: 'operatorCode',
       key: 'operatorCode',
       width: 150,
@@ -173,7 +174,7 @@ const OperatorListPage: React.FC = () => {
       ),
     },
     {
-      title: 'Object Code',
+      title: t('operator.objectCode'),
       dataIndex: 'objectCode',
       key: 'objectCode',
       width: 150,
@@ -184,7 +185,7 @@ const OperatorListPage: React.FC = () => {
       ),
     },
     {
-      title: 'Data Format',
+      title: t('operator.dataFormat'),
       dataIndex: 'dataFormat',
       key: 'dataFormat',
       width: 150,
@@ -195,7 +196,7 @@ const OperatorListPage: React.FC = () => {
       ),
     },
     {
-      title: 'Generator',
+      title: t('operator.generator'),
       dataIndex: 'generator',
       key: 'generator',
       width: 100,
@@ -208,20 +209,20 @@ const OperatorListPage: React.FC = () => {
       },
     },
     {
-      title: 'Created By',
+      title: t('common.createdBy'),
       dataIndex: 'createdBy',
       key: 'createdBy',
       width: 120,
     },
     {
-      title: 'Created At',
+      title: t('common.createdAt'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 180,
       render: (date: string) => new Date(date).toLocaleString(),
     },
     {
-      title: 'Actions',
+      title: t('common.actions'),
       key: 'actions',
       width: 180,
       fixed: 'right' as const,
@@ -233,7 +234,7 @@ const OperatorListPage: React.FC = () => {
             icon={<EyeOutlined />}
             onClick={() => navigate(`/operators/${record.id}`)}
           >
-            View
+            {t('common.view')}
           </Button>
           <Button
             type="link"
@@ -241,13 +242,13 @@ const OperatorListPage: React.FC = () => {
             icon={<EditOutlined />}
             onClick={() => navigate(`/operators/${record.id}/edit`)}
           >
-            Edit
+            {t('common.edit')}
           </Button>
           <Popconfirm
-            title="Are you sure you want to delete this operator?"
+            title={t('message.operator.deleteConfirm')}
             onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
+            okText={t('common.yes')}
+            cancelText={t('common.no')}
           >
             <Button
               type="link"
@@ -255,7 +256,7 @@ const OperatorListPage: React.FC = () => {
               danger
               icon={<DeleteOutlined />}
             >
-              Delete
+              {t('common.delete')}
             </Button>
           </Popconfirm>
         </Space>
@@ -268,8 +269,8 @@ const OperatorListPage: React.FC = () => {
       <Card
         title={
           <Space>
-            <span>Operators</span>
-            <Tag color="blue">{pagination.total} total</Tag>
+            <span>算子列表</span>
+            <Tag color="blue">{t('common.total')} {pagination.total}</Tag>
           </Space>
         }
         extra={
@@ -278,14 +279,14 @@ const OperatorListPage: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => navigate('/operators/create')}
           >
-            Create Operator
+            {t('common.create')} 算子
           </Button>
         }
       >
         {/* Search and Filters */}
         <Space style={{ marginBottom: 16 }} wrap>
           <Input
-            placeholder="Search operators..."
+            placeholder={t('placeholder.searchOperators')}
             prefix={<SearchOutlined />}
             value={filters.keyword}
             onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
@@ -294,34 +295,34 @@ const OperatorListPage: React.FC = () => {
             allowClear
           />
           <Select
-            placeholder="Language"
+            placeholder={t('placeholder.selectLanguage')}
             value={filters.language}
             onChange={(value) => setFilters({ ...filters, language: value })}
             style={{ width: 120 }}
             allowClear
           >
-            <Select.Option value="JAVA">Java</Select.Option>
-            <Select.Option value="GROOVY">Groovy</Select.Option>
+            <Select.Option value="JAVA">{t('language.java')}</Select.Option>
+            <Select.Option value="GROOVY">{t('language.groovy')}</Select.Option>
           </Select>
           <Select
-            placeholder="Status"
+            placeholder={t('placeholder.selectStatus')}
             value={filters.status}
             onChange={(value) => setFilters({ ...filters, status: value })}
             style={{ width: 120 }}
             allowClear
           >
-            <Select.Option value="DRAFT">Draft</Select.Option>
-            <Select.Option value="PUBLISHED">Published</Select.Option>
-            <Select.Option value="ARCHIVED">Archived</Select.Option>
+            <Select.Option value="DRAFT">{t('operator.status.draft')}</Select.Option>
+            <Select.Option value="PUBLISHED">{t('operator.status.published')}</Select.Option>
+            <Select.Option value="ARCHIVED">{t('operator.status.archived')}</Select.Option>
           </Select>
           <Button type="primary" onClick={handleSearch}>
-            Search
+            {t('common.search')}
           </Button>
           <Button onClick={handleReset}>
-            Reset
+            {t('common.reset')}
           </Button>
           <Button icon={<ReloadOutlined />} onClick={fetchOperators}>
-            Refresh
+            {t('common.refresh')}
           </Button>
         </Space>
 
@@ -336,7 +337,7 @@ const OperatorListPage: React.FC = () => {
             pageSize: pagination.pageSize,
             total: pagination.total,
             showSizeChanger: true,
-            showTotal: (total) => `Total ${total} items`,
+            showTotal: (total) => `${t('common.total')} ${total} ${t('common.items')}`,
             onChange: (page, pageSize) =>
               setPagination({ ...pagination, current: page, pageSize }),
           }}

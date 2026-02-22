@@ -24,6 +24,7 @@ import { operatorApi } from '@/api/operator';
 import type { LibraryDependencyResponse } from '@/types/library';
 import type { LibraryResponse, LibraryType } from '@/types/library';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
+import { t } from '@/utils/i18n';
 
 const { Step } = Steps;
 const { TabPane } = Tabs;
@@ -130,7 +131,7 @@ const OperatorCreatePage: React.FC = () => {
         console.log('[Operator Page] Form values set, businessLogic:', form.getFieldsValue(['businessLogic']));
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch operator');
+      message.error(error.message || '获取算子失败');
     } finally {
       setLoading(false);
     }
@@ -229,36 +230,36 @@ const OperatorCreatePage: React.FC = () => {
 
       if (isEdit) {
         await operatorApi.updateOperator(Number(id), operatorData);
-        message.success('Operator updated successfully');
+        message.success('算子更新成功');
       } else {
         const response = await operatorApi.createOperator(operatorData);
-        message.success('Operator created successfully');
+        message.success('算子创建成功');
         if (response.data) {
           navigate(`/operators/${response.data.id}`);
         }
       }
     } catch (error: any) {
       console.error('[Operator Page] Error saving operator:', error);
-      message.error(error.message || 'Failed to save operator');
+      message.error(error.message || '保存算子失败');
     }
   };
 
   const steps = [
     {
-      title: 'Basic Info',
-      description: 'Name, description, language',
+      title: '基本信息',
+      description: '名称、描述、语言',
     },
     {
-      title: 'Business Logic',
-      description: 'Markdown business rules',
+      title: '业务逻辑',
+      description: 'Markdown 业务规则',
     },
     {
-      title: 'Parameters',
-      description: 'Input and output parameters',
+      title: '参数',
+      description: '输入和输出参数',
     },
     {
-      title: 'Code',
-      description: 'Implementation code',
+      title: '代码',
+      description: '实现代码',
     },
     {
       title: '公共库依赖',
@@ -276,9 +277,9 @@ const OperatorCreatePage: React.FC = () => {
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate('/operators')}
             >
-              Back
+              {t('common.back')}
             </Button>
-            <span>{isEdit ? 'Edit Operator' : 'Create Operator'}</span>
+            <span>{isEdit ? '编辑算子' : '创建算子'}</span>
           </Space>
         }
         extra={
@@ -288,7 +289,7 @@ const OperatorCreatePage: React.FC = () => {
               onClick={() => handleSubmit(false)}
               loading={loading}
             >
-              Save Draft
+              {t('common.saveDraft')}
             </Button>
             <Button
               type="primary"
@@ -296,7 +297,7 @@ const OperatorCreatePage: React.FC = () => {
               onClick={() => handleSubmit(true)}
               loading={loading}
             >
-              {isEdit ? 'Update & Publish' : 'Create & Publish'}
+              {isEdit ? t('common.updateAndPublish') : t('common.createAndPublish')}
             </Button>
           </Space>
         }
@@ -324,7 +325,7 @@ const OperatorCreatePage: React.FC = () => {
         >
           {/* Step 1: Basic Info */}
           {currentStep === 0 && (
-            <Card title="Basic Information" style={{ marginBottom: 16 }}>
+            <Card title="基本信息" style={{ marginBottom: 16 }}>
               <Form.Item
                 label="Operator Name"
                 name="name"
@@ -432,23 +433,23 @@ const OperatorCreatePage: React.FC = () => {
           {/* Step 3: Parameters */}
           {currentStep === 2 && (
             <Tabs defaultActiveKey="input">
-              <TabPane tab="Input Parameters" key="input">
+              <TabPane tab={`${t('parameter.input')} Parameters`} key="input">
                 <ParameterForm direction="INPUT" />
               </TabPane>
-              <TabPane tab="Output Parameters" key="output">
+              <TabPane tab={`${t('parameter.output')} Parameters`} key="output">
                 <ParameterForm direction="OUTPUT" />
               </TabPane>
             </Tabs>
           )}
           {/* Step 4: Code */}
           {currentStep === 3 && (
-            <Card title="Implementation Code">
+            <Card title={t('operator.code')}>
               <div style={{ marginBottom: 16 }}>
                 <Tag color={language === 'java' ? 'blue' : 'green'}>
                   {language.toUpperCase()}
                 </Tag>
                 <span style={{ marginLeft: 8 }}>
-                  Write your {language === 'java' ? 'Java' : 'Groovy'} code here
+                  编写您的 {language === 'java' ? 'Java' : 'Groovy'} 代码
                 </span>
               </div>
               <CodeEditor
@@ -568,7 +569,7 @@ const OperatorCreatePage: React.FC = () => {
             <Space>
               {currentStep > 0 && (
                 <Button onClick={() => setCurrentStep(currentStep - 1)}>
-                  Previous
+                  {t('common.previous')}
                 </Button>
               )}
               {currentStep < steps.length - 1 && currentStep !== 4 && (
@@ -576,7 +577,7 @@ const OperatorCreatePage: React.FC = () => {
                   type="primary"
                   onClick={() => setCurrentStep(currentStep + 1)}
                 >
-                  Next
+                  {t('common.next')}
                 </Button>
               )}
             </Space>
