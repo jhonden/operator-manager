@@ -58,88 +58,182 @@
 
 ### 7.1 服务启动
 
-#### 启动脚本
+#### 7.1.1 整体启动
 
-- **统一管理（本地模式）**: `start-all.sh`（支持 H2 和 PostgreSQL）
-  - 默认本地 PostgreSQL：`./start-all.sh` 或 `./start-all.sh local postgresql`
-  - 本地 H2 模式：`./start-all.sh local h2`
-  - 在后台启动并监控进程
-  - 显示数据库类型和模式信息
-- **统一管理（Docker 模式）**: `start-all.sh docker`
-  - 在后台启动 Docker 服务
-  - 显示 Docker 服务信息
+使用统一启动脚本同时启动前后端服务。
 
-**单独启动脚本**：
-- **本地模式（支持 H2 和 PostgreSQL）**: `start-backend-local.sh`
-  - 默认使用 PostgreSQL（profile: postgresql）
-  - 使用 H2：`./start-backend-local.sh h2`
-  - 使用 PostgreSQL：`./start-backend-local.sh postgresql` 或 `./start-backend-local.sh`（默认）
-- **Docker 模式**: `start-backend.sh`
+**启动脚本**: `start-all.sh`
 
-#### 启动要求
+**使用方式**:
+```bash
+# 本地 PostgreSQL 模式（默认）
+./start-all.sh
 
-- 使用提供的启动脚本，不要直接执行 `mvn spring-boot:run`
-- 脚本会自动处理进程清理、端口冲突等问题
-- 支持的 profile：h2（使用 H2 内存数据库）、postgresql（使用 PostgreSQL）
+# 本地 H2 模式
+./start-all.sh local h2
+
+# Docker 模式
+./start-all.sh docker
+```
+
+**功能说明**:
+- 支持本地模式和 Docker 模式
+- 本地模式支持 H2 和 PostgreSQL 两种数据库
+- 默认使用 PostgreSQL 模式
+- 在后台启动并监控进程
+- 显示数据库类型和模式信息
+
+---
+
+#### 7.1.2 前端启动
+
+单独启动前端服务，使用前端启动脚本。
+
+**启动脚本**: `start-frontend.sh`
+
+**使用方式**:
+```bash
+./start-frontend.sh
+```
+
+**功能说明**:
+- 启动前端开发服务器（Vite）
+- 端口：5173
+- 在后台启动
+
+---
+
+#### 7.1.3 后端启动
+
+单独启动后端服务，根据环境选择不同脚本。
+
+**本地模式启动脚本**: `start-backend-local.sh`
+
+**使用方式**:
+```bash
+# 使用 PostgreSQL（默认）
+./start-backend-local.sh
+
+# 使用 H2
+./start-backend-local.sh h2
+```
+
+**功能说明**:
+- 本地模式支持 H2 和 PostgreSQL 两种数据库
+- 默认使用 PostgreSQL 模式
+- 检查并停止已有进程
+- 清理并编译项目
+- 在前台启动（方便查看日志）
+
+**Docker 模式启动脚本**: `start-backend.sh`
+
+**使用方式**:
+```bash
+./start-backend.sh
+```
+
+**功能说明**:
+- Docker 模式启动后端
+- 启动 Docker 容器中的后端服务
+
+---
 
 ### 7.2 服务停止
 
-#### 停止脚本
+#### 7.2.1 整体停止
 
-- **统一管理（本地和 Docker 模式）**: `stop-all.sh`
-  - 同时停止后端和前端服务
-  - 支持参数: ./stop-all.sh <mode> [profile]
-  - 默认停止本地 PostgreSQL：`./stop-all.sh` 或 `./stop-all.sh local postgresql`
-  - 显示停止状态和进程信息
+使用统一停止脚本同时停止前后端服务。
 
-**单独停止脚本**：
-- **前端停止**: `stop-frontend.sh`
-  - 检查 Node.js 是否安装
-  - 停止前端服务（端口 5173）
-  - 验证停止成功
-- **本地模式停止**: `stop-backend-local.sh`
-  - 默认停止 PostgreSQL（profile: postgresql）
-  - 停止 H2：`./stop-backend-local.sh h2`
-  - 停止 PostgreSQL：`./stop-backend-local.sh postgresql` 或 `./stop-backend-local.sh`（默认）
+**停止脚本**: `stop-all.sh`
 
-#### 停止要求
-
-- 使用停止脚本前先检查服务是否在运行
-- 停止后必须确认进程已终止（再次检查端口）
-- 停止脚本支持指定 Profile 参数（默认 postgresql）
-
-#### 使用方式
-
+**使用方式**:
 ```bash
-# 默认使用 dev-postgresql
+# 默认停止本地 PostgreSQL
+./stop-all.sh
+
+# 停止本地 H2 模式
+./stop-all.sh local h2
+
+# 停止 Docker 模式
+./stop-all.sh docker
+```
+
+**功能说明**:
+- 支持本地模式和 Docker 模式
+- 同时停止后端（端口 8080）和前端（端口 5173）服务
+- 默认停止本地 PostgreSQL 模式
+- 检查进程并验证停止成功
+- 显示停止状态和进程信息
+
+---
+
+#### 7.2.2 前端停止
+
+单独停止前端服务。
+
+**停止脚本**: `stop-frontend.sh`
+
+**使用方式**:
+```bash
+./stop-frontend.sh
+```
+
+**功能说明**:
+- 检查 Node.js 是否安装
+- 停止前端服务（端口 5173）
+- 验证停止成功
+- 显示停止状态
+
+---
+
+#### 7.2.3 后端停止
+
+单独停止后端服务，根据环境选择不同脚本。
+
+**本地模式停止脚本**: `stop-backend-local.sh`
+
+**使用方式**:
+```bash
+# 使用 PostgreSQL（默认）
 ./stop-backend-local.sh
 
-# 指定其他 profile
-./stop-backend-local.sh dev
+# 使用 H2
 ./stop-backend-local.sh h2
 ```
+
+**功能说明**:
+- 本地模式支持 H2 和 PostgreSQL 两种数据库
+- 停止占用 8080 端口的进程
+- 检查进程并验证停止成功
+- 显示停止状态和进程信息
+
+---
 
 ### 7.3 服务启动验证
 
 #### 7.3.1 启动服务
 
-- 使用提供的启动脚本：`start-backend-local.sh` 或 `start-backend.sh`
-- 不要直接执行 `mvn spring-boot:run`
-- 脚本会自动处理进程清理、端口冲突等问题
-
-#### 7.3.2 启动后行为
-
-**正确行为：**
+**正确行为**:
 - ✅ 启动服务后**不要停止**
 - ✅ 等待用户自行验证
 - ✅ 用户测试功能、查看日志
 - ✅ 等待用户明确反馈
 
-**禁止行为：**
+**禁止行为**:
 - ❌ 启动后立即停止
 - ❌ 未经用户同意就重启服务
 - ❌ 频繁停止启动服务
 
+---
+
+#### 7.3.2 停止服务时机
+
+**可以停止的情况**:
+- 用户明确要求停止
+- 用户确认功能测试完成
+- 需要重新编译启动（用户明确同意）
+
+**详细流程**: [代码提交流程](./code-submission-workflow.md#3-服务启动验证)
 #### 7.3.3 停止服务时机
 
 **可以停止的情况：**
