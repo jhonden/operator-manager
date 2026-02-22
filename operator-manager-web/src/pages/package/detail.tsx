@@ -17,6 +17,7 @@ import {
   Select,
   Input,
   Form,
+  Switch,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -26,8 +27,23 @@ import {
   PlusOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  FolderOutlined,
+  FileOutlined,
+  SettingOutlined,
+  ReloadOutlined,
+  ToolOutlined,
 } from '@ant-design/icons';
-import type { OperatorPackage, PackageOperator } from '@/types';
+import type {
+  OperatorPackage,
+  PackageOperator,
+  PackagePathConfigResponse,
+  PackagePreviewResponse,
+  PackagePreviewTreeNode,
+} from '@/types';
+import type {
+  LibraryPathConfigResponse,
+  OperatorPathConfigResponse,
+} from '@/types/library';
 import { packageApi } from '@/api/package';
 import { operatorApi } from '@/api/operator';
 import { t } from '@/utils/i18n';
@@ -49,6 +65,21 @@ const PackageDetailPage: React.FC = () => {
   const [selectedOperatorId, setSelectedOperatorId] = useState<number | undefined>(undefined);
   const [addForm] = Form.useForm();
 
+  // 公共库和打包配置相关状态
+  const [activeTab, setActiveTab] = useState('operators');
+  const [commonLibraries, setCommonLibraries] = useState<any[]>([]);
+  const [pathConfig, setPathConfig] = useState<PackagePathConfigResponse | null>(null);
+  const [preview, setPreview] = useState<PackagePreviewResponse | null>(null);
+  const [pathConfigModalVisible, setPathConfigModalVisible] = useState(false);
+  const [batchConfigModalVisible, setBatchConfigModalVisible] = useState(false);
+  const [currentEditItem, setCurrentEditItem] = useState<{
+    type: 'operator' | 'library';
+    id: number;
+    name: string;
+  } | null>(null);
+  const [batchConfigType, setBatchConfigType] = useState<'operator' | 'library' | null>(null);
+  const [pathConfigForm] = Form.useForm();
+
   const fetchPackage = async () => {
     if (!id) return;
     try {
@@ -56,9 +87,42 @@ const PackageDetailPage: React.FC = () => {
       if (response.data) {
         setPackageData(response.data);
         setOperators(response.data.operators || []);
+        setCommonLibraries(response.data.commonLibraries || []);
       }
     } catch (error: any) {
       message.error(error.message || '获取算子包失败');
+    }
+  };
+
+  const fetchPathConfig = async () => {
+    if (!id) return;
+    try {
+      const response = await packageApi.getPackagePathConfig(Number(id));
+      if (response.data) {
+        setPathConfig(response.data);
+      }
+    } catch (error: any) {
+      message.error(error.message || '获取打包配置失败');
+    }
+  };
+
+  const fetchPreview = async (template: 'legacy' | 'modern' | 'custom' = 'legacy') => {
+    if (!id) return;
+    try {
+      const response = await packageApi.generatePreview(Number(id), template);
+      if (response.data) {
+        setPreview(response.data);
+      }
+    } catch (error: any) {
+      message.error(error.message || '获取打包预览失败');
+    }
+  };
+
+  const handleTabChange = (key: string) => {
+    setActiveTab(key);
+    if (key === 'config') {
+      fetchPathConfig();
+      fetchPreview();
     }
   };
 
@@ -155,6 +219,96 @@ const PackageDetailPage: React.FC = () => {
     } catch (error: any) {
       message.error(error.message || '重排序算子失败');
     }
+  };
+
+  // 打包配置相关处理函数
+  const handleEditPathConfig = (type: 'operator' | 'library', id: number, name: string) => {
+    setCurrentEditItem({ type, id, name });
+    setPathConfigModalVisible(true);
+  };
+
+  const handleSavePathConfig = async () => {
+    if (!id || !currentEditItem) return;
+
+    const values = pathConfigForm.getFieldsValue();
+    try {
+      if (currentEditItem.type === 'operator') {
+        await packageApi.updateOperatorPathConfig(Number(id), currentEditItem.id, {
+          operatorId: currentEditItem.id,
+          useCustomPath: values.useCustomPath,
+          customPackagePath: values.customPackagePath,
+        });
+        message.success('算子路径配置已更新');
+      } else {
+        await packageApi.updateLibraryPathConfig(Number(id), currentEditItem.id, {
+          libraryId: currentEditItem.id,
+          useCustomPath: values.useCustomPath,
+          customPackagePath: values.customPackagePath,
+        });
+        message.success('公共库路径配置已更新');
+      }
+      setPathConfigModalVisible(false);
+      pathConfigForm.resetFields();
+      fetchPathConfig();
+      fetchPreview();
+    } catch (error: any) {
+      message.error(error.message || '保存路径配置失败');
+    }
+  };
+
+  const handleBatchConfig = (type: 'operator' | 'library') => {
+    setBatchConfigType(type);
+    setBatchConfigModalVisible(true);
+  };
+
+  const handleSaveBatchConfig = async () => {
+    if (!id || !batchConfigType) return;
+
+    try {
+      if (batchConfigType === 'operator') {
+        const operatorIds = pathConfig?.operatorConfigs?.map(c => c.operatorId) || [];
+        await packageApi.batchUpdateOperatorPathConfig(Number(id), {
+          useRecommendedPath: true,
+          operatorIds,
+        });
+        message.success('算子路径配置已批量更新');
+      } else {
+        const libraryIds = pathConfig?.libraryConfigs?.map(c => c.libraryId) || [];
+        await packageApi.batchUpdateLibraryPathConfig(Number(id), {
+          useRecommendedPath: true,
+          libraryIds,
+        });
+        message.success('公共库路径配置已批量更新');
+      }
+      setBatchConfigModalVisible(false);
+      fetchPathConfig();
+      fetchPreview();
+    } catch (error: any) {
+      message.error(error.message || '批量更新路径配置失败');
+    }
+  };
+
+  // 渲染路径预览树
+  const renderPreviewTree = (node: PackagePreviewTreeNode, level = 0) => {
+    const indent = level * 24;
+    return (
+      <div key={node.path} style={{ paddingLeft: indent }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {node.type === 'directory' ? (
+            <FolderOutlined style={{ color: '#1890ff' }} />
+          ) : (
+            <FileOutlined style={{ color: '#52c41a' }} />
+          )}
+          <span>{node.path.split('/').pop()}</span>
+          {node.source && (
+            <Tag style={{ marginLeft: 8 }} color="blue">
+              {node.source.type === 'operator' ? '算子' : '库'}: {node.source.name}
+            </Tag>
+          )}
+        </span>
+        {node.children && node.children.map(child => renderPreviewTree(child, level + 1))}
+      </div>
+    );
   };
 
   if (!packageData) {
@@ -388,7 +542,7 @@ const PackageDetailPage: React.FC = () => {
 
       {/* Tabs */}
       <Card>
-        <Tabs defaultActiveKey="operators">
+        <Tabs activeKey={activeTab} onChange={handleTabChange} defaultActiveKey="operators">
           <TabPane
             tab={
               <span>
@@ -422,8 +576,367 @@ const PackageDetailPage: React.FC = () => {
               </Text>
             </div>
           </TabPane>
+
+          {/* 公共库配置标签页 */}
+          <TabPane
+            tab={
+              <span>
+                <ToolOutlined />
+                公共库配置 ({commonLibraries.length})
+              </span>
+            }
+            key="libraries"
+          >
+            <div style={{ marginBottom: 16, color: '#8c8c8c' }}>
+              <Text type="secondary">
+                公共库已从算子自动同步，无需手动添加或移除
+              </Text>
+            </div>
+            {commonLibraries.length === 0 ? (
+              <div style={{ padding: '40px', textAlign: 'center' }}>
+                <Text type="secondary">暂无公共库</Text>
+              </div>
+            ) : (
+              <Table
+                dataSource={commonLibraries}
+                rowKey="libraryId"
+                pagination={false}
+                columns={[
+                  {
+                    title: '公共库名称',
+                    dataIndex: 'libraryName',
+                    key: 'libraryName',
+                  },
+                  {
+                    title: '类型',
+                    dataIndex: 'libraryType',
+                    key: 'libraryType',
+                    width: 120,
+                    render: (type: string) => {
+                      const typeMap: Record<string, { color: string; label: string }> = {
+                        CONSTANT: { color: 'blue', label: '常量' },
+                        METHOD: { color: 'green', label: '方法' },
+                        MODEL: { color: 'orange', label: '模型' },
+                        CUSTOM: { color: 'purple', label: '自定义' },
+                      };
+                      const config = typeMap[type] || { color: 'default', label: type };
+                      return <Tag color={config.color}>{config.label}</Tag>;
+                    },
+                  },
+                  {
+                    title: '版本',
+                    dataIndex: 'version',
+                    key: 'version',
+                    width: 100,
+                  },
+                  {
+                    title: '当前路径',
+                    dataIndex: 'currentPath',
+                    key: 'currentPath',
+                    ellipsis: true,
+                    render: (path: string, record: any) => (
+                      <Space>
+                        <Text ellipsis style={{ maxWidth: 300 }}>{path}</Text>
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<EditOutlined />}
+                          onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
+                        >
+                          编辑
+                        </Button>
+                      </Space>
+                    ),
+                  },
+                ]}
+              />
+            )}
+          </TabPane>
+
+          {/* 打包配置标签页 */}
+          <TabPane
+            tab={
+              <span>
+                <SettingOutlined />
+                打包配置
+              </span>
+            }
+            key="config"
+          >
+            <Space direction="vertical" style={{ width: '100%' }} size="large">
+              {/* 打包模板选择 */}
+              <Card size="small" title="打包模板">
+                <Row gutter={16} align="middle">
+                  <Col span={8}>
+                    <Text>当前模板：</Text>
+                    <Tag style={{ marginLeft: 8 }} color={pathConfig?.packageTemplate === 'legacy' ? 'blue' : pathConfig?.packageTemplate === 'modern' ? 'green' : 'orange'}>
+                      {pathConfig?.packageTemplate?.toUpperCase()}
+                    </Tag>
+                  </Col>
+                  <Col span={16} style={{ textAlign: 'right' }}>
+                    <Button icon={<ReloadOutlined />} onClick={() => fetchPreview()}>
+                      刷新预览
+                    </Button>
+                  </Col>
+                </Row>
+              </Card>
+
+              {/* 打包预览 */}
+              <Card size="small" title="打包结构预览">
+                {preview ? (
+                  <div style={{ maxHeight: 400, overflowY: 'auto', background: '#fafafa', padding: 16 }}>
+                    <div style={{ marginBottom: 16 }}>
+                      <Text strong>{preview.packageName}/</Text>
+                    </div>
+                    {preview.structure.map(node => renderPreviewTree(node))}
+                    {preview.conflicts && preview.conflicts.length > 0 && (
+                      <div style={{ marginTop: 16 }}>
+                        <Text type="danger">
+                          ⚠️ 检测到 {preview.conflicts.length} 个冲突：
+                        </Text>
+                        <ul style={{ marginTop: 8 }}>
+                          {preview.conflicts.map((conflict, index) => (
+                            <li key={index}>
+                              <Text type="danger">{conflict.message}</Text>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {preview.warnings && preview.warnings.length > 0 && (
+                      <div style={{ marginTop: 16 }}>
+                        <Text type="warning">
+                          ⚠️ 检测到 {preview.warnings.length} 个警告：
+                        </Text>
+                        <ul style={{ marginTop: 8 }}>
+                          {preview.warnings.map((warning, index) => (
+                            <li key={index}>
+                              <Text type="warning">{warning}</Text>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <Text type="secondary">加载预览中...</Text>
+                  </div>
+                )}
+              </Card>
+
+              {/* 算子路径配置 */}
+              <Card
+                size="small"
+                title={
+                  <Space>
+                    <span>算子打包路径</span>
+                    <Button type="link" size="small" onClick={() => handleBatchConfig('operator')}>
+                      批量配置
+                    </Button>
+                  </Space>
+                }
+              >
+                {pathConfig?.operatorConfigs && pathConfig.operatorConfigs.length > 0 ? (
+                  <Table
+                    dataSource={pathConfig.operatorConfigs}
+                    rowKey="operatorId"
+                    pagination={false}
+                    size="small"
+                    columns={[
+                      {
+                        title: '算子',
+                        dataIndex: 'operatorName',
+                        key: 'operatorName',
+                        width: 200,
+                      },
+                      {
+                        title: '推荐路径',
+                        dataIndex: 'recommendedPath',
+                        key: 'recommendedPath',
+                        ellipsis: true,
+                        width: 250,
+                        render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
+                      },
+                      {
+                        title: '当前路径',
+                        dataIndex: 'currentPath',
+                        key: 'currentPath',
+                        ellipsis: true,
+                        render: (path: string, record: OperatorPathConfigResponse) => (
+                          <Space>
+                            <Text
+                              ellipsis
+                              style={{
+                                color: record.useCustomPath ? '#1890ff' : '#52c41a',
+                                maxWidth: 250,
+                              }}
+                            >
+                              {path}
+                            </Text>
+                            {!record.useCustomPath && <Tag color="success">默认</Tag>}
+                            <Button
+                              type="link"
+                              size="small"
+                              icon={<EditOutlined />}
+                              onClick={() => handleEditPathConfig('operator', record.operatorId, record.operatorName)}
+                            >
+                              编辑
+                            </Button>
+                          </Space>
+                        ),
+                      },
+                    ]}
+                  />
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <Text type="secondary">暂无算子</Text>
+                  </div>
+                )}
+              </Card>
+
+              {/* 公共库路径配置 */}
+              <Card
+                size="small"
+                title={
+                  <Space>
+                    <span>公共库打包路径</span>
+                    <Button type="link" size="small" onClick={() => handleBatchConfig('library')}>
+                      批量配置
+                    </Button>
+                  </Space>
+                }
+              >
+                {pathConfig?.libraryConfigs && pathConfig.libraryConfigs.length > 0 ? (
+                  <Table
+                    dataSource={pathConfig.libraryConfigs}
+                    rowKey="libraryId"
+                    pagination={false}
+                    size="small"
+                    columns={[
+                      {
+                        title: '公共库',
+                        dataIndex: 'libraryName',
+                        key: 'libraryName',
+                        width: 200,
+                      },
+                      {
+                        title: '类型',
+                        dataIndex: 'libraryType',
+                        key: 'libraryType',
+                        width: 100,
+                        render: (type: string) => {
+                          const typeMap: Record<string, { color: string; label: string }> = {
+                            CONSTANT: { color: 'blue', label: '常量' },
+                            METHOD: { color: 'green', label: '方法' },
+                            MODEL: { color: 'orange', label: '模型' },
+                            CUSTOM: { color: 'purple', label: '自定义' },
+                          };
+                          const config = typeMap[type] || { color: 'default', label: type };
+                          return <Tag color={config.color}>{config.label}</Tag>;
+                        },
+                      },
+                      {
+                        title: '版本',
+                        dataIndex: 'version',
+                        key: 'version',
+                        width: 80,
+                      },
+                      {
+                        title: '推荐路径',
+                        dataIndex: 'recommendedPath',
+                        key: 'recommendedPath',
+                        ellipsis: true,
+                        width: 250,
+                        render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
+                      },
+                      {
+                        title: '当前路径',
+                        dataIndex: 'currentPath',
+                        key: 'currentPath',
+                        ellipsis: true,
+                        render: (path: string, record: LibraryPathConfigResponse) => (
+                          <Space>
+                            <Text
+                              ellipsis
+                              style={{
+                                color: record.useCustomPath ? '#1890ff' : '#52c41a',
+                                maxWidth: 250,
+                              }}
+                            >
+                              {path}
+                            </Text>
+                            {!record.useCustomPath && <Tag color="success">默认</Tag>}
+                            <Button
+                              type="link"
+                              size="small"
+                              icon={<EditOutlined />}
+                              onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
+                            >
+                              编辑
+                            </Button>
+                          </Space>
+                        ),
+                      },
+                    ]}
+                  />
+                ) : (
+                  <div style={{ padding: '20px', textAlign: 'center' }}>
+                    <Text type="secondary">暂无公共库</Text>
+                  </div>
+                )}
+              </Card>
+            </Space>
+          </TabPane>
         </Tabs>
       </Card>
+
+      {/* 路径编辑弹窗 */}
+      <Modal
+        title={`编辑路径${currentEditItem ? ` - ${currentEditItem.name}` : ''}`}
+        open={pathConfigModalVisible}
+        onOk={handleSavePathConfig}
+        onCancel={() => {
+          setPathConfigModalVisible(false);
+          setCurrentEditItem(null);
+          pathConfigForm.resetFields();
+        }}
+        width={600}
+      >
+        <Form form={pathConfigForm} layout="vertical">
+          <Form.Item name="useCustomPath" label="使用自定义路径" valuePropName="checked">
+            <Switch />
+          </Form.Item>
+          <Form.Item
+            name="customPackagePath"
+            label={
+              <span>
+                自定义路径（支持变量：$&#123;libraryName&#125;、$&#123;fileName&#125;、$&#123;operatorCode&#125; 等）
+                <Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                  支持的变量：$&#123;libraryName&#125;（库名）、$&#123;fileName&#125;（文件名）、$&#123;operatorCode&#125;（算子编码）、$&#123;packageName&#125;（包名）
+                </Text>
+              </span>
+            }
+          >
+            <Input placeholder="例如：lib/$&#123;fileName&#125;" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 批量配置弹窗 */}
+      <Modal
+        title={`批量使用推荐路径${batchConfigType === 'operator' ? '（算子）' : '（公共库）'}`}
+        open={batchConfigModalVisible}
+        onOk={handleSaveBatchConfig}
+        onCancel={() => {
+          setBatchConfigModalVisible(false);
+          setBatchConfigType(null);
+        }}
+      >
+        <p>
+          确定要将所有{batchConfigType === 'operator' ? '算子' : '公共库'}的路径重置为推荐路径吗？
+        </p>
+      </Modal>
 
       {/* Add Operator Modal */}
       <Modal

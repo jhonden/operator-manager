@@ -118,6 +118,7 @@ export interface OperatorPackage {
   featured: boolean;
   operatorCount: number;
   operators: PackageOperator[];
+  commonLibraries?: any[];
   createdBy: string;
   createdAt: string;
   updatedAt: string;

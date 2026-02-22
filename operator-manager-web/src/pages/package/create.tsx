@@ -16,7 +16,6 @@ import {
   SaveOutlined,
   SendOutlined,
 } from '@ant-design/icons';
-import type { OperatorPackage } from '@/types';
 import { packageApi } from '@/api/package';
 import { t } from '@/utils/i18n';
 
@@ -43,7 +42,6 @@ const PackageCreatePage: React.FC = () => {
       const response = await packageApi.getPackage(Number(id));
       if (response.data) {
         const pkg = response.data;
-        setPackageData(pkg);
 
         form.setFieldsValue({
           name: pkg.name,
