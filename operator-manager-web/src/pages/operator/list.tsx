@@ -10,6 +10,7 @@ import {
   message,
   Popconfirm,
   Tooltip,
+  Modal,
 } from 'antd';
 import {
   PlusOutlined,
@@ -19,6 +20,7 @@ import {
   SearchOutlined,
   ReloadOutlined,
   SwapOutlined,
+  ExclamationCircleOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { Operator, OperatorFilters } from '@/types';
@@ -137,6 +139,52 @@ const OperatorListPage: React.FC = () => {
     setSelectedRowKeys([]);
     setSelectedOperators([]);
     fetchOperators();
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedOperators.length === 0) {
+      message.warning('请先选择算子');
+      return;
+    }
+
+    Modal.confirm({
+      title: '确认删除',
+      icon: <ExclamationCircleOutlined />,
+      content: (
+        <div>
+          <p>您确定要删除选中的 <strong>{selectedOperators.length}</strong> 个算子吗？</p>
+          <p style={{ color: '#ff4d4f', fontSize: '12px' }}>此操作不可恢复！</p>
+        </div>
+      ),
+      okText: '确定',
+      cancelText: '取消',
+      okButtonProps: { danger: true },
+      onOk: async () => {
+        console.log('[Operator Page] 开始批量删除算子, 数量:', selectedOperators.length);
+        setLoading(true);
+        try {
+          // 循环调用单个删除接口
+          const deletePromises = selectedOperators.map(operator => {
+            console.log('[Operator Page] 删除算子, id:', operator.id, 'name:', operator.name);
+            return operatorApi.deleteOperator(operator.id);
+          });
+
+          await Promise.all(deletePromises);
+          message.success(`成功删除 ${selectedOperators.length} 个算子`);
+          console.log('[Operator Page] 批量删除成功');
+
+          // 清空选择并刷新列表
+          setSelectedRowKeys([]);
+          setSelectedOperators([]);
+          fetchOperators();
+        } catch (error: any) {
+          console.error('[Operator Page] 批量删除失败:', error);
+          message.error(error.message || '批量删除算子失败');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const columns = [
@@ -311,6 +359,14 @@ const OperatorListPage: React.FC = () => {
               disabled={selectedOperators.length === 0}
             >
               批量更新公共库依赖
+            </Button>
+            <Button
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleBatchDelete}
+              disabled={selectedOperators.length === 0}
+            >
+              批量删除
             </Button>
             <Button
               type="primary"
