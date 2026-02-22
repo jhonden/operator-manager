@@ -18,6 +18,7 @@ import {
   Input,
   Form,
   Switch,
+  Collapse,
 } from 'antd';
 import {
   ArrowLeftOutlined,
@@ -79,6 +80,10 @@ const PackageDetailPage: React.FC = () => {
   } | null>(null);
   const [batchConfigType, setBatchConfigType] = useState<'operator' | 'library' | null>(null);
   const [pathConfigForm] = Form.useForm();
+
+  // 折叠状态控制
+  const [libraryCardCollapsed, setLibraryCardCollapsed] = useState(false);
+  const [operatorCardCollapsed, setOperatorCardCollapsed] = useState(false);
 
   const fetchPackage = async () => {
     if (!id) return;
@@ -723,167 +728,205 @@ const PackageDetailPage: React.FC = () => {
                 )}
               </Card>
 
-              {/* 算子路径配置 */}
-              <Card
-                size="small"
-                title={
-                  <Space>
-                    <span>算子打包路径</span>
-                    <Button type="link" size="small" onClick={() => handleBatchConfig('operator')}>
-                      批量配置
-                    </Button>
-                  </Space>
-                }
-              >
-                {pathConfig?.operatorConfigs && pathConfig.operatorConfigs.length > 0 ? (
-                  <Table
-                    dataSource={pathConfig.operatorConfigs}
-                    rowKey="operatorId"
-                    pagination={false}
-                    size="small"
-                    columns={[
-                      {
-                        title: '算子',
-                        dataIndex: 'operatorName',
-                        key: 'operatorName',
-                        width: 200,
-                      },
-                      {
-                        title: '推荐路径',
-                        dataIndex: 'recommendedPath',
-                        key: 'recommendedPath',
-                        ellipsis: true,
-                        width: 250,
-                        render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
-                      },
-                      {
-                        title: '当前路径',
-                        dataIndex: 'currentPath',
-                        key: 'currentPath',
-                        ellipsis: true,
-                        render: (path: string, record: OperatorPathConfigResponse) => (
-                          <Space>
-                            <Text
-                              ellipsis
-                              style={{
-                                color: record.useCustomPath ? '#1890ff' : '#52c41a',
-                                maxWidth: 250,
-                              }}
-                            >
-                              {path}
-                            </Text>
-                            {!record.useCustomPath && <Tag color="success">默认</Tag>}
-                            <Button
-                              type="link"
-                              size="small"
-                              icon={<EditOutlined />}
-                              onClick={() => handleEditPathConfig('operator', record.operatorId, record.operatorName)}
-                            >
-                              编辑
-                            </Button>
-                          </Space>
-                        ),
-                      },
-                    ]}
-                  />
-                ) : (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <Text type="secondary">暂无算子</Text>
-                  </div>
-                )}
-              </Card>
-
               {/* 公共库路径配置 */}
-              <Card
+              <Collapse
                 size="small"
-                title={
-                  <Space>
-                    <span>公共库打包路径</span>
-                    <Button type="link" size="small" onClick={() => handleBatchConfig('library')}>
-                      批量配置
-                    </Button>
-                  </Space>
-                }
-              >
-                {pathConfig?.libraryConfigs && pathConfig.libraryConfigs.length > 0 ? (
-                  <Table
-                    dataSource={pathConfig.libraryConfigs}
-                    rowKey="libraryId"
-                    pagination={false}
-                    size="small"
-                    columns={[
-                      {
-                        title: '公共库',
-                        dataIndex: 'libraryName',
-                        key: 'libraryName',
-                        width: 200,
-                      },
-                      {
-                        title: '类型',
-                        dataIndex: 'libraryType',
-                        key: 'libraryType',
-                        width: 100,
-                        render: (type: string) => {
-                          const typeMap: Record<string, { color: string; label: string }> = {
-                            CONSTANT: { color: 'blue', label: '常量' },
-                            METHOD: { color: 'green', label: '方法' },
-                            MODEL: { color: 'orange', label: '模型' },
-                            CUSTOM: { color: 'purple', label: '自定义' },
-                          };
-                          const config = typeMap[type] || { color: 'default', label: type };
-                          return <Tag color={config.color}>{config.label}</Tag>;
-                        },
-                      },
-                      {
-                        title: '版本',
-                        dataIndex: 'version',
-                        key: 'version',
-                        width: 80,
-                      },
-                      {
-                        title: '推荐路径',
-                        dataIndex: 'recommendedPath',
-                        key: 'recommendedPath',
-                        ellipsis: true,
-                        width: 250,
-                        render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
-                      },
-                      {
-                        title: '当前路径',
-                        dataIndex: 'currentPath',
-                        key: 'currentPath',
-                        ellipsis: true,
-                        render: (path: string, record: LibraryPathConfigResponse) => (
-                          <Space>
-                            <Text
-                              ellipsis
-                              style={{
-                                color: record.useCustomPath ? '#1890ff' : '#52c41a',
-                                maxWidth: 250,
-                              }}
-                            >
-                              {path}
-                            </Text>
-                            {!record.useCustomPath && <Tag color="success">默认</Tag>}
-                            <Button
-                              type="link"
-                              size="small"
-                              icon={<EditOutlined />}
-                              onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
-                            >
-                              编辑
-                            </Button>
-                          </Space>
-                        ),
-                      },
-                    ]}
-                  />
-                ) : (
-                  <div style={{ padding: '20px', textAlign: 'center' }}>
-                    <Text type="secondary">暂无公共库</Text>
-                  </div>
-                )}
-              </Card>
+                activeKey={libraryCardCollapsed ? [] : ['library']}
+                onChange={(keys) => {
+                  setLibraryCardCollapsed(keys.length === 0);
+                }}
+                items={[
+                  {
+                    key: 'library',
+                    label: (
+                      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                        <span>公共库打包路径</span>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBatchConfig('library');
+                          }}
+                        >
+                          批量配置
+                        </Button>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ marginTop: 8 }}>
+                        {pathConfig?.libraryConfigs && pathConfig.libraryConfigs.length > 0 ? (
+                          <Table
+                            dataSource={pathConfig.libraryConfigs}
+                            rowKey="libraryId"
+                            pagination={false}
+                            size="small"
+                            columns={[
+                              {
+                                title: '公共库',
+                                dataIndex: 'libraryName',
+                                key: 'libraryName',
+                                width: 200,
+                              },
+                              {
+                                title: '类型',
+                                dataIndex: 'libraryType',
+                                key: 'libraryType',
+                                width: 100,
+                                render: (type: string) => {
+                                  const typeMap: Record<string, { color: string; label: string }> = {
+                                    CONSTANT: { color: 'blue', label: '常量' },
+                                    METHOD: { color: 'green', label: '方法' },
+                                    MODEL: { color: 'orange', label: '模型' },
+                                    CUSTOM: { color: 'purple', label: '自定义' },
+                                  };
+                                  const config = typeMap[type] || { color: 'default', label: type };
+                                  return <Tag color={config.color}>{config.label}</Tag>;
+                                },
+                              },
+                              {
+                                title: '版本',
+                                dataIndex: 'version',
+                                key: 'version',
+                                width: 80,
+                              },
+                              {
+                                title: '推荐路径',
+                                dataIndex: 'recommendedPath',
+                                key: 'recommendedPath',
+                                ellipsis: true,
+                                width: 250,
+                                render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
+                              },
+                              {
+                                title: '当前路径',
+                                dataIndex: 'currentPath',
+                                key: 'currentPath',
+                                ellipsis: true,
+                                render: (path: string, record: LibraryPathConfigResponse) => (
+                                  <Space>
+                                    <Text
+                                      ellipsis
+                                      style={{
+                                        color: record.useCustomPath ? '#1890ff' : '#52c41a',
+                                        maxWidth: 250,
+                                      }}
+                                    >
+                                      {path}
+                                    </Text>
+                                    {!record.useCustomPath && <Tag color="success">默认</Tag>}
+                                    <Button
+                                      type="link"
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
+                                    >
+                                      编辑
+                                    </Button>
+                                  </Space>
+                                ),
+                              },
+                            ]}
+                          />
+                        ) : (
+                          <div style={{ padding: '20px', textAlign: 'center' }}>
+                            <Text type="secondary">暂无公共库</Text>
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+              />
+
+              {/* 算子路径配置 */}
+              <Collapse
+                size="small"
+                activeKey={operatorCardCollapsed ? [] : ['operator']}
+                onChange={(keys) => {
+                  setOperatorCardCollapsed(keys.length === 0);
+                }}
+                items={[
+                  {
+                    key: 'operator',
+                    label: (
+                      <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+                        <span>算子打包路径</span>
+                        <Button
+                          type="link"
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBatchConfig('operator');
+                          }}
+                        >
+                          批量配置
+                        </Button>
+                      </Space>
+                    ),
+                    children: (
+                      <div style={{ marginTop: 8 }}>
+                        {pathConfig?.operatorConfigs && pathConfig.operatorConfigs.length > 0 ? (
+                          <Table
+                            dataSource={pathConfig.operatorConfigs}
+                            rowKey="operatorId"
+                            pagination={false}
+                            size="small"
+                            columns={[
+                              {
+                                title: '算子',
+                                dataIndex: 'operatorName',
+                                key: 'operatorName',
+                                width: 200,
+                              },
+                              {
+                                title: '推荐路径',
+                                dataIndex: 'recommendedPath',
+                                key: 'recommendedPath',
+                                ellipsis: true,
+                                width: 250,
+                                render: (path: string) => <Text ellipsis style={{ color: '#52c41a' }}>{path}</Text>,
+                              },
+                              {
+                                title: '当前路径',
+                                dataIndex: 'currentPath',
+                                key: 'currentPath',
+                                ellipsis: true,
+                                render: (path: string, record: OperatorPathConfigResponse) => (
+                                  <Space>
+                                    <Text
+                                      ellipsis
+                                      style={{
+                                        color: record.useCustomPath ? '#1890ff' : '#52c41a',
+                                        maxWidth: 250,
+                                      }}
+                                    >
+                                      {path}
+                                    </Text>
+                                    {!record.useCustomPath && <Tag color="success">默认</Tag>}
+                                    <Button
+                                      type="link"
+                                      size="small"
+                                      icon={<EditOutlined />}
+                                      onClick={() => handleEditPathConfig('operator', record.operatorId, record.operatorName)}
+                                    >
+                                      编辑
+                                    </Button>
+                                  </Space>
+                                ),
+                              },
+                            ]}
+                          />
+                        ) : (
+                          <div style={{ padding: '20px', textAlign: 'center' }}>
+                            <Text type="secondary">暂无算子</Text>
+                          </div>
+                        )}
+                      </div>
+                    ),
+                  },
+                ]}
+              />
             </Space>
           </TabPane>
         </Tabs>
