@@ -787,6 +787,7 @@ const PackageDetailPage: React.FC = () => {
                         <Button
                           type="link"
                           size="small"
+                          disabled={pathConfig?.packageTemplate === 'legacy'}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleBatchConfig('library');
@@ -862,6 +863,7 @@ const PackageDetailPage: React.FC = () => {
                                       type="link"
                                       size="small"
                                       icon={<EditOutlined />}
+                                      disabled={pathConfig?.packageTemplate === 'legacy'}
                                       onClick={() => handleEditPathConfig('library', record.libraryId, record.libraryName)}
                                     >
                                       编辑
@@ -898,6 +900,7 @@ const PackageDetailPage: React.FC = () => {
                         <Button
                           type="link"
                           size="small"
+                          disabled={pathConfig?.packageTemplate === 'legacy'}
                           onClick={(e) => {
                             e.stopPropagation();
                             handleBatchConfig('operator');
@@ -951,6 +954,7 @@ const PackageDetailPage: React.FC = () => {
                                       type="link"
                                       size="small"
                                       icon={<EditOutlined />}
+                                      disabled={pathConfig?.packageTemplate === 'legacy'}
                                       onClick={() => handleEditPathConfig('operator', record.operatorId, record.operatorName)}
                                     >
                                       编辑
