@@ -307,8 +307,14 @@ const PackageDetailPage: React.FC = () => {
         title: (
           <Space style={{ flex: 1 }}>
             {node.source && (
-              <Tag style={{ marginLeft: 0 }} color={node.source.type === 'operator' ? 'blue' : 'purple'} size="small">
-                {node.source.type === 'operator' ? '算子' : '库'}
+              <Tag style={{ marginLeft: 0, fontSize: 11 }} color={
+                node.source.type === 'operator' ? 'blue' :
+                node.source.type === 'metadata' ? 'orange' :
+                'purple'
+              }>
+                {node.source.type === 'operator' ? '算子' :
+                 node.source.type === 'metadata' ? '元' :
+                 '库'}
               </Tag>
             )}
             <span style={{ fontSize: 13 }}>{fileName}</span>

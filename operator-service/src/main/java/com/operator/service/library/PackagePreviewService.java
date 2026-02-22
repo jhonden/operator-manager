@@ -136,6 +136,18 @@ public class PackagePreviewService {
             }
         }
 
+        // Legacy 模板下添加算子元数据文件
+        if (template == PackagePathResolver.PackageTemplate.LEGACY) {
+            String metaInfoPath = rootPrefix + "operators/metainfo_operators.yml";
+            log.info("添加算子元数据文件：{}", metaInfoPath);
+
+            addFileToStructure(rootNodes, directoryMap, metaInfoPath, PackagePreviewResponse.Source.builder()
+                    .type("metadata")
+                    .id(pkg.getId())
+                    .name("metainfo_operators.yml")
+                    .build());
+        }
+
         return rootNodes;
     }
 
