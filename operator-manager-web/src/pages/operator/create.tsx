@@ -327,7 +327,7 @@ const OperatorCreatePage: React.FC = () => {
           {currentStep === 0 && (
             <Card title="基本信息" style={{ marginBottom: 16 }}>
               <Form.Item
-                label="Operator Name"
+                label={t('operator.name')}
                 name="name"
                 rules={[
                   { required: true, message: 'Please input operator name' },
@@ -337,7 +337,7 @@ const OperatorCreatePage: React.FC = () => {
                 <Input placeholder="e.g., Data Cleaning Operator" />
               </Form.Item>
               <Form.Item
-                label="Description"
+                label={t('common.description')}
                 name="description"
                 rules={[{ required: true, message: 'Please input description' }]}
               >
@@ -347,7 +347,7 @@ const OperatorCreatePage: React.FC = () => {
                 />
               </Form.Item>
               <Form.Item
-                label="Operator Code"
+                label={t('operator.operatorCode')}
                 name="operatorCode"
                 rules={[
                   { required: true, message: 'Please input operator code' },
@@ -361,7 +361,7 @@ const OperatorCreatePage: React.FC = () => {
                 <Input placeholder="e.g., data_cleaning_operator" />
               </Form.Item>
               <Form.Item
-                label="Object Code"
+                label={t('operator.objectCode')}
                 name="objectCode"
                 rules={[
                   { required: true, message: 'Please input object code' },
@@ -375,7 +375,7 @@ const OperatorCreatePage: React.FC = () => {
                 <Input placeholder="e.g., cleaned_data" />
               </Form.Item>
               <Form.Item
-                label="Data Format"
+                label={t('operator.dataFormat')}
                 name="dataFormat"
                 rules={[{ required: true, message: 'Please select at least one data format' }]}
                 tooltip="Selects raw data formats this operator can process"
@@ -383,7 +383,7 @@ const OperatorCreatePage: React.FC = () => {
                 <CheckboxGroup options={DataFormatOptions} />
               </Form.Item>
               <Form.Item
-                label="Generator"
+                label={t('operator.generator')}
                 name="generator"
                 tooltip="Specify if this operator is dynamically generated or statically built-in"
               >
@@ -396,7 +396,7 @@ const OperatorCreatePage: React.FC = () => {
                 </Select>
               </Form.Item>
               <Form.Item
-                label="Programming Language"
+                label={t('operator.language')}
                 name="language"
                 rules={[{ required: true, message: 'Please select language' }]}
               >
@@ -410,7 +410,7 @@ const OperatorCreatePage: React.FC = () => {
                 </Select>
               </Form.Item>
               <Form.Item
-                label="Version"
+                label={t('common.version')}
                 name="version"
                 rules={[{ required: true, message: 'Please input version' }]}
                 initialValue="1.0.0"
