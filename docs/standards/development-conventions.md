@@ -60,6 +60,16 @@
 
 #### 启动脚本
 
+- **统一管理（本地模式）**: `start-all.sh`（支持 H2 和 PostgreSQL）
+  - 默认本地 PostgreSQL：`./start-all.sh` 或 `./start-all.sh local postgresql`
+  - 本地 H2 模式：`./start-all.sh local h2`
+  - 在后台启动并监控进程
+  - 显示数据库类型和模式信息
+- **统一管理（Docker 模式）**: `start-all.sh docker`
+  - 在后台启动 Docker 服务
+  - 显示 Docker 服务信息
+
+**单独启动脚本**：
 - **本地模式（支持 H2 和 PostgreSQL）**: `start-backend-local.sh`
   - 默认使用 PostgreSQL（profile: postgresql）
   - 使用 H2：`./start-backend-local.sh h2`
@@ -76,6 +86,13 @@
 
 #### 停止脚本
 
+- **统一管理（本地和 Docker 模式）**: `stop-all.sh`
+  - 同时停止后端和前端服务
+  - 支持参数: ./stop-all.sh <mode> [profile]
+  - 默认停止本地 PostgreSQL：`./stop-all.sh` 或 `./stop-all.sh local postgresql`
+  - 显示停止状态和进程信息
+
+**单独停止脚本**：
 - **本地模式停止**: `stop-backend-local.sh`
   - 默认停止 PostgreSQL（profile: postgresql）
   - 停止 H2：`./stop-backend-local.sh h2`
