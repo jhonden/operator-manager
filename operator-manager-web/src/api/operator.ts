@@ -176,4 +176,15 @@ export const operatorApi = {
     console.log('[Operator API] 移除公共库依赖, operatorId:', operatorId, 'libraryId:', libraryId);
     return request.delete<ApiResponse<void>>(`/v1/operators/${operatorId}/library-dependencies/${libraryId}`);
   },
+
+  /**
+   * 批量更新算子公共库依赖
+   */
+  batchUpdateLibraryDependencies: (data: {
+    operatorIds: number[];
+    libraryIds: number[];
+  }): Promise<ApiResponse<void>> => {
+    console.log('[Operator API] 批量更新算子公共库依赖, operatorIds:', data.operatorIds, 'libraryIds:', data.libraryIds);
+    return request.post<ApiResponse<void>>('/v1/operators/batch-library-dependencies', data);
+  },
 };

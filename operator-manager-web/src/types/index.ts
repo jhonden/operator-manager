@@ -333,4 +333,5 @@ export type {
   LibrarySearchRequest,
   LibraryDependencyResponse,
   AddLibraryDependencyRequest,
+  BatchLibraryDependenciesRequest,
 } from './library';

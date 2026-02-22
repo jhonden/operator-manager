@@ -9,7 +9,6 @@ import {
   Card,
   message,
   Popconfirm,
-  Modal,
   Tooltip,
 } from 'antd';
 import {
@@ -19,12 +18,14 @@ import {
   EyeOutlined,
   SearchOutlined,
   ReloadOutlined,
+  SwapOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { Operator, OperatorFilters } from '@/types';
 import { DataFormatOptions, GeneratorOptions } from '@/types';
 import { operatorApi } from '@/api/operator';
 import { t } from '@/utils/i18n';
+import BatchLibraryDependenciesModal from '@/components/operator/BatchLibraryDependenciesModal';
 
 // Helper function to convert data format codes to labels
 const formatDataFormat = (dataFormat?: string) => {
@@ -54,6 +55,11 @@ const OperatorListPage: React.FC = () => {
     language: undefined,
     status: undefined,
   });
+
+  // Batch selection states
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedOperators, setSelectedOperators] = useState<Operator[]>([]);
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
 
   const fetchOperators = async () => {
     setLoading(true);
@@ -107,6 +113,30 @@ const OperatorListPage: React.FC = () => {
     } catch (error: any) {
       message.error(error.message || t('message.operator.deletedFailed'));
     }
+  };
+
+  // Batch selection handlers
+  const handleRowSelectionChange = (selectedRowKeys: React.Key[], selectedRows: Operator[]) => {
+    console.log('[Operator Page] 选择算子, selectedRowKeys:', selectedRowKeys, 'selectedRows:', selectedRows);
+    setSelectedRowKeys(selectedRowKeys);
+    setSelectedOperators(selectedRows);
+  };
+
+  const handleBatchUpdateLibraries = () => {
+    console.log('[Operator Page] 打开批量更新公共库依赖弹窗');
+    if (selectedOperators.length === 0) {
+      message.warning('请先选择算子');
+      return;
+    }
+    setBatchModalVisible(true);
+  };
+
+  const handleBatchModalSuccess = () => {
+    console.log('[Operator Page] 批量更新成功, 刷新列表');
+    setBatchModalVisible(false);
+    setSelectedRowKeys([]);
+    setSelectedOperators([]);
+    fetchOperators();
   };
 
   const columns = [
@@ -274,13 +304,22 @@ const OperatorListPage: React.FC = () => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/operators/create')}
-          >
-            {t('common.create')} 算子
-          </Button>
+          <Space>
+            <Button
+              icon={<SwapOutlined />}
+              onClick={handleBatchUpdateLibraries}
+              disabled={selectedOperators.length === 0}
+            >
+              批量更新公共库依赖
+            </Button>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/operators/create')}
+            >
+              {t('common.create')} 算子
+            </Button>
+          </Space>
         }
       >
         {/* Search and Filters */}
@@ -332,6 +371,10 @@ const OperatorListPage: React.FC = () => {
           dataSource={operators}
           rowKey="id"
           loading={loading}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: handleRowSelectionChange,
+          }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
@@ -344,6 +387,14 @@ const OperatorListPage: React.FC = () => {
           scroll={{ x: 1500 }}
         />
       </Card>
+
+      {/* Batch Library Dependencies Modal */}
+      <BatchLibraryDependenciesModal
+        visible={batchModalVisible}
+        selectedOperators={selectedOperators}
+        onCancel={() => setBatchModalVisible(false)}
+        onSuccess={handleBatchModalSuccess}
+      />
     </div>
   );
 };

@@ -220,3 +220,11 @@ export interface LibrarySearchRequest {
     page?: number;
     size?: number;
 }
+
+/**
+ * 批量更新算子公共库依赖请求
+ */
+export interface BatchLibraryDependenciesRequest {
+    operatorIds: number[];
+    libraryIds: number[];
+}
