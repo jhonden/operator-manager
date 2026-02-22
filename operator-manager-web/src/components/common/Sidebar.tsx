@@ -22,39 +22,39 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
   const menuItems = [
     {
       key: 'operators-group',
-      label: 'Operators',
+      label: '算子',
       type: 'group' as const,
       children: [
         {
           key: '/operators',
           icon: <CodeOutlined />,
-          label: 'All Operators',
+          label: '所有算子',
           onClick: () => navigate('/operators'),
         },
       ],
     },
     {
       key: 'packages-group',
-      label: 'Packages',
+      label: '算子包',
       type: 'group' as const,
       children: [
         {
           key: '/packages',
           icon: <AppstoreOutlined />,
-          label: 'All Packages',
+          label: '所有算子包',
           onClick: () => navigate('/packages'),
         },
       ],
     },
     {
       key: 'libraries-group',
-      label: 'Libraries',
+      label: '公共库',
       type: 'group' as const,
       children: [
         {
           key: '/libraries',
           icon: <DatabaseOutlined />,
-          label: 'Common Libraries',
+          label: '常用公共库',
           onClick: () => navigate('/libraries'),
         },
       ],
@@ -93,7 +93,7 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
             fontWeight: 600,
             margin: 0,
           }}>
-            Operator Manager
+            算子管理器
           </h1>
         )}
       </div>

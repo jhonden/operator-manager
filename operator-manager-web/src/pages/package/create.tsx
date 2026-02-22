@@ -18,6 +18,7 @@ import {
 } from '@ant-design/icons';
 import type { OperatorPackage } from '@/types';
 import { packageApi } from '@/api/package';
+import { t } from '@/utils/i18n';
 
 /**
  * Operator package create/edit page
@@ -55,7 +56,7 @@ const PackageCreatePage: React.FC = () => {
         });
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch package');
+      message.error(error.message || '获取算子包失败');
     } finally {
       setLoading(false);
     }
@@ -72,16 +73,16 @@ const PackageCreatePage: React.FC = () => {
 
       if (isEdit) {
         await packageApi.updatePackage(Number(id), packageRequest);
-        message.success('Package updated successfully');
+        message.success('算子包更新成功');
       } else {
         const response = await packageApi.createPackage(packageRequest);
-        message.success('Package created successfully');
+        message.success('算子包创建成功');
         if (response.data) {
           navigate(`/packages/${response.data.id}`);
         }
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to save package');
+      message.error(error.message || '保存算子包失败');
     }
   };
 
@@ -95,9 +96,9 @@ const PackageCreatePage: React.FC = () => {
               icon={<ArrowLeftOutlined />}
               onClick={() => navigate('/packages')}
             >
-              Back
+              {t('common.back')}
             </Button>
-            <span>{isEdit ? 'Edit Package' : 'Create Package'}</span>
+            <span>{isEdit ? '编辑算子包' : '创建算子包'}</span>
           </Space>
         }
         extra={
@@ -107,7 +108,7 @@ const PackageCreatePage: React.FC = () => {
               onClick={() => handleSubmit(false)}
               loading={loading}
             >
-              Save Draft
+              {t('common.saveDraft')}
             </Button>
             <Button
               type="primary"
@@ -115,7 +116,7 @@ const PackageCreatePage: React.FC = () => {
               onClick={() => handleSubmit(true)}
               loading={loading}
             >
-              {isEdit ? 'Update & Publish' : 'Create & Publish'}
+              {isEdit ? '更新并发布' : '创建并发布'}
             </Button>
           </Space>
         }
@@ -131,52 +132,52 @@ const PackageCreatePage: React.FC = () => {
               }}
             >
               <Form.Item
-                label="Package Name"
+                label="算子包名称"
                 name="name"
                 rules={[
-                  { required: true, message: 'Please input package name' },
-                  { min: 3, message: 'Name must be at least 3 characters' },
+                  { required: true, message: '请输入算子包名称' },
+                  { min: 3, message: '名称至少 3 个字符' },
                 ]}
               >
-                <Input placeholder="e.g., Data ETL Package" />
+                <Input placeholder="例如：数据 ETL 包" />
               </Form.Item>
 
               <Form.Item
-                label="Business Scenario"
+                label="业务场景"
                 name="businessScenario"
                 rules={[
-                  { required: true, message: 'Please describe business scenario' },
+                  { required: true, message: '请描述业务场景' },
                 ]}
               >
-                <Input placeholder="e.g., Complete data warehouse ETL workflow" />
+                <Input placeholder="例如：完整的数据仓库 ETL 工作流" />
               </Form.Item>
 
               <Form.Item
-                label="Description"
+                label={t('common.description')}
                 name="description"
-                rules={[{ required: true, message: 'Please input description' }]}
+                rules={[{ required: true, message: '请输入描述' }]}
               >
                 <Input.TextArea
                   rows={4}
-                  placeholder="Describe what this package does and business problem it solves..."
+                  placeholder="描述此算子包的功能和解决的业务问题..."
                 />
               </Form.Item>
 
-              <Form.Item label="Icon URL" name="icon">
+              <Form.Item label="图标 URL" name="icon">
                 <Input placeholder="https://example.com/icon.png" />
               </Form.Item>
 
               <Form.Item
-                label="Version"
+                label={t('common.version')}
                 name="version"
-                rules={[{ required: true, message: 'Please input version' }]}
+                rules={[{ required: true, message: '请输入版本号' }]}
                 initialValue="1.0.0"
               >
-                <Input placeholder="e.g., 1.0.0" />
+                <Input placeholder="例如：1.0.0" />
               </Form.Item>
 
               <Form.Item
-                label="Public"
+                label="公开"
                 name="isPublic"
                 valuePropName="checked"
               >

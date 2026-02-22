@@ -23,6 +23,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import type { OperatorPackage, PackageFilters } from '@/types';
 import { packageApi } from '@/api/package';
+import { t } from '@/utils/i18n';
 
 /**
  * Operator package list page
@@ -59,7 +60,7 @@ const PackageListPage: React.FC = () => {
         });
       }
     } catch (error: any) {
-      message.error(error.message || 'Failed to fetch packages');
+      message.error(error.message || '获取算子包列表失败');
     }
   };
 
@@ -84,10 +85,10 @@ const PackageListPage: React.FC = () => {
   const handleDelete = async (id: number) => {
     try {
       await packageApi.deletePackage(id);
-      message.success('Package deleted successfully');
+      message.success('算子包删除成功');
       fetchPackages();
     } catch (error: any) {
-      message.error(error.message || 'Failed to delete package');
+      message.error(error.message || '删除算子包失败');
     }
   };
 
@@ -97,8 +98,8 @@ const PackageListPage: React.FC = () => {
         title={
           <Space>
             <AppstoreOutlined />
-            <span>Operator Packages</span>
-            <Tag color="blue">{pagination.total} total</Tag>
+            <span>算子包</span>
+            <Tag color="blue">{t('common.total')} {pagination.total}</Tag>
           </Space>
         }
         extra={
@@ -107,14 +108,14 @@ const PackageListPage: React.FC = () => {
             icon={<PlusOutlined />}
             onClick={() => navigate('/packages/create')}
           >
-            Create Package
+            创建算子包
           </Button>
         }
       >
         {/* Search and Filters */}
         <Space style={{ marginBottom: 24 }} wrap>
           <Input
-            placeholder="Search packages..."
+            placeholder="搜索算子包..."
             prefix={<SearchOutlined />}
             value={filters.keyword}
             onChange={(e) => setFilters({ ...filters, keyword: e.target.value })}
@@ -123,24 +124,24 @@ const PackageListPage: React.FC = () => {
             allowClear
           />
           <Select
-            placeholder="Status"
+            placeholder={t('placeholder.selectLanguage')}
             value={filters.status}
             onChange={(value) => setFilters({ ...filters, status: value })}
             style={{ width: 120 }}
             allowClear
           >
-            <Select.Option value="DRAFT">Draft</Select.Option>
-            <Select.Option value="PUBLISHED">Published</Select.Option>
-            <Select.Option value="ARCHIVED">Archived</Select.Option>
+            <Select.Option value="DRAFT">{t('operator.status.draft')}</Select.Option>
+            <Select.Option value="PUBLISHED">{t('operator.status.published')}</Select.Option>
+            <Select.Option value="ARCHIVED">{t('operator.status.archived')}</Select.Option>
           </Select>
           <Button type="primary" onClick={handleSearch}>
-            Search
+            {t('common.search')}
           </Button>
           <Button onClick={handleReset}>
-            Reset
+            {t('common.reset')}
           </Button>
           <Button icon={<ReloadOutlined />} onClick={fetchPackages}>
-            Refresh
+            {t('common.refresh')}
           </Button>
         </Space>
 
@@ -157,23 +158,23 @@ const PackageListPage: React.FC = () => {
                     icon={<EyeOutlined />}
                     onClick={() => navigate(`/packages/${pkg.id}`)}
                   >
-                    View
+                    {t('common.view')}
                   </Button>,
                   <Button
                     type="text"
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/packages/${pkg.id}/edit`)}
                   >
-                    Edit
+                    {t('common.edit')}
                   </Button>,
                   <Popconfirm
-                    title="Are you sure you want to delete this package?"
+                    title="确定要删除此算子包吗？"
                     onConfirm={() => handleDelete(pkg.id)}
-                    okText="Yes"
-                    cancelText="No"
+                    okText={t('common.yes')}
+                    cancelText={t('common.no')}
                   >
                     <Button type="text" danger icon={<DeleteOutlined />}>
-                      Delete
+                      {t('common.delete')}
                     </Button>
                   </Popconfirm>,
                 ]}
@@ -216,7 +217,7 @@ const PackageListPage: React.FC = () => {
                         </Tag>
                         {pkg.featured && (
                           <Tag color="gold" style={{ fontSize: '11px' }}>
-                            Featured
+                            精选
                           </Tag>
                         )}
                       </Space>
@@ -225,16 +226,16 @@ const PackageListPage: React.FC = () => {
                   description={
                     <div style={{ height: '80px', overflow: 'hidden' }}>
                       <div style={{ fontSize: '12px', color: '#8c8c8c', marginBottom: 8 }}>
-                        {pkg.description || 'No description'}
+                        {pkg.description || '暂无描述'}
                       </div>
                       <div style={{ fontSize: '12px', color: '#1890ff' }}>
-                        📋 {pkg.operatorCount || 0} operators
+                        📦 {pkg.operatorCount || 0} 个算子
                       </div>
                       <div style={{ fontSize: '11px', color: '#8c8c8c', marginTop: 4 }}>
                         🏷️ v{pkg.version || '0.0.1'}
                       </div>
                       <div style={{ fontSize: '11px', color: '#8c8c8c', marginTop: 4 }}>
-                        ↓ {pkg.downloadsCount || 0} downloads
+                        ↓ {pkg.downloadsCount || 0} 次下载
                       </div>
                     </div>
                   }
@@ -253,10 +254,10 @@ const PackageListPage: React.FC = () => {
                 setPagination({ ...pagination, current: pagination.current - 1 })
               }
             >
-              Previous
+              {t('common.previous')}
             </Button>
             <span>
-              Page {pagination.current} of {Math.ceil(pagination.total / pagination.pageSize)}
+              第 {pagination.current} 页，共 {Math.ceil(pagination.total / pagination.pageSize)} 页
             </span>
             <Button
               disabled={pagination.current >= Math.ceil(pagination.total / pagination.pageSize)}
@@ -264,7 +265,7 @@ const PackageListPage: React.FC = () => {
                 setPagination({ ...pagination, current: pagination.current + 1 })
               }
             >
-              Next
+              {t('common.next')}
             </Button>
           </Space>
         </div>
