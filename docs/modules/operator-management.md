@@ -1,6 +1,6 @@
 # 算子管理模块功能设计
 
-> **版本**: v1.0
+> **版本**: v1.1
 > **创建日期**: 2026-02-22
 > **最后更新**: 2026-02-22
 > **状态**: 与代码实现一致
@@ -117,6 +117,13 @@
 - ✅ 移除公共库依赖
   - 二次确认
   - 支持批量移除
+- ✅ **批量更新公共库依赖**（新增）
+  - 算子列表页面支持批量选择算子
+  - 批量操作按钮：批量更新公共库依赖
+  - Transfer 穿梭框选择多个公共库
+  - 支持搜索公共库
+  - 同时更新多个算子的公共库依赖
+  - 自动处理依赖关系（保留、删除、添加）
 - ✅ **重要设计原则**
   - 算子不指定公共库版本
   - 版本在算子包层面统一管理
@@ -321,12 +328,7 @@ public class OperatorCommonLibrary {
 | GET | `/v1/operators/{id}/library-dependencies` | 获取算子依赖的公共库列表 | 是 |
 | POST | `/v1/operators/{id}/library-dependencies` | 添加公共库依赖 | 是 |
 | DELETE | `/v1/operators/{id}/library-dependencies/{libraryId}` | 移除公共库依赖 | 是 |
-
-### 4.3 待开发接口
-
-| 接口 | 描述 | 优先级 |
-|------|------|--------|
-| 批量公共库依赖 | 批量更新多个算子的公共库依赖 | P0 |
+| POST | `/v1/operators/batch-library-dependencies` | 批量更新多个算子的公共库依赖 | 是 |
 
 ---
 
@@ -341,7 +343,9 @@ public class OperatorCommonLibrary {
   - 搜索和筛选
   - 分页
   - 创建新算子
-  - 批量操作（待开发）
+  - **批量操作**（新增）：
+    - 批量选择算子
+    - 批量更新公共库依赖
 - **筛选条件**:
   - 关键词搜索
   - 语言筛选（Java / Groovy）
@@ -380,6 +384,7 @@ public class OperatorCommonLibrary {
 | CodeEditor.tsx | components/code/ | Monaco Editor 代码编辑器 |
 | BusinessLogicEditor.tsx | components/editor/ | 业务逻辑编辑器（左侧编辑，右侧预览） |
 | LibrarySelectorModal.tsx | components/library/ | 公共库选择弹窗 |
+| **BatchLibraryDependenciesModal.tsx** | **components/operator/** | **批量更新公共库依赖弹窗（新增）** |
 
 ---
 
@@ -450,11 +455,7 @@ public class OperatorCommonLibrary {
    - 当前不支持算子的多版本管理
    - 所有修改在同一版本上进行
 
-2. **批量公共库依赖**
-   - 当前不支持批量更新多个算子的公共库依赖
-   - 需要逐个算子操作
-
-3. **算子测试**
+2. **算子测试**
    - 当前不支持算子测试功能
    - 无法在线测试算子逻辑
 
@@ -479,20 +480,14 @@ public class OperatorCommonLibrary {
 
 ### 8.1 高优先级
 
-1. **批量公共库依赖功能**
-   - 在算子列表页添加批量选择
-   - 添加"批量配置代码库"按钮
-   - 支持选择多个公共库
-   - 后端新增批量更新 API
-
-2. **算子版本管理**
+1. **算子版本管理**
    - 支持算子的多版本
    - 版本对比功能
    - 版本回滚功能
 
 ### 8.2 中优先级
 
-3. **算子测试功能**
+2. **算子测试功能**
    - 单元测试
    - 集成测试
    - 测试用例管理
@@ -517,6 +512,7 @@ public class OperatorCommonLibrary {
 
 | 日期 | 版本 | 变更内容 | 作者 |
 |------|------|---------|------|
+| 2026-02-22 | v1.1 | 新增：批量更新算子公共库依赖功能<br/>- 后端：新增批量更新 API<br/>- 前端：新增批量选择和批量更新弹窗<br/>- 文档：更新功能设计文档 | Claude |
 | 2026-02-22 | v1.0 | 初始版本，基于当前代码实现创建 | Claude |
 
 ---
