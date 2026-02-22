@@ -93,6 +93,10 @@
   - 显示停止状态和进程信息
 
 **单独停止脚本**：
+- **前端停止**: `stop-frontend.sh`
+  - 检查 Node.js 是否安装
+  - 停止前端服务（端口 5173）
+  - 验证停止成功
 - **本地模式停止**: `stop-backend-local.sh`
   - 默认停止 PostgreSQL（profile: postgresql）
   - 停止 H2：`./stop-backend-local.sh h2`
