@@ -32,6 +32,14 @@
    - 方案确认和归档流程
    - 实施规划要求
 
+4. **[前后端协同开发规范](./docs/standards/frontend-backend-collaboration.md)** ⭐⭐⭐⭐⭐
+   - 核心原则：先后端再前端，测试驱动开发
+   - 后端开发阶段：API 测试、端到端测试、测试用例固化
+   - 前端开发阶段：API 契约验证、模块化设计、日志输出、增量编译、类型优先
+   - 联调和提交阶段：后端测试复用、前端功能测试、代码提交规范
+
+   **⚠️ 特别注意：当用户让你开发一个前后端需求时，必须先阅读此规范文档并严格按照里面的要求执行。**
+
 ### 第二步：理解项目结构
 
 阅读下面的**项目目录结构树**章节，了解项目组织结构和关键文件位置。
@@ -51,6 +59,7 @@
 - [ ] 阅读并理解了代码提交流程
 - [ ] 阅读并理解了项目关键约束
 - [ ] 阅读并理解了需求设计工作流程（如需进行需求设计）
+- [ ] **阅读并理解了前后端协同开发规范（如需开发前后端功能）**
 - [ ] 了解了项目目录结构
 - [ ] 理解了关键约束和禁止行为
 
@@ -85,7 +94,10 @@ operator-manager/
 ├── docs/                          # 文档目录
 │   ├── standards/                    # 规约和规范（⭐ 必读）
 │   │   ├── development-conventions.md      # 开发规范
-│   │   └── code-submission-workflow.md    # 代码提交流程
+│   │   ├── code-submission-workflow.md    # 代码提交流程
+│   │   ├── frontend-backend-collaboration.md  # 前后端协同开发规范
+│   │   ├── requirements-design-workflow.md  # 需求设计工作流程
+│   │   └── project-constraints.md        # 项目关键约束
 │   └── requirements/                 # 需求设计文档
 │       └── 2026-02-20-算子基本信息扩展-需求设计.md
 │       └── 2026-02-20-算子业务逻辑字段.md
@@ -108,6 +120,9 @@ operator-manager/
 |---------|------|---------|
 | [开发规范](./docs/standards/development-conventions.md) | 项目编码规范（语言、后端、前端、测试、安全）| ⭐⭐⭐ |
 | [代码提交流程](./docs/standards/code-submission-workflow.md) | 代码修改、验证、提交流程 | ⭐⭐⭐⭐⭐ |
+| [前后端协同开发规范](./docs/standards/frontend-backend-collaboration.md) | 前后端协同开发的流程、测试规范和最佳实践 | ⭐⭐⭐⭐⭐ |
+| [需求设计工作流程](./docs/standards/requirements-design-workflow.md) | 需求讨论、方案设计、确认归档流程 | ⭐⭐⭐⭐⭐ |
+| [项目关键约束](./docs/standards/project-constraints.md) | 技术栈、功能范围、工作流程约束 | ⭐⭐⭐ |
 | [数据库初始化](./db/migration/V1__init_schema.sql) | 数据库表结构初始化脚本 | ⭐⭐ |
 | [数据库迁移脚本](./db/migration/) | Flyway 数据库迁移脚本 | ⭐⭐⭐ |
 | [Operator 实体](./operator-core/src/main/java/com/operator/core/operator/domain/Operator.java) | 算子领域实体 | ⭐⭐⭐⭐ |
