@@ -15,12 +15,12 @@
 | 模块 | 已完成 | 进行中 | 待实现 | 完成率 |
 |------|--------|--------|--------|--------|
 | 算子管理 | 80% | 10% | 10% | 80% |
-| 算子包管理 | 90% | 0% | 10% | 90% |
+| 算子包管理 | 90% | 10% | 0% | 95% |
 | 公共库管理 | 90% | 0% | 10% | 90% |
 | 认证授权 | 100% | 0% | 0% | 100% |
 | 国际化 | 80% | 20% | 0% | 80% |
 
-> **总体完成率**: 约 87%
+> **总体完成率**: 约 89%
 
 ---
 
@@ -54,6 +54,8 @@
 - [x] 算子包搜索和过滤
 - [x] 算子包下载次数统计
 - [x] 算子包基本信息编辑
+- [x] 算子包打包路径配置与公共库管理 - 后端开发（自动同步逻辑、API 调整）
+- [ ] 算子包打包路径配置与公共库管理 - 前端开发（公共库版本配置、打包配置）
 
 ### 公共库管理模块
 - [x] 公共库 CRUD
@@ -99,7 +101,29 @@
 ## 🚧 进行中的工作
 
 ### 当前任务
-- [ ] 算子包详情页中添加公共库版本配置功能（进行中，待确认）
+- [ ] 算子包打包路径配置与公共库管理 - 前端开发（进行中）
+
+#### 后端开发已完成 ✅
+- [x] 数据库设计：package_common_libraries 表新增 operator_id 字段，记录公共库来源算子
+- [x] 数据库迁移：创建 V7__adjust_package_library_design.sql
+- [x] 实体更新：PackageCommonLibrary 添加 operator 字段
+- [x] 仓库接口：PackageCommonLibraryRepository 和 PackageOperatorRepository 新增查询方法
+- [x] Service 层实现：
+  - 移除 addLibraryToPackage 和 removeLibraryFromPackage 方法
+  - 新增 syncOperatorLibrariesToPackage 方法（自动同步算子的公共库到算子包）
+  - 算子添加/移除公共库依赖时，自动同步到包含该算子的所有算子包
+- [x] Controller 层调整：
+  - 移除 POST /{id}/libraries 和 DELETE /{id}/libraries/{packageCommonLibraryId} 接口
+  - 新增 POST /{id}/operators/{operatorId}/sync-libraries 接口
+  - 修改 updateLibraryPathConfig 接口参数（libraryId 替换 packageCommonLibraryId）
+- [x] 设计变更：从手动管理公共库改为自动同步，消除数据冗余
+
+#### 前端待实现 ⏸️
+- [ ] 算子包详情页面 - 公共库版本配置标签页
+- [ ] 算子包详情页面 - 打包配置标签页
+- [ ] 路径编辑弹窗（单公共库路径配置）
+- [ ] 批量配置弹窗（批量设置路径）
+- [ ] 打包预览组件（展示最终打包路径）
 
 ---
 
@@ -260,3 +284,10 @@
 - 添加 P0/P1/P2 优先级需求
 - 建立 Claude 工作流程建议
 - 添加需求设计文档索引
+- **算子包打包路径配置与公共库管理 - 后端开发完成**：
+  - 数据库设计：package_common_libraries 表新增 operator_id 字段
+  - 设计变更：从手动管理公共库改为自动同步，消除数据冗余
+  - 实现 syncOperatorLibrariesToPackage 方法
+  - 算子添加/移除公共库依赖时，自动同步到算子包
+  - 后端编译通过，基础 API 测试完成
+  - 待用户手动验证后继续前端开发

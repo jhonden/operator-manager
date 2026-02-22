@@ -94,14 +94,10 @@ public interface PackageService {
     // ========== 公共库相关方法 ==========
 
     /**
-     * 向算子包添加公共库
+     * 同步算子的公共库到算子包
+     * 当算子添加/移除公共库依赖时调用
      */
-    LibraryPathConfigResponse addLibraryToPackage(Long packageId, AddLibraryToPackageRequest request, String username);
-
-    /**
-     * 从算子包移除公共库
-     */
-    void removeLibraryFromPackage(Long packageId, Long packageCommonLibraryId, String username);
+    void syncOperatorLibrariesToPackage(Long packageId, Long operatorId, String username);
 
     /**
      * 获取算子包的打包路径配置
@@ -125,11 +121,18 @@ public interface PackageService {
 
     /**
      * 更新公共库打包路径配置
+     * @param packageId 算子包ID
+     * @param libraryId 公共库ID
+     * @param request 路径配置请求
+     * @param username 用户名
      */
-    void updateLibraryPathConfig(Long packageId, Long packageCommonLibraryId, LibraryPathConfigRequest request, String username);
+    void updateLibraryPathConfig(Long packageId, Long libraryId, LibraryPathConfigRequest request, String username);
 
     /**
      * 批量更新公共库打包路径配置
+     * @param packageId 算子包ID
+     * @param request 批量配置请求
+     * @param username 用户名
      */
     void batchUpdateLibraryPathConfig(Long packageId, BatchPathConfigRequest request, String username);
 }

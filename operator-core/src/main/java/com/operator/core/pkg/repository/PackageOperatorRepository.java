@@ -32,9 +32,19 @@ public interface PackageOperatorRepository extends JpaRepository<PackageOperator
     List<PackageOperator> findByOperatorPackageIdOrderByOrderIndexAsc(Long packageId);
 
     /**
+     * Find package operators by operator ID
+     */
+    List<PackageOperator> findByOperatorId(Long operatorId);
+
+    /**
      * Find package operator by package and operator
      */
     Optional<PackageOperator> findByOperatorPackageIdAndOperatorId(Long packageId, Long operatorId);
+
+    /**
+     * Check if operator exists in package
+     */
+    boolean existsByOperatorPackageIdAndOperatorId(Long packageId, Long operatorId);
 
     /**
      * Delete package operators by package

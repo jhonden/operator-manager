@@ -10,6 +10,8 @@ import com.operator.common.utils.PageResponse;
 import com.operator.core.library.domain.PackageCommonLibrary;
 import com.operator.core.library.repository.CommonLibraryRepository;
 import com.operator.core.library.repository.PackageCommonLibraryRepository;
+import com.operator.core.library.domain.OperatorCommonLibrary;
+import com.operator.core.library.repository.OperatorCommonLibraryRepository;
 import com.operator.core.operator.domain.Operator;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.core.pkg.domain.OperatorPackage;
@@ -44,6 +46,7 @@ public class PackageServiceImpl implements PackageService {
     private final OperatorPackageRepository packageRepository;
     private final PackageOperatorRepository packageOperatorRepository;
     private final OperatorRepository operatorRepository;
+    private final OperatorCommonLibraryRepository operatorCommonLibraryRepository;
     private final PackageCommonLibraryRepository packageCommonLibraryRepository;
     private final CommonLibraryRepository commonLibraryRepository;
     private final PackagePathResolver pathResolver;
@@ -170,6 +173,14 @@ public class PackageServiceImpl implements PackageService {
         // Update operator count
         pkg.setOperatorCount((int) packageOperatorRepository.countByOperatorPackageId(packageId));
         packageRepository.save(pkg);
+
+        // 同步算子的公共库到算子包
+        try {
+            syncOperatorLibrariesToPackage(packageId, request.getOperatorId(), "system");
+        } catch (Exception e) {
+            log.error("同步公共库到算子包失败：packageId={}, operatorId={}",
+                packageId, request.getOperatorId(), e);
+        }
 
         return mapPackageOperatorToResponse(packageOperator);
     }
@@ -345,43 +356,60 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     @Transactional
-    public LibraryPathConfigResponse addLibraryToPackage(Long packageId, AddLibraryToPackageRequest request, String username) {
-        log.info("向算子包添加公共库：packageId={}, libraryId={}", packageId, request.getLibraryId());
+    public void syncOperatorLibrariesToPackage(Long packageId, Long operatorId, String username) {
+        log.info("同步算子的公共库到算子包：packageId={}, operatorId={}", packageId, operatorId);
 
+        // 获取算子包
         OperatorPackage pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
 
-        var commonLibrary = packageCommonLibraryRepository.findByOperatorPackageIdAndLibraryId(packageId, request.getLibraryId());
-        if (commonLibrary.isPresent()) {
-            throw new IllegalArgumentException("该公共库已存在于算子包中");
+        // 获取算子
+        Operator operator = operatorRepository.findById(operatorId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子", operatorId));
+
+        // 检查算子是否属于该包
+        if (!packageOperatorRepository.existsByOperatorPackageIdAndOperatorId(packageId, operatorId)) {
+            throw new IllegalArgumentException("该算子不属于此算子包");
         }
 
-        com.operator.core.library.domain.CommonLibrary library =
-                commonLibraryRepository.findById(request.getLibraryId())
-                        .orElseThrow(() -> new ResourceNotFoundException("公共库", request.getLibraryId()));
+        // 获取算子的公共库依赖
+        List<OperatorCommonLibrary> operatorLibraries = operatorCommonLibraryRepository
+                .findByOperatorId(operatorId);
 
-        PackageCommonLibrary pcl = PackageCommonLibrary.builder()
-                .operatorPackage(pkg)
-                .library(library)
-                .version(request.getVersion())
-                .orderIndex(request.getOrderIndex())
-                .useCustomPath(false)
-                .build();
+        // 删除该算子在 package_common_libraries 中的旧记录
+        packageCommonLibraryRepository.deleteByOperatorPackageIdAndOperatorId(packageId, operatorId);
 
-        pcl = packageCommonLibraryRepository.save(pcl);
+        // 为每个公共库依赖创建 package_common_libraries 记录
+        int orderIndex = 0;
+        int createdCount = 0;
+        int skippedCount = 0;
+        for (OperatorCommonLibrary opLib : operatorLibraries) {
+            com.operator.core.library.domain.CommonLibrary library = opLib.getLibrary();
+            String version = library.getVersion();
 
-        return convertToLibraryPathConfig(pcl, PackagePathResolver.PackageTemplate.LEGACY);
-    }
+            // 检查该公共库是否已经存在于该算子包中（来自其他算子）
+            boolean exists = packageCommonLibraryRepository.existsByOperatorPackageIdAndLibraryId(packageId, library.getId());
 
-    @Override
-    @Transactional
-    public void removeLibraryFromPackage(Long packageId, Long packageCommonLibraryId, String username) {
-        log.info("从算子包移除公共库：packageId={}, packageCommonLibraryId={}", packageId, packageCommonLibraryId);
+            if (!exists) {
+                PackageCommonLibrary pcl = PackageCommonLibrary.builder()
+                        .operatorPackage(pkg)
+                        .operator(operator)
+                        .library(library)
+                        .version(version)
+                        .orderIndex(orderIndex++)
+                        .useCustomPath(false)
+                        .build();
 
-        PackageCommonLibrary pcl = packageCommonLibraryRepository.findById(packageCommonLibraryId)
-                .orElseThrow(() -> new ResourceNotFoundException("算子包-公共库关联", packageCommonLibraryId));
+                packageCommonLibraryRepository.save(pcl);
+                createdCount++;
+            } else {
+                // 该公共库已从其他算子同步过，跳过
+                orderIndex++;
+                skippedCount++;
+            }
+        }
 
-        packageCommonLibraryRepository.delete(pcl);
+        log.info("同步完成：创建 {} 个，跳过 {} 个", createdCount, skippedCount);
     }
 
     @Override
@@ -483,8 +511,8 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     @Transactional
-    public void updateLibraryPathConfig(Long packageId, Long packageCommonLibraryId, LibraryPathConfigRequest request, String username) {
-        log.info("更新公共库路径配置：packageId={}, packageCommonLibraryId={}", packageId, packageCommonLibraryId);
+    public void updateLibraryPathConfig(Long packageId, Long libraryId, LibraryPathConfigRequest request, String username) {
+        log.info("更新公共库路径配置：packageId={}, libraryId={}", packageId, libraryId);
 
         OperatorPackage pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
@@ -492,7 +520,7 @@ public class PackageServiceImpl implements PackageService {
         PackagePathResolver.PackageTemplate template =
                 PackagePathResolver.PackageTemplate.valueOf(pkg.getPackageTemplate().toUpperCase());
 
-        updateLibraryPathConfigInternal(packageId, request, template);
+        updateLibraryPathConfigByLibraryId(packageId, libraryId, request);
     }
 
     @Override

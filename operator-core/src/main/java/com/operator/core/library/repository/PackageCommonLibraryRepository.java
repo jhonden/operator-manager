@@ -52,6 +52,11 @@ public interface PackageCommonLibraryRepository extends JpaRepository<PackageCom
     void deleteByOperatorPackageId(Long packageId);
 
     /**
+     * 删除指定算子在算子包中的公共库
+     */
+    void deleteByOperatorPackageIdAndOperatorId(Long packageId, Long operatorId);
+
+    /**
      * 删除公共库的所有包关联
      */
     void deleteByLibraryId(Long libraryId);

@@ -1,6 +1,7 @@
 package com.operator.core.library.domain;
 
 import com.operator.core.domain.BaseEntity;
+import com.operator.core.operator.domain.Operator;
 import com.operator.core.pkg.domain.OperatorPackage;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -35,6 +36,13 @@ public class PackageCommonLibrary extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "package_id", nullable = false)
     private OperatorPackage operatorPackage;
+
+    /**
+     * 来源算子（公共库来自哪个算子的依赖）
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "operator_id", nullable = false)
+    private Operator operator;
 
     /**
      * 关联的公共库

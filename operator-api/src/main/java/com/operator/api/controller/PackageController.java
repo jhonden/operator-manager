@@ -293,39 +293,21 @@ public class PackageController {
     // ========== 公共库相关端点 ==========
 
     /**
-     * 向算子包添加公共库
+     * 同步算子的公共库到算子包
+     * 当算子添加/移除公共库依赖时调用
      */
-    @PostMapping("/{id}/libraries")
-    @Operation(summary = "添加公共库到算子包", description = "向算子包添加公共库")
+    @PostMapping("/{id}/operators/{operatorId}/sync-libraries")
+    @Operation(summary = "同步算子的公共库到算子包", description = "当算子添加/移除公共库依赖时，同步到算子包")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<LibraryPathConfigResponse>> addLibraryToPackage(
+    public ResponseEntity<ApiResponse<Void>> syncOperatorLibrariesToPackage(
             @Parameter(description = "算子包ID") @PathVariable Long id,
-            @Valid @RequestBody AddLibraryToPackageRequest request,
+            @Parameter(description = "算子ID") @PathVariable Long operatorId,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        log.info("向算子包添加公共库：packageId={}, libraryId={}", id, request.getLibraryId());
+        log.info("同步算子的公共库到算子包：packageId={}, operatorId={}", id, operatorId);
 
-        LibraryPathConfigResponse response = packageService.addLibraryToPackage(id, request, userPrincipal.getUsername());
+        packageService.syncOperatorLibrariesToPackage(id, operatorId, userPrincipal.getUsername());
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(ApiResponse.success("公共库添加成功", response));
-    }
-
-    /**
-     * 从算子包移除公共库
-     */
-    @DeleteMapping("/{id}/libraries/{packageCommonLibraryId}")
-    @Operation(summary = "移除公共库", description = "从算子包移除公共库")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> removeLibraryFromPackage(
-            @Parameter(description = "算子包ID") @PathVariable Long id,
-            @Parameter(description = "算子包-公共库关联ID") @PathVariable Long packageCommonLibraryId,
-            @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        log.info("从算子包移除公共库：packageId={}, packageCommonLibraryId={}", id, packageCommonLibraryId);
-
-        packageService.removeLibraryFromPackage(id, packageCommonLibraryId, userPrincipal.getUsername());
-
-        return ResponseEntity.ok(ApiResponse.success("公共库移除成功"));
+        return ResponseEntity.ok(ApiResponse.success("公共库同步成功"));
     }
 
     /**
@@ -403,12 +385,12 @@ public class PackageController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> updateLibraryPathConfig(
             @Parameter(description = "算子包ID") @PathVariable Long id,
-            @Parameter(description = "算子包-公共库关联ID") @PathVariable Long packageCommonLibraryId,
+            @Parameter(description = "公共库ID") @PathVariable Long libraryId,
             @Valid @RequestBody LibraryPathConfigRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        log.info("更新公共库路径配置：packageId={}, packageCommonLibraryId={}", id, packageCommonLibraryId);
+        log.info("更新公共库路径配置：packageId={}, libraryId={}", id, libraryId);
 
-        packageService.updateLibraryPathConfig(id, packageCommonLibraryId, request, userPrincipal.getUsername());
+        packageService.updateLibraryPathConfig(id, libraryId, request, userPrincipal.getUsername());
 
         return ResponseEntity.ok(ApiResponse.success("公共库路径配置更新成功"));
     }

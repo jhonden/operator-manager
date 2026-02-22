@@ -9,14 +9,18 @@ import com.operator.common.exception.ResourceNotFoundException;
 import com.operator.common.utils.PageResponse;
 import com.operator.core.library.domain.CommonLibrary;
 import com.operator.core.library.domain.OperatorCommonLibrary;
+import com.operator.core.library.domain.PackageCommonLibrary;
 import com.operator.core.library.repository.CommonLibraryRepository;
 import com.operator.core.library.repository.OperatorCommonLibraryRepository;
+import com.operator.core.library.repository.PackageCommonLibraryRepository;
 import com.operator.core.library.repository.CommonLibraryFileRepository;
 import com.operator.core.operator.domain.Operator;
 import com.operator.common.exception.BadRequestException;
 import com.operator.core.operator.domain.Parameter;
 import com.operator.core.operator.repository.OperatorRepository;
 import com.operator.core.operator.repository.ParameterRepository;
+import com.operator.core.pkg.domain.PackageOperator;
+import com.operator.core.pkg.repository.PackageOperatorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -43,6 +47,8 @@ public class OperatorServiceImpl implements OperatorService {
     private final OperatorRepository operatorRepository;
     private final ParameterRepository parameterRepository;
     private final OperatorCommonLibraryRepository operatorCommonLibraryRepository;
+    private final PackageCommonLibraryRepository packageCommonLibraryRepository;
+    private final PackageOperatorRepository packageOperatorRepository;
     private final CommonLibraryRepository commonLibraryRepository;
     private final CommonLibraryFileRepository commonLibraryFileRepository;
 
@@ -562,6 +568,9 @@ public class OperatorServiceImpl implements OperatorService {
 
         dependency = operatorCommonLibraryRepository.save(dependency);
 
+        // 自动同步到算子包
+        syncToPackages(operatorId);
+
         return mapToLibraryDependencyResponse(dependency);
     }
 
@@ -588,7 +597,59 @@ public class OperatorServiceImpl implements OperatorService {
         // 删除关联
         operatorCommonLibraryRepository.delete(dependency);
 
+        // 自动同步到算子包
+        syncToPackages(operatorId);
+
         log.info("Removed library dependency successfully");
+    }
+
+    /**
+     * 同步算子的公共库到所有包含该算子的算子包
+     */
+    private void syncToPackages(Long operatorId) {
+        // 查找所有包含该算子的算子包
+        List<PackageOperator> packageOperators = packageOperatorRepository.findByOperatorId(operatorId);
+
+        // 获取算子的公共库依赖
+        List<OperatorCommonLibrary> operatorLibraries = operatorCommonLibraryRepository.findByOperatorId(operatorId);
+
+        // 对每个算子包同步公共库
+        for (PackageOperator packageOperator : packageOperators) {
+            Long packageId = packageOperator.getOperatorPackage().getId();
+
+            try {
+                // 删除该算子在 package_common_libraries 中的旧记录
+                packageCommonLibraryRepository.deleteByOperatorPackageIdAndOperatorId(packageId, operatorId);
+
+                // 为每个公共库依赖创建 package_common_libraries 记录
+                int orderIndex = 0;
+                for (OperatorCommonLibrary opLib : operatorLibraries) {
+                    CommonLibrary library = opLib.getLibrary();
+
+                    // 检查该公共库是否已经存在于该算子包中（来自其他算子）
+                    if (!packageCommonLibraryRepository.existsByOperatorPackageIdAndLibraryId(packageId, library.getId())) {
+                        String version = library.getVersion();
+
+                        PackageCommonLibrary pcl = PackageCommonLibrary.builder()
+                                .operatorPackage(packageOperator.getOperatorPackage())
+                                .operator(opLib.getOperator())
+                                .library(library)
+                                .version(version)
+                                .orderIndex(orderIndex++)
+                                .useCustomPath(false)
+                                .build();
+
+                        packageCommonLibraryRepository.save(pcl);
+                    }
+                }
+
+                log.debug("同步公共库到算子包：packageId={}, operatorId={}, libraryCount={}",
+                    packageId, operatorId, operatorLibraries.size());
+            } catch (Exception e) {
+                log.error("同步公共库到算子包失败：packageId={}, operatorId={}",
+                    packageId, operatorId, e);
+            }
+        }
     }
 
     private LibraryDependencyResponse mapToLibraryDependencyResponse(OperatorCommonLibrary dependency) {
