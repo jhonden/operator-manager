@@ -9,6 +9,8 @@ import type {
   PackagePathConfigRequest,
   OperatorPathConfigResponse,
   BatchUpdateOrderIndexRequest,
+  BatchAddOperatorsRequest,
+  BatchAddOperatorsResponse,
 } from '@/types';
 import { message } from 'antd';
 
@@ -108,6 +110,19 @@ export const packageApi = {
   ): Promise<ApiResponse<PackageOperator>> => {
     return request.post<ApiResponse<PackageOperator>>(
       `/v1/packages/${packageId}/operators`,
+      data
+    );
+  },
+
+  /**
+   * 批量添加算子到算子包
+   */
+  batchAddOperators: (
+    packageId: number,
+    data: BatchAddOperatorsRequest
+  ): Promise<ApiResponse<BatchAddOperatorsResponse>> => {
+    return request.post<ApiResponse<BatchAddOperatorsResponse>>(
+      `/v1/packages/${packageId}/operators/batch`,
       data
     );
   },

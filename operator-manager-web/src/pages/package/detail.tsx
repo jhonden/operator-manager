@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card,
@@ -29,17 +29,13 @@ import {
   DeleteOutlined,
   AppstoreOutlined,
   PlusOutlined,
-  ArrowUpOutlined,
-  ArrowDownOutlined,
   DownloadOutlined,
   FolderOutlined,
-  FileOutlined,
   SettingOutlined,
   ReloadOutlined,
   ToolOutlined,
   FolderOpenOutlined,
   FileTextOutlined,
-  FileZipOutlined,
 } from '@ant-design/icons';
 import type {
   OperatorPackage,
@@ -70,7 +66,9 @@ const PackageDetailPage: React.FC = () => {
   const [availableOperators, setAvailableOperators] = useState<any[]>([]);
   const [addOperatorModalVisible, setAddOperatorModalVisible] = useState(false);
   const [addOperatorLoading, setAddOperatorLoading] = useState(false);
-  const [selectedOperatorId, setSelectedOperatorId] = useState<number | undefined>(undefined);
+  const [selectedOperatorIds, setSelectedOperatorIds] = useState<number[]>([]);
+  const [searchKeyword, setSearchKeyword] = useState<string>('');
+  const [languageFilter, setLanguageFilter] = useState<string | undefined>(undefined);
   const [addForm] = Form.useForm();
 
   // 公共库和打包配置相关状态
@@ -99,6 +97,16 @@ const PackageDetailPage: React.FC = () => {
   // 折叠状态控制
   const [libraryCardCollapsed, setLibraryCardCollapsed] = useState(false);
   const [operatorCardCollapsed, setOperatorCardCollapsed] = useState(false);
+
+  // 筛选可用算子
+  const filteredAvailableOperators = useMemo(() => {
+    return availableOperators.filter((op: any) => {
+      const matchKeyword = !searchKeyword ||
+        op.name.toLowerCase().includes(searchKeyword.toLowerCase());
+      const matchLanguage = !languageFilter || op.language === languageFilter;
+      return matchKeyword && matchLanguage;
+    });
+  }, [availableOperators, searchKeyword, languageFilter]);
 
   const fetchPackage = async () => {
     if (!id) return;
@@ -178,30 +186,48 @@ const PackageDetailPage: React.FC = () => {
   };
 
   const handleAddOperator = async () => {
-    if (!id || !selectedOperatorId) {
-      message.warning('请选择一个算子');
+    if (!id || selectedOperatorIds.length === 0) {
+      message.warning('请选择至少一个算子');
       return;
     }
 
     setAddOperatorLoading(true);
     try {
       const values = addForm.getFieldsValue();
-      await packageApi.addOperator(Number(id), {
-        operatorId: selectedOperatorId!,
-        versionId: 0,
-        enabled: true,
+      const response = await packageApi.batchAddOperators(Number(id), {
+        operatorIds: selectedOperatorIds,
         orderIndex: values.orderIndex || 1,
+        enabled: true,
       });
-      message.success('算子添加到包成功');
-      setAddOperatorModalVisible(false);
-      setSelectedOperatorId(undefined);
-      addForm.resetFields();
+
+      if (response.data) {
+        const { successCount, failedCount, failedOperators } = response.data;
+        if (failedCount > 0) {
+          message.warning(
+            `成功添加 ${successCount} 个算子，${failedCount} 个失败`
+          );
+          console.log('[Package Page] Failed operators:', failedOperators);
+        } else {
+          message.success(`成功添加 ${successCount} 个算子到包`);
+        }
+      }
+
+      handleCloseAddModal();
       fetchPackage();
     } catch (error: any) {
-      message.error(error.response?.data?.error || error.message || '添加算子到包失败');
+      console.error('[Package Page] Batch add operators failed:', error);
+      message.error(error.response?.data?.error || error.message || '批量添加算子失败');
     } finally {
       setAddOperatorLoading(false);
     }
+  };
+
+  const handleCloseAddModal = () => {
+    setAddOperatorModalVisible(false);
+    setSelectedOperatorIds([]);
+    setSearchKeyword('');
+    setLanguageFilter(undefined);
+    addForm.resetFields();
   };
 
   const handleOpenAddModal = async () => {
@@ -1117,56 +1143,99 @@ const PackageDetailPage: React.FC = () => {
       <Modal
         title="添加算子到包"
         open={addOperatorModalVisible}
-        onOk={handleAddOperator}
-        onCancel={() => {
-          setAddOperatorModalVisible(false);
-          setSelectedOperatorId(undefined);
-          addForm.resetFields();
-        }}
+        onCancel={handleCloseAddModal}
         confirmLoading={addOperatorLoading}
-        width={600}
+        width={800}
+        footer={[
+          <Button key="cancel" onClick={handleCloseAddModal}>取消</Button>,
+          <Button
+            key="submit"
+            type="primary"
+            loading={addOperatorLoading}
+            onClick={handleAddOperator}
+            disabled={selectedOperatorIds.length === 0}
+          >
+            确认添加（{selectedOperatorIds.length}）
+          </Button>,
+        ]}
       >
         <Form form={addForm} layout="vertical">
+          {/* 执行顺序 - 顶部固定 */}
           <Form.Item
-            label="选择算子"
-            name="operatorId"
-            rules={[{ required: true, message: '请选择一个算子' }]}
+            label="执行顺序"
+            name="orderIndex"
+            rules={[{ required: true, message: '请输入执行顺序' }, { type: 'number', min: 1, message: '执行顺序必须大于等于1' }]}
+            initialValue={1}
           >
-            <Select
-              placeholder="选择一个算子"
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
-              }
-              options={availableOperators.map(op => ({
-                label: op.name,
-                value: op.id,
-              }))}
-              onChange={(value: number) => {
-                setSelectedOperatorId(value);
-                // Find the selected operator
-                const operator = availableOperators.find(op => op.id === value);
-                if (operator) {
-                  // Use the operator's default version
-                }
-              }}
-              value={selectedOperatorId}
+            <InputNumber
+              min={1}
+              placeholder="输入执行顺序（1-N，相同顺序可并行执行）"
+              style={{ width: '100%' }}
             />
           </Form.Item>
 
-        <Form.Item
-          label="执行顺序"
-          name="orderIndex"
-          rules={[{ required: true, message: '请输入执行顺序' }, { type: 'number', min: 1, message: '执行顺序必须大于等于1' }]}
-          initialValue={1}
-        >
-          <InputNumber
-            type="number"
-            min={1}
-            placeholder="输入执行顺序（1-N，相同顺序可并行执行）"
-            style={{ width: '100%' }}
-          />
-</Form.Item>
+          {/* 已选数量 - 顶部固定 */}
+          <div style={{ marginBottom: 16 }}>
+            <Text type="secondary">已选择 {selectedOperatorIds.length} 个算子</Text>
+          </div>
+
+          {/* 搜索和筛选 */}
+          <Space direction="vertical" style={{ width: '100%' }} size="middle">
+            <Input.Search
+              placeholder="搜索算子名称"
+              allowClear
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+            />
+            <Select
+              placeholder="筛选编程语言"
+              allowClear
+              style={{ width: 200 }}
+              value={languageFilter}
+              onChange={(value) => setLanguageFilter(value)}
+            >
+              <Select.Option value="JAVA">Java</Select.Option>
+              <Select.Option value="GROOVY">Groovy</Select.Option>
+            </Select>
+          </Space>
+
+          {/* 算子列表 - 可滚动区域 */}
+          <div style={{ marginTop: 16 }}>
+            <Table
+              columns={[
+                {
+                  title: '算子名称',
+                  dataIndex: 'name',
+                  key: 'name',
+                },
+                {
+                  title: '编程语言',
+                  dataIndex: 'language',
+                  key: 'language',
+                  width: 100,
+                  render: (language: string) => {
+                    const color = language === 'JAVA' ? 'blue' : 'green';
+                    return <Tag color={color}>{language}</Tag>;
+                  },
+                },
+                {
+                  title: '描述',
+                  dataIndex: 'description',
+                  key: 'description',
+                  ellipsis: true,
+                },
+              ]}
+              dataSource={filteredAvailableOperators}
+              rowKey="id"
+              rowSelection={{
+                selectedRowKeys: selectedOperatorIds,
+                onChange: (selectedKeys) => setSelectedOperatorIds(selectedKeys as number[]),
+              }}
+              pagination={false}
+              scroll={{ y: 300 }}
+              size="small"
+            />
+          </div>
         </Form>
       </Modal>
 

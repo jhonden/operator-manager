@@ -6,6 +6,8 @@ import com.operator.common.dto.library.*;
 import com.operator.common.dto.pkg.PackageOperatorRequest;
 import com.operator.common.dto.pkg.PackageOperatorResponse;
 import com.operator.common.dto.pkg.BatchUpdateOrderIndexRequest;
+import com.operator.common.dto.pkg.BatchAddOperatorsRequest;
+import com.operator.common.dto.pkg.BatchAddOperatorsResponse;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.common.utils.ApiResponse;
 import com.operator.service.library.CommonLibraryService;
@@ -173,6 +175,33 @@ public class PackageController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Operator added to package successfully", response));
+    }
+
+    /**
+     * 批量添加算子到算子包
+     */
+    @PostMapping("/{id}/operators/batch")
+    @Operation(summary = "批量添加算子到算子包", description = "批量添加算子到算子包")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<BatchAddOperatorsResponse>> batchAddOperators(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody BatchAddOperatorsRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("批量添加算子到算子包：packageId={}, count={} by user: {}",
+                id, request.getOperatorIds().size(), userPrincipal.getUsername());
+
+        BatchAddOperatorsResponse response = packageService.batchAddOperators(id, request, userPrincipal.getUsername());
+
+        String message;
+        if (response.getFailedCount() > 0) {
+            message = String.format("成功添加 %d 个算子，%d 个失败", response.getSuccessCount(), response.getFailedCount());
+        } else {
+            message = String.format("成功添加 %d 个算子到包", response.getSuccessCount());
+        }
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(ApiResponse.success(message, response));
     }
 
     /**

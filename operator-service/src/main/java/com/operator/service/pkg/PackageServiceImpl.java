@@ -142,6 +142,7 @@ public class PackageServiceImpl implements PackageService {
     @Transactional
     public PackageOperatorResponse addOperator(Long packageId, PackageOperatorRequest request, String username) {
         log.info("Adding operator {} to package: {}", request.getOperatorId(), packageId);
+        log.info("Adding operator {} to package: {}", request.getOperatorId(), packageId);
 
         OperatorPackage pkg = packageRepository.findById(packageId)
                 .orElseThrow(() -> new ResourceNotFoundException("Package", packageId));
@@ -186,6 +187,64 @@ public class PackageServiceImpl implements PackageService {
         }
 
         return mapPackageOperatorToResponse(packageOperator);
+    }
+
+    @Override
+    @Transactional
+    public BatchAddOperatorsResponse batchAddOperators(Long packageId, BatchAddOperatorsRequest request, String username) {
+        log.info("批量添加算子到算子包：packageId={}, operatorIds={}, orderIndex={}",
+                packageId, request.getOperatorIds(), request.getOrderIndex());
+
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("算子包", packageId));
+
+        List<BatchAddOperatorsResponse.FailedOperatorInfo> failedOperators = new java.util.ArrayList<>();
+        int successCount = 0;
+        int failedCount = 0;
+
+        for (Long operatorId : request.getOperatorIds()) {
+            try {
+                // 构建单个添加请求
+                PackageOperatorRequest operatorRequest = PackageOperatorRequest.builder()
+                        .operatorId(operatorId)
+                        .orderIndex(request.getOrderIndex())
+                        .enabled(request.getEnabled())
+                        .build();
+
+                // 调用添加算子方法
+                addOperator(packageId, operatorRequest, username);
+                successCount++;
+            } catch (IllegalArgumentException e) {
+                // 算子已存在等业务异常
+                Operator operator = operatorRepository.findById(operatorId).orElse(null);
+                failedCount++;
+                failedOperators.add(BatchAddOperatorsResponse.FailedOperatorInfo.builder()
+                        .operatorId(operatorId)
+                        .operatorName(operator != null ? operator.getName() : "未知")
+                        .reason(e.getMessage())
+                        .build());
+                log.warn("添加算子 {} 到包 {} 失败：{}", operatorId, packageId, e.getMessage());
+            } catch (Exception e) {
+                // 其他异常
+                Operator operator = operatorRepository.findById(operatorId).orElse(null);
+                failedCount++;
+                failedOperators.add(BatchAddOperatorsResponse.FailedOperatorInfo.builder()
+                        .operatorId(operatorId)
+                        .operatorName(operator != null ? operator.getName() : "未知")
+                        .reason("系统错误：" + e.getMessage())
+                        .build());
+                log.error("添加算子 {} 到包 {} 失败：{}", operatorId, packageId, e.getMessage(), e);
+            }
+        }
+
+        log.info("批量添加完成：成功 {} 个，失败 {} 个", successCount, failedCount);
+
+        return BatchAddOperatorsResponse.builder()
+                .total(request.getOperatorIds().size())
+                .successCount(successCount)
+                .failedCount(failedCount)
+                .failedOperators(failedCount > 0 ? failedOperators : null)
+                .build();
     }
 
     @Override

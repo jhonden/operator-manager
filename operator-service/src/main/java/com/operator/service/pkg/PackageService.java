@@ -56,6 +56,11 @@ public interface PackageService {
     PackageOperatorResponse addOperator(Long packageId, PackageOperatorRequest request, String username);
 
     /**
+     * 批量添加算子到算子包
+     */
+    BatchAddOperatorsResponse batchAddOperators(Long packageId, BatchAddOperatorsRequest request, String username);
+
+    /**
      * Update package operator
      */
     PackageOperatorResponse updatePackageOperator(Long packageId, Long packageOperatorId,

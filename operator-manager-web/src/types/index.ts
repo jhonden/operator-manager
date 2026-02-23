@@ -314,27 +314,24 @@ export interface ReviewRequest {
 
 // Library types - from library.ts
 export type { LibraryType } from './library';
-export type {
-  LibraryRequest,
-  LibraryFileRequest,
-  LibraryResponse,
-  LibraryFileResponse,
-  PackagePathConfigRequest,
-  OperatorPathConfigRequest,
-  LibraryPathConfigRequest,
-  PackagePathConfigResponse,
-  LibraryPathConfigResponse,
-  AddLibraryToPackageRequest,
-  BatchPathConfigRequest,
-  PackagePreviewTreeNode,
-  PackagePreviewSource,
-  PackagePreviewConflict,
-  PackagePreviewResponse,
-  LibrarySearchRequest,
-  LibraryDependencyResponse,
-  AddLibraryDependencyRequest,
-  BatchLibraryDependenciesRequest,
-} from './library';
+export type { LibraryRequest } from './library';
+export type { LibraryFileRequest } from './library';
+export type { LibraryResponse } from './library';
+export type { LibraryFileResponse } from './library';
+export type { PackagePathConfigRequest } from './library';
+export type { OperatorPathConfigRequest } from './library';
+export type { LibraryPathConfigResponse } from './library';
+export type { PackagePathConfigResponse } from './library';
+export type { AddLibraryToPackageRequest } from './library';
+export type { BatchPathConfigRequest } from './library';
+export type { PackagePreviewTreeNode } from './library';
+export type { PackagePreviewSource } from './library';
+export type { PackagePreviewConflict } from './library';
+export type { PackagePreviewResponse } from './library';
+export type { LibrarySearchRequest } from './library';
+export type { LibraryDependencyResponse } from './library';
+export type { AddLibraryDependencyRequest } from './library';
+export type { BatchLibraryDependenciesRequest } from './library';
 
 // 批量更新执行顺序请求
 export interface BatchUpdateOrderIndexRequest {
@@ -350,4 +347,23 @@ export interface AddPackageOperatorRequest {
   parameterMapping?: string;
   enabled?: boolean;
   notes?: string;
+}
+
+// 批量添加算子到包的请求
+export interface BatchAddOperatorsRequest {
+  operatorIds: number[];
+  orderIndex: number;
+  enabled?: boolean;
+}
+
+// 批量添加算子到包的响应
+export interface BatchAddOperatorsResponse {
+  total: number;
+  successCount: number;
+  failedCount: number;
+  failedOperators?: Array<{
+    operatorId: number;
+    operatorName: string;
+    reason: string;
+  }>;
 }
