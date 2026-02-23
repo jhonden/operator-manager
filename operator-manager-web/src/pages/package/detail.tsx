@@ -94,6 +94,10 @@ const PackageDetailPage: React.FC = () => {
   const [currentEditOperator, setCurrentEditOperator] = useState<PackageOperator | null>(null);
   const [orderForm] = Form.useForm();
 
+  // 批量移除算子相关状态
+  const [batchRemoveModalVisible, setBatchRemoveModalVisible] = useState(false);
+  const [removeForm] = Form.useForm();
+
   // 折叠状态控制
   const [libraryCardCollapsed, setLibraryCardCollapsed] = useState(false);
   const [operatorCardCollapsed, setOperatorCardCollapsed] = useState(false);
@@ -335,6 +339,50 @@ const PackageDetailPage: React.FC = () => {
   const handleRowSelectionChange = (selectedRowKeys: React.Key[], selectedRows: PackageOperator[]) => {
     setSelectedRowKeys(selectedRowKeys);
     setSelectedOperators(selectedRows);
+  };
+
+  // 批量移除算子
+  const handleBatchRemove = async () => {
+    if (!id || selectedRowKeys.length === 0) {
+      message.warning('请选择至少一个算子');
+      return;
+    }
+
+    setBatchRemoveModalVisible(false);
+    removeForm.resetFields();
+  };
+
+  const handleConfirmBatchRemove = async () => {
+    if (!id || selectedRowKeys.length === 0) return;
+
+    const values = removeForm.getFieldsValue();
+    const reason = values.reason || '批量移除';
+
+    try {
+      await packageApi.batchRemoveOperators(Number(id), {
+        packageOperatorIds: selectedRowKeys as number[],
+        reason,
+      });
+
+      message.success(`成功移除 ${selectedRowKeys.length} 个算子`);
+
+      // 清空选择
+      setSelectedRowKeys([]);
+      setSelectedOperators([]);
+      setBatchRemoveModalVisible(false);
+      removeForm.resetFields();
+
+      // 刷新算子列表
+      fetchPackage();
+    } catch (error: any) {
+      console.error('[Package Page] Batch remove operators failed:', error);
+      message.error(error.response?.data?.error || error.message || '批量移除算子失败');
+    }
+  };
+
+  const handleCancelBatchRemove = () => {
+    setBatchRemoveModalVisible(false);
+    removeForm.resetFields();
   };
 
   // 打包配置相关处理函数
@@ -688,6 +736,13 @@ const PackageDetailPage: React.FC = () => {
                 disabled={selectedOperators.length === 0}
               >
                 批量设置顺序
+              </Button>
+              <Button
+                danger
+                disabled={selectedRowKeys.length === 0}
+                onClick={() => setBatchRemoveModalVisible(true)}
+              >
+                批量移除（{selectedRowKeys.length}）
               </Button>
             </div>
             <Table
@@ -1237,6 +1292,33 @@ const PackageDetailPage: React.FC = () => {
             />
           </div>
         </Form>
+      </Modal>
+
+      {/* 批量移除算子弹窗 */}
+      <Modal
+        title="批量移除算子"
+        open={batchRemoveModalVisible}
+        onOk={handleConfirmBatchRemove}
+        onCancel={handleCancelBatchRemove}
+        okText="确认移除"
+        cancelText="取消"
+        width={500}
+      >
+        <div>
+          <p>确定要批量移除选中的 {selectedRowKeys.length} 个算子吗？</p>
+          {selectedOperators.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <Text type="secondary">即将移除的算子：</Text>
+              <ul style={{ marginTop: 8, paddingLeft: 20 }}>
+                {selectedOperators.map((op) => (
+                  <li key={op.id}>
+                    {op.operatorName} ({op.operatorLanguage})
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
       </Modal>
 
       {/* 编辑执行顺序弹窗 */}

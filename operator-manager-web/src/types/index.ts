@@ -367,3 +367,9 @@ export interface BatchAddOperatorsResponse {
     reason: string;
   }>;
 }
+
+// 批量移除算子请求
+export interface BatchRemoveOperatorsRequest {
+  packageOperatorIds: number[];
+  reason: string;
+}

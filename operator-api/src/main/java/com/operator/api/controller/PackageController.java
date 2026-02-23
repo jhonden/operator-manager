@@ -8,6 +8,7 @@ import com.operator.common.dto.pkg.PackageOperatorResponse;
 import com.operator.common.dto.pkg.BatchUpdateOrderIndexRequest;
 import com.operator.common.dto.pkg.BatchAddOperatorsRequest;
 import com.operator.common.dto.pkg.BatchAddOperatorsResponse;
+import com.operator.common.dto.pkg.BatchRemoveOperatorsRequest;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.common.utils.ApiResponse;
 import com.operator.service.library.CommonLibraryService;
@@ -237,6 +238,25 @@ public class PackageController {
         packageService.removeOperator(id, packageOperatorId, userPrincipal.getUsername());
 
         return ResponseEntity.ok(ApiResponse.success("Operator removed from package successfully"));
+    }
+
+    /**
+     * 批量移除算子
+     */
+    @DeleteMapping("/{id}/operators/batch")
+    @Operation(summary = "批量移除算子", description = "批量移除算子到算子包")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> batchRemoveOperators(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody BatchRemoveOperatorsRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("批量移除算子：packageId={}, count={} by user: {}",
+                id, request.getPackageOperatorIds().size(), userPrincipal.getUsername());
+
+        packageService.batchRemoveOperators(id, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success(
+                String.format("成功移除 %d 个算子", request.getPackageOperatorIds().size())));
     }
 
     /**

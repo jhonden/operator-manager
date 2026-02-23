@@ -137,6 +137,19 @@ export const packageApi = {
   },
 
   /**
+   * 批量移除算子
+   */
+  batchRemoveOperators: (
+    packageId: number,
+    data: { packageOperatorIds: number[]; reason: string }
+  ): Promise<ApiResponse<void>> => {
+    return request.post<ApiResponse<void>>(
+      `/v1/packages/${packageId}/operators/batch`,
+      data
+    );
+  },
+
+  /**
    * 批量更新算子执行顺序
    */
   batchUpdateOperatorOrderIndex: (

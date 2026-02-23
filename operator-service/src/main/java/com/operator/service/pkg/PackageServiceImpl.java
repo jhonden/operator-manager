@@ -311,6 +311,35 @@ public class PackageServiceImpl implements PackageService {
     }
 
     @Override
+    @Transactional
+    public void batchRemoveOperators(Long packageId, BatchRemoveOperatorsRequest request, String username) {
+        log.info("批量移除算子：packageId={}, count={}, reason={}",
+                packageId, request.getPackageOperatorIds().size(), request.getReason());
+
+        int removedCount = 0;
+        for (Long packageOperatorId : request.getPackageOperatorIds()) {
+            PackageOperator packageOperator = packageOperatorRepository.findById(packageOperatorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("PackageOperator", packageOperatorId));
+
+            // 验证该算子属于指定包
+            if (!packageOperator.getOperatorPackage().getId().equals(packageId)) {
+                log.warn("算子 {} 不属于算子包 {}，跳过", packageOperatorId, packageId);
+                continue;
+            }
+
+            packageOperatorRepository.delete(packageOperator);
+            removedCount++;
+        }
+
+        // Update operator count
+        OperatorPackage pkg = packageRepository.findById(packageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Package", packageId));
+        pkg.setOperatorCount((int) packageOperatorRepository.countByOperatorPackageId(packageId));
+        packageRepository.save(pkg);
+
+    }
+
+    @Override
     public List<PackageOperatorResponse> getPackageOperators(Long packageId) {
         return packageOperatorRepository.findByOperatorPackageIdOrderByOrderIndexAsc(packageId).stream()
                 .map(this::mapPackageOperatorToResponse)
