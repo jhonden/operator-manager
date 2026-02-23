@@ -1,6 +1,6 @@
 # 算子包管理模块功能设计
 
-> **版本**: v1.2
+> **版本**: v1.3
 > **创建日期**: 2026-02-22
 > **最后更新**: 2026-02-23
 > **状态**: 与代码实现一致
@@ -70,7 +70,10 @@
   - 统一设置执行顺序
   - 显示已选算子数量
   - 自动触发公共库同步
+  - 支持单个添加和批量添加
 - ✅ 移除算子
+  - 支持单个移除
+  - 支持批量移除（勾选多个算子，填写移除原因）
 - ✅ 算子排序
   - ✅ 编辑单个算子的执行顺序（点击 orderIndex 编辑）
   - ✅ 批量编辑算子的执行顺序（勾选多个算子）
@@ -326,6 +329,7 @@ public class PackageCommonLibrary {
 | 方法 | 路径 | 描述 | 认证 |
 | POST | `/v1/packages/{id}/operators` | 添加算子到算子包（自动同步公共库） | 是 |
 | POST | `/v1/packages/{id}/operators/batch` | 批量添加算子到算子包（自动同步公共库） | 是 |
+| POST | `/v1/packages/{id}/operators/batch-delete` | 批量移除算子 | 是 |
 | PUT | `/v1/packages/{id}/operators/{packageOperatorId}` | 更新算子配置 | 是 |
 | DELETE | `/v1/packages/{id}/operators/{packageOperatorId}` | 移除算子 | 是 |
 | PUT | `/v1/packages/{id}/operators/{operatorId}/order` | 更新单个算子的执行顺序 | 是 |
@@ -601,6 +605,7 @@ public class PackageCommonLibrary {
 | 2026-02-22 | v1.0 | 初始版本，基于当前代码实现创建 | Claude |
 | 2026-02-23 | v1.1 | 新增打包下载功能，更新打包模板路径（添加版本号），更新已知限制和优化方向 | Claude |
 | 2026-02-23 | v1.2 | 新增批量添加算子功能，支持多选、搜索、语言筛选，优化界面布局（执行顺序置顶，确认按钮固定底部） | Claude |
+| 2026-02-23 | v1.3 | 新增批量移除算子功能，支持勾选多个算子后批量移除，填写移除原因 | Claude |
 
 ---
 

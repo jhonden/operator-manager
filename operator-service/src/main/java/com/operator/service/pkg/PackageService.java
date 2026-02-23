@@ -74,7 +74,7 @@ public interface PackageService {
     /**
      * 批量移除算子
      */
-    void batchRemoveOperators(Long packageId, BatchRemoveOperatorsRequest request, String username);
+    void batchRemoveOperators(Long packageId, BatchRemoveRequest request, String username);
 
     /**
      * 批量更新算子执行顺序

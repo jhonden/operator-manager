@@ -359,10 +359,11 @@ const PackageDetailPage: React.FC = () => {
     const reason = values.reason || '批量移除';
 
     try {
-      await packageApi.batchRemoveOperators(Number(id), {
-        packageOperatorIds: selectedRowKeys as number[],
-        reason,
-      });
+      await packageApi.batchRemoveOperators(
+        Number(id),
+        selectedRowKeys as number[],
+        reason
+      );
 
       message.success(`成功移除 ${selectedRowKeys.length} 个算子`);
 
