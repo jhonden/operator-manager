@@ -23,12 +23,15 @@ public interface PackageOperatorRepository extends JpaRepository<PackageOperator
     @Query("SELECT po FROM PackageOperator po " +
             "LEFT JOIN FETCH po.operator " +
             "WHERE po.operatorPackage.id = :packageId " +
-            "ORDER BY po.orderIndex ASC")
+            "ORDER BY po.orderIndex ASC, po.createdAt DESC")
     List<PackageOperator> findByOperatorPackageIdOrderByOrderIndexAscWithFetch(@org.springframework.data.repository.query.Param("packageId") Long packageId);
 
     /**
      * Find package operators by package
      */
+    @Query("SELECT po FROM PackageOperator po " +
+            "WHERE po.operatorPackage.id = :packageId " +
+            "ORDER BY po.orderIndex ASC, po.createdAt DESC")
     List<PackageOperator> findByOperatorPackageIdOrderByOrderIndexAsc(Long packageId);
 
     /**

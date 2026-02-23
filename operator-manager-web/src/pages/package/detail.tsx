@@ -16,6 +16,7 @@ import {
   Modal,
   Select,
   Input,
+  InputNumber,
   Form,
   Switch,
   Collapse,
@@ -86,6 +87,14 @@ const PackageDetailPage: React.FC = () => {
   } | null>(null);
   const [batchConfigType, setBatchConfigType] = useState<'operator' | 'library' | null>(null);
   const [pathConfigForm] = Form.useForm();
+
+  // 执行顺序编辑相关状态
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedOperators, setSelectedOperators] = useState<PackageOperator[]>([]);
+  const [editOrderModalVisible, setEditOrderModalVisible] = useState(false);
+  const [batchOrderModalVisible, setBatchOrderModalVisible] = useState(false);
+  const [currentEditOperator, setCurrentEditOperator] = useState<PackageOperator | null>(null);
+  const [orderForm] = Form.useForm();
 
   // 折叠状态控制
   const [libraryCardCollapsed, setLibraryCardCollapsed] = useState(false);
@@ -176,11 +185,12 @@ const PackageDetailPage: React.FC = () => {
 
     setAddOperatorLoading(true);
     try {
+      const values = addForm.getFieldsValue();
       await packageApi.addOperator(Number(id), {
         operatorId: selectedOperatorId!,
         versionId: 0,
         enabled: true,
-        orderIndex: operators.length,
+        orderIndex: values.orderIndex || 1,
       });
       message.success('算子添加到包成功');
       setAddOperatorModalVisible(false);
@@ -236,15 +246,69 @@ const PackageDetailPage: React.FC = () => {
     }
   };
 
-  const handleReorder = async (operatorId: number, direction: 'up' | 'down') => {
-    if (!id) return;
+  // 编辑单个算子的执行顺序
+  const handleEditOrderIndex = (operator: PackageOperator) => {
+    setCurrentEditOperator(operator);
+    orderForm.setFieldsValue({
+      orderIndex: operator.orderIndex,
+    });
+    setEditOrderModalVisible(true);
+  };
+
+  const handleSaveOrderIndex = async () => {
+    if (!id || !currentEditOperator) return;
+
     try {
-      await packageApi.reorderOperators(Number(id), operatorId, direction);
-      message.success('算子重排序成功');
+      const values = orderForm.getFieldsValue();
+      await packageApi.updatePackageOperator(Number(id), currentEditOperator.id, {
+        orderIndex: values.orderIndex,
+      });
+      message.success('执行顺序更新成功');
+      setEditOrderModalVisible(false);
+      setCurrentEditOperator(null);
+      orderForm.resetFields();
       fetchPackage();
     } catch (error: any) {
-      message.error(error.message || '重排序算子失败');
+      message.error(error.message || '更新执行顺序失败');
     }
+  };
+
+  // 批量编辑执行顺序
+  const handleBatchOrderIndex = () => {
+    if (selectedOperators.length === 0) {
+      message.warning('请先选择算子');
+      return;
+    }
+    orderForm.setFieldsValue({
+      orderIndex: 1,
+    });
+    setBatchOrderModalVisible(true);
+  };
+
+  const handleSaveBatchOrderIndex = async () => {
+    if (!id || selectedOperators.length === 0) return;
+
+    try {
+      const values = orderForm.getFieldsValue();
+      await packageApi.batchUpdateOperatorOrderIndex(Number(id), {
+        orderIndex: values.orderIndex,
+        packageOperatorIds: selectedOperators.map(op => op.id),
+      });
+      message.success(`成功更新 ${selectedOperators.length} 个算子的执行顺序`);
+      setBatchOrderModalVisible(false);
+      setSelectedRowKeys([]);
+      setSelectedOperators([]);
+      orderForm.resetFields();
+      fetchPackage();
+    } catch (error: any) {
+      message.error(error.message || '批量更新执行顺序失败');
+    }
+  };
+
+  // 行选择处理
+  const handleRowSelectionChange = (selectedRowKeys: React.Key[], selectedRows: PackageOperator[]) => {
+    setSelectedRowKeys(selectedRowKeys);
+    setSelectedOperators(selectedRows);
   };
 
   // 打包配置相关处理函数
@@ -362,12 +426,18 @@ const PackageDetailPage: React.FC = () => {
 
   const operatorColumns = [
     {
-      title: '顺序',
+      title: '执行顺序',
       dataIndex: 'orderIndex',
       key: 'orderIndex',
-      width: 80,
-      render: (order: number) => (
-        <Tag color="blue">#{order + 1}</Tag>
+      width: 100,
+      render: (order: number, record: PackageOperator) => (
+        <Button
+          type="link"
+          size="small"
+          onClick={() => handleEditOrderIndex(record)}
+        >
+          {order}
+        </Button>
       ),
     },
     {
@@ -414,30 +484,12 @@ const PackageDetailPage: React.FC = () => {
     {
       title: t('common.actions'),
       key: 'actions',
-      width: 180,
-      render: (_: any, record: PackageOperator, index: number) => (
+      width: 120,
+      render: (_: any, record: PackageOperator) => (
         <Space size="small">
-          <Button
-            type="link"
-            size="small"
-            icon={<ArrowUpOutlined />}
-            onClick={() => handleReorder(record.operatorId, 'up')}
-            disabled={index === 0}
-          >
-            上移
-          </Button>
-          <Button
-            type="link"
-            size="small"
-            icon={<ArrowDownOutlined />}
-            onClick={() => handleReorder(record.operatorId, 'down')}
-            disabled={index === operators.length - 1}
-          >
-            下移
-          </Button>
           <Popconfirm
             title="确定要移除此算子吗？"
-            onConfirm={() => handleRemoveOperator(record.operatorId)}
+            onConfirm={() => handleRemoveOperator(record.id)}
             okText={t('common.yes')}
             cancelText={t('common.no')}
           >
@@ -605,12 +657,22 @@ const PackageDetailPage: React.FC = () => {
               >
                 添加算子
               </Button>
+              <Button
+                onClick={handleBatchOrderIndex}
+                disabled={selectedOperators.length === 0}
+              >
+                批量设置顺序
+              </Button>
             </div>
             <Table
               columns={operatorColumns}
               dataSource={operators}
               rowKey="id"
               pagination={false}
+              rowSelection={{
+                selectedRowKeys,
+                onChange: handleRowSelectionChange,
+              }}
             />
           </TabPane>
 
@@ -1092,12 +1154,84 @@ const PackageDetailPage: React.FC = () => {
             />
           </Form.Item>
 
-          <Form.Item label="顺序索引">
-            <Input
+        <Form.Item
+          label="执行顺序"
+          name="orderIndex"
+          rules={[{ required: true, message: '请输入执行顺序' }, { type: 'number', min: 1, message: '执行顺序必须大于等于1' }]}
+          initialValue={1}
+        >
+          <InputNumber
+            type="number"
+            min={1}
+            placeholder="输入执行顺序（1-N，相同顺序可并行执行）"
+            style={{ width: '100%' }}
+          />
+</Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 编辑执行顺序弹窗 */}
+      <Modal
+        title="编辑执行顺序"
+        open={editOrderModalVisible}
+        onOk={handleSaveOrderIndex}
+        onCancel={() => {
+          setEditOrderModalVisible(false);
+          setCurrentEditOperator(null);
+          orderForm.resetFields();
+        }}
+        width={500}
+      >
+        <Form form={orderForm} layout="vertical">
+          <Form.Item
+            label="执行顺序"
+            name="orderIndex"
+            rules={[{ required: true, message: '请输入执行顺序' }, { type: 'number', min: 1, message: '执行顺序必须大于等于1' }]}
+          >
+            <InputNumber
               type="number"
-              value={operators.length}
-              disabled
+              min={1}
+              placeholder="输入执行顺序（1-N，相同顺序可并行执行）"
+              style={{ width: '100%' }}
             />
+          </Form.Item>
+          <Form.Item>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              相同执行顺序的算子将并行执行，不同执行顺序的算子按顺序依次执行
+            </Text>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 批量设置顺序弹窗 */}
+      <Modal
+        title={`批量设置执行顺序（${selectedOperators.length} 个算子）`}
+        open={batchOrderModalVisible}
+        onOk={handleSaveBatchOrderIndex}
+        onCancel={() => {
+          setBatchOrderModalVisible(false);
+          orderForm.resetFields();
+        }}
+        width={500}
+      >
+        <Form form={orderForm} layout="vertical">
+          <Form.Item
+            label="执行顺序"
+            name="orderIndex"
+            rules={[{ required: true, message: '请输入执行顺序' }, { type: 'number', min: 1, message: '执行顺序必须大于等于1' }]}
+            initialValue={1}
+          >
+            <InputNumber
+              type="number"
+              min={1}
+              placeholder="输入执行顺序（1-N，相同顺序可并行执行）"
+              style={{ width: '100%' }}
+            />
+          </Form.Item>
+          <Form.Item>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              将选中的 {selectedOperators.length} 个算子设置为相同的执行顺序
+            </Text>
           </Form.Item>
         </Form>
       </Modal>

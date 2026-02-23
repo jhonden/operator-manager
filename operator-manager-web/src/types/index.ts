@@ -335,3 +335,19 @@ export type {
   AddLibraryDependencyRequest,
   BatchLibraryDependenciesRequest,
 } from './library';
+
+// 批量更新执行顺序请求
+export interface BatchUpdateOrderIndexRequest {
+  orderIndex: number;
+  packageOperatorIds: number[];
+}
+
+// 添加算子到包的请求（修改 orderIndex 为可选）
+export interface AddPackageOperatorRequest {
+  operatorId: number;
+  versionId?: number;
+  orderIndex?: number;  // 可选，默认由后端处理
+  parameterMapping?: string;
+  enabled?: boolean;
+  notes?: string;
+}

@@ -8,6 +8,7 @@ import type {
   PackagePathConfigResponse,
   PackagePathConfigRequest,
   OperatorPathConfigResponse,
+  BatchUpdateOrderIndexRequest,
 } from '@/types';
 import { message } from 'antd';
 
@@ -121,30 +122,31 @@ export const packageApi = {
   },
 
   /**
-   * Reorder operators in package (by operator ID and direction)
+   * 批量更新算子执行顺序
    */
-  reorderOperators: (
+  batchUpdateOperatorOrderIndex: (
     packageId: number,
-    operatorId: number,
-    direction: 'up' | 'down'
+    data: BatchUpdateOrderIndexRequest
   ): Promise<ApiResponse<void>> => {
-    return request.post<ApiResponse<void>>(
-      `/v1/packages/${packageId}/operators/${operatorId}/reorder`,
-      {},
-      { params: { direction } }
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/operators/batch-update-order`,
+      data
     );
   },
 
   /**
-   * Reorder operators in package (bulk update)
+   * 更新单个算子的执行顺序
    */
-  bulkReorderOperators: (
+  updatePackageOperator: (
     packageId: number,
-    operators: { packageOperatorId: number; orderIndex: number }[]
+    packageOperatorId: number,
+    data: {
+      orderIndex?: number;
+    }
   ): Promise<ApiResponse<void>> => {
-    return request.post<ApiResponse<void>>(
-      `/v1/packages/${packageId}/operators/reorder`,
-      { operators }
+    return request.put<ApiResponse<void>>(
+      `/v1/packages/${packageId}/operators/${packageOperatorId}/order`,
+      data
     );
   },
 

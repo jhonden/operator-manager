@@ -7,8 +7,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
- * Add/Update Package Operator Request DTO
+ * 批量更新算子执行顺序请求 DTO
  *
  * @author Operator Manager Team
  * @version 1.0.0
@@ -17,21 +19,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PackageOperatorRequest {
+public class BatchUpdateOrderIndexRequest {
 
-    @NotNull(message = "Operator ID is required")
-    private Long operatorId;
-
-    private String version;
-
-    @Builder.Default
+    /**
+     * 执行顺序索引
+     */
+    @NotNull(message = "执行顺序不能为空")
     @Min(value = 1, message = "执行顺序必须大于等于1")
-    private Integer orderIndex = 1;
+    private Integer orderIndex;
 
-    private String parameterMapping; // JSON format
-
-    @Builder.Default
-    private Boolean enabled = true;
-
-    private String notes;
+    /**
+     * 算子包-算子关联ID列表
+     */
+    @NotNull(message = "算子列表不能为空")
+    private List<Long> packageOperatorIds;
 }

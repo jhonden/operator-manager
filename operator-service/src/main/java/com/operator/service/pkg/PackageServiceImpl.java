@@ -156,11 +156,14 @@ public class PackageServiceImpl implements PackageService {
         Operator operator = operatorRepository.findById(request.getOperatorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Operator", request.getOperatorId()));
 
+        // 如果 request.getOrderIndex() 为 null，使用默认值 1
+        Integer orderIndex = request.getOrderIndex() != null ? request.getOrderIndex() : 1;
+
         PackageOperator packageOperator = PackageOperator.builder()
                 .operatorPackage(pkg)
                 .operator(operator)
                 .version(request.getVersion() != null ? request.getVersion() : (operator.getVersion() != null ? "1.0.0" : operator.getVersion()))
-                .orderIndex(request.getOrderIndex())
+                .orderIndex(orderIndex)
                 .parameterMapping(request.getParameterMapping())
                 .enabled(request.getEnabled())
                 .notes(request.getNotes())
@@ -195,7 +198,10 @@ public class PackageServiceImpl implements PackageService {
         if (request.getVersion() != null) {
             packageOperator.setVersion(request.getVersion());
         }
-        packageOperator.setOrderIndex(request.getOrderIndex());
+        // 仅当传入 orderIndex 时才更新
+        if (request.getOrderIndex() != null) {
+            packageOperator.setOrderIndex(request.getOrderIndex());
+        }
         packageOperator.setParameterMapping(request.getParameterMapping());
         packageOperator.setEnabled(request.getEnabled());
         packageOperator.setNotes(request.getNotes());
@@ -223,16 +229,26 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     @Transactional
-    public void reorderOperators(Long packageId, ReorderOperatorsRequest request, String username) {
-        log.info("Reordering operators in package: {}", packageId);
+    public void batchUpdateOperatorOrderIndex(Long packageId, BatchUpdateOrderIndexRequest request, String username) {
+        log.info("批量更新算子执行顺序：packageId={}, orderIndex={}, count={}",
+                packageId, request.getOrderIndex(), request.getPackageOperatorIds().size());
 
-        for (ReorderOperatorsRequest.OperatorOrderItem item : request.getOperators()) {
-            PackageOperator packageOperator = packageOperatorRepository.findById(item.getPackageOperatorId())
-                    .orElseThrow(() -> new ResourceNotFoundException("PackageOperator", item.getPackageOperatorId()));
+        for (Long packageOperatorId : request.getPackageOperatorIds()) {
+            PackageOperator packageOperator = packageOperatorRepository.findById(packageOperatorId)
+                    .orElseThrow(() -> new ResourceNotFoundException("PackageOperator", packageOperatorId));
 
-            packageOperator.setOrderIndex(item.getOrderIndex());
+            // 验证该算子属于指定包
+            if (!packageOperator.getOperatorPackage().getId().equals(packageId)) {
+                throw new IllegalArgumentException(
+                        String.format("算子 %d 不属于算子包 %d", packageOperatorId, packageId));
+            }
+
+            packageOperator.setOrderIndex(request.getOrderIndex());
+            packageOperator.setUpdatedBy(username);
             packageOperatorRepository.save(packageOperator);
         }
+
+        log.info("批量更新算子执行顺序完成");
     }
 
     @Override

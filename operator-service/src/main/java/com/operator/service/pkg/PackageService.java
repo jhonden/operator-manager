@@ -67,9 +67,9 @@ public interface PackageService {
     void removeOperator(Long packageId, Long packageOperatorId, String username);
 
     /**
-     * Reorder operators in package
+     * 批量更新算子执行顺序
      */
-    void reorderOperators(Long packageId, ReorderOperatorsRequest request, String username);
+    void batchUpdateOperatorOrderIndex(Long packageId, BatchUpdateOrderIndexRequest request, String username);
 
     /**
      * Get package operators

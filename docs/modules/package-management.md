@@ -68,8 +68,13 @@
   - 自动触发公共库同步
 - ✅ 移除算子
 - ✅ 算子排序
-  - 上移/下移
-  - 调整顺序索引
+  - ✅ 编辑单个算子的执行顺序（点击 orderIndex 编辑）
+  - ✅ 批量编辑算子的执行顺序（勾选多个算子）
+  - orderIndex 可重复（支持并行执行）
+  - orderIndex 验证（必须 >= 1）
+  - ⚠️ 上移/下移（已移除）
+    - ~~上移算子~~
+    - ~~下移算子~~
 - ✅ 算子配置
   - 启用/禁用
   - 参数映射（待开发）
@@ -315,13 +320,11 @@ public class PackageCommonLibrary {
 ### 4.2 算子管理接口
 
 | 方法 | 路径 | 描述 | 认证 |
-|------|------|------|------|
-| GET | `/v1/packages/{id}/operators` | 获取算子包的算子列表 | 是 |
 | POST | `/v1/packages/{id}/operators` | 添加算子到算子包（自动同步公共库） | 是 |
 | PUT | `/v1/packages/{id}/operators/{packageOperatorId}` | 更新算子配置 | 是 |
 | DELETE | `/v1/packages/{id}/operators/{packageOperatorId}` | 移除算子 | 是 |
-| POST | `/v1/packages/{id}/operators/{operatorId}/reorder` | 重排序算子 | 是 |
-| POST | `/v1/packages/{id}/operators/reorder` | 批量重排序 | 是 |
+| PUT | `/v1/packages/{id}/operators/{operatorId}/order` | 更新单个算子的执行顺序 | 是 |
+| PUT | `/v1/packages/{id}/operators/batch-update-order` | 批量更新算子执行顺序 | 是 |
 
 ### 4.3 公共库管理接口
 

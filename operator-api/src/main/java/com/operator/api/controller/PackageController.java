@@ -5,7 +5,7 @@ import com.operator.common.dto.pkg.PackageRequest;
 import com.operator.common.dto.library.*;
 import com.operator.common.dto.pkg.PackageOperatorRequest;
 import com.operator.common.dto.pkg.PackageOperatorResponse;
-import com.operator.common.dto.pkg.ReorderOperatorsRequest;
+import com.operator.common.dto.pkg.BatchUpdateOrderIndexRequest;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.common.utils.ApiResponse;
 import com.operator.service.library.CommonLibraryService;
@@ -226,20 +226,40 @@ public class PackageController {
     }
 
     /**
-     * Reorder operators in package
+     * 批量更新算子执行顺序
      */
-    @PostMapping("/{id}/operators/reorder")
-    @Operation(summary = "Reorder operators", description = "Reorder operators in package")
+    @PutMapping("/{id}/operators/batch-update-order")
+    @Operation(summary = "批量更新算子执行顺序", description = "批量更新算子的执行顺序")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse<Void>> reorderOperators(
-            @Parameter(description = "Package ID") @PathVariable Long id,
-            @Valid @RequestBody ReorderOperatorsRequest request,
+    public ResponseEntity<ApiResponse<Void>> batchUpdateOperatorOrderIndex(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Valid @RequestBody BatchUpdateOrderIndexRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
-        log.info("Reordering operators in package: {} by user: {}", id, userPrincipal.getUsername());
+        log.info("批量更新算子执行顺序：packageId={}, orderIndex={} by user: {}",
+                id, request.getOrderIndex(), userPrincipal.getUsername());
 
-        packageService.reorderOperators(id, request, userPrincipal.getUsername());
+        packageService.batchUpdateOperatorOrderIndex(id, request, userPrincipal.getUsername());
 
-        return ResponseEntity.ok(ApiResponse.success("Operators reordered successfully"));
+        return ResponseEntity.ok(ApiResponse.success("批量更新算子执行顺序成功"));
+    }
+
+    /**
+     * 更新单个算子的执行顺序
+     */
+    @PutMapping("/{id}/operators/{operatorId}/order")
+    @Operation(summary = "更新算子执行顺序", description = "更新单个算子的执行顺序")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<Void>> updateOperatorOrderIndex(
+            @Parameter(description = "算子包ID") @PathVariable Long id,
+            @Parameter(description = "算子ID") @PathVariable Long operatorId,
+            @RequestBody PackageOperatorRequest request,
+            @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        log.info("更新算子执行顺序：packageId={}, operatorId={} by user: {}",
+                id, operatorId, userPrincipal.getUsername());
+
+        packageService.updatePackageOperator(id, operatorId, request, userPrincipal.getUsername());
+
+        return ResponseEntity.ok(ApiResponse.success("更新算子执行顺序成功"));
     }
 
     /**
