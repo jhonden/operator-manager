@@ -8,7 +8,7 @@ import com.operator.common.dto.pkg.PackageOperatorResponse;
 import com.operator.common.dto.pkg.BatchUpdateOrderIndexRequest;
 import com.operator.common.dto.pkg.BatchAddOperatorsRequest;
 import com.operator.common.dto.pkg.BatchAddOperatorsResponse;
-import com.operator.common.dto.pkg.BatchRemoveOperatorsRequest;
+import com.operator.common.dto.pkg.BatchRemoveRequest;
 import com.operator.infrastructure.security.UserPrincipal;
 import com.operator.common.utils.ApiResponse;
 import com.operator.service.library.CommonLibraryService;
@@ -248,7 +248,7 @@ public class PackageController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> batchRemoveOperators(
             @Parameter(description = "算子包ID") @PathVariable Long id,
-            @Valid @RequestBody BatchRemoveOperatorsRequest request,
+            @Valid @RequestBody BatchRemoveRequest request,
             @AuthenticationPrincipal UserPrincipal userPrincipal) {
         log.info("批量移除算子：packageId={}, count={} by user: {}",
                 id, request.getPackageOperatorIds().size(), userPrincipal.getUsername());

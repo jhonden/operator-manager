@@ -312,7 +312,7 @@ public class PackageServiceImpl implements PackageService {
 
     @Override
     @Transactional
-    public void batchRemoveOperators(Long packageId, BatchRemoveOperatorsRequest request, String username) {
+    public void batchRemoveOperators(Long packageId, BatchRemoveRequest request, String username) {
         log.info("批量移除算子：packageId={}, count={}, reason={}",
                 packageId, request.getPackageOperatorIds().size(), request.getReason());
 
