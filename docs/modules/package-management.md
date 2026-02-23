@@ -1,8 +1,8 @@
 # 算子包管理模块功能设计
 
-> **版本**: v1.0
+> **版本**: v1.1
 > **创建日期**: 2026-02-22
-> **最后更新**: 2026-02-22
+> **最后更新**: 2026-02-23
 > **状态**: 与代码实现一致
 
 ---
@@ -18,6 +18,7 @@
 - 支持公共库的自动同步和路径配置
 - 提供打包结构预览和冲突检测
 - 支持多种打包模板（Legacy、Modern、Custom）
+- 支持算子包打包下载
 
 ### 1.2 业务场景
 
@@ -41,6 +42,12 @@
    - 用户从市场下载算子包
    - 根据打包模板解析算子包结构
    - 使用算子和公共库执行业务流程
+
+4. **算子包打包下载流程**
+   - 用户在算子包详情页点击"打包下载"按钮
+   - 后端生成包含算子代码、公共库文件和元数据信息的 ZIP 压缩包
+   - 浏览器自动下载压缩包到本地
+   - 压缩包可导入到运行态系统使用
 
 ---
 
@@ -100,6 +107,11 @@
 - ✅ 批量配置
   - 批量使用推荐路径
   - 批量设置自定义路径
+- ✅ 打包下载
+  - 一键打包下载功能
+  - 自动生成 ZIP 压缩包
+  - 包含算子代码、公共库文件和元数据文件
+  - 压缩包命名：operator_package_{packageName}.zip
 
 ### 2.5 其他功能
 
@@ -328,6 +340,16 @@ public class PackageCommonLibrary {
 | GET | `/v1/packages/{id}/preview` | 获取打包预览 | 是 |
 | PUT | `/v1/packages/{id}/operators/{operatorId}/path-config` | 更新算子路径配置 | 是 |
 | PUT | `/v1/packages/{id}/operators/batch-path-config` | 批量更新算子路径配置 | 是 |
+| GET | `/v1/packages/{id}/download` | 下载算子包 ZIP | 是 |
+
+**下载接口说明**：
+- 响应类型：`application/zip`（二进制文件流）
+- 响应头：`Content-Disposition: attachment; filename="operator_package_{packageName}.zip"`
+- 压缩包结构：
+  - 根路径：`{packageName}/{version}/`
+  - 算子代码：`operators/groovy/{operatorCode}.groovy`（Legacy 模板）
+  - 公共库：根据库类型分配到不同目录
+  - 元数据文件：`operators/metainfo_operators.yml`（包含算子包和算子元数据）
 
 ### 4.5 其他接口
 
@@ -384,6 +406,7 @@ public class PackageCommonLibrary {
     - 冲突和警告检测
     - 算子路径配置
     - 公共库路径配置
+    - 打包下载按钮（一键下载 ZIP 压缩包）
   - 数据流标签页（待开发）
 
 ### 5.4 关键组件
@@ -419,29 +442,31 @@ public class PackageCommonLibrary {
 **Legacy 模板（兼容现有格式）**：
 ```
 {包名}/
-├── models/                          # 类型为 MODEL 的库
-│   └── ${fileName}
-├── operators/
-│   ├── constants/                   # 类型为 CONSTANT 的库
+├── {版本号}/                       # 根路径包含版本号
+│   ├── models/                     # 类型为 MODEL 的库
 │   │   └── ${fileName}
-│   ├── groovy/                     # 算子代码
-│   │   └── ${operatorCode}.groovy
-│   ├── method/                     # 类型为 METHOD 的库
-│   │   └── ${fileName}
-│   └── metainfo_operators.yml      # 元数据文件
+│   └── operators/
+│       ├── constants/              # 类型为 CONSTANT 的库
+│       │   └── ${fileName}
+│       ├── groovy/                # 算子代码
+│       │   └── ${operatorCode}.groovy
+│       ├── method/                # 类型为 METHOD 的库
+│       │   └── ${fileName}
+│       └── metainfo_operators.yml # 元数据文件（YAML 格式）
 ```
 
 **Modern 模板（推荐新格式）**：
 ```
 {包名}/
-├── lib/                            # 所有公共库
-│   └── ${libraryName}/
-│       └── ${fileName}
-├── operators/                       # 算子代码
-│   └── ${operatorCode}/
-│       └── ${fileName}
-├── package.json
-└── manifest.json
+├── {版本号}/                       # 根路径包含版本号
+│   ├── lib/                       # 所有公共库
+│   │   └── ${libraryName}/
+│   │       └── ${fileName}
+│   ├── operators/                  # 算子代码
+│   │   └── ${operatorCode}/
+│   │       └── ${fileName}
+│   ├── package.json
+│   └── manifest.json
 ```
 
 **Custom 模板（完全自定义）**：
@@ -464,11 +489,16 @@ public class PackageCommonLibrary {
 
 | 资源类型 | 库类型 | Legacy 模板路径 | Modern 模板路径 |
 |---------|-------|----------------|----------------|
-| 公共库 | CONSTANT | `operators/constants/${fileName}` | `lib/${libraryName}/${fileName}` |
-| 公共库 | METHOD | `operators/method/${fileName}` | `lib/${libraryName}/${fileName}` |
-| 公共库 | MODEL | `models/${fileName}` | `lib/${libraryName}/${fileName}` |
-| 公共库 | CUSTOM | `lib/${libraryName}/${fileName}` | `lib/${libraryName}/${fileName}` |
-| 算子代码 | - | `operators/groovy/${operatorCode}.groovy` | `operators/${operatorCode}/${fileName}` |
+| 公共库 | CONSTANT | `{version}/operators/constants/${fileName}` | `{version}/lib/${libraryName}/${fileName}` |
+| 公共库 | METHOD | `{version}/operators/method/${fileName}` | `{version}/lib/${libraryName}/${fileName}` |
+| 公共库 | MODEL | `{version}/models/${fileName}` | `{version}/lib/${libraryName}/${fileName}` |
+| 公共库 | CUSTOM | `{version}/lib/${libraryName}/${fileName}` | `{version}/lib/${libraryName}/${fileName}` |
+| 算子代码 | - | `{version}/operators/groovy/${operatorCode}.groovy` | `{version}/operators/${operatorCode}/${fileName}` |
+| 元数据文件 | - | `{version}/operators/metainfo_operators.yml` | `{version}/manifest.json` |
+
+**注意**：
+- 路径中的 `{version}` 会替换为算子包的版本号，默认为 `1.0.0`
+- 元数据文件在 Legacy 模板中为 `metainfo_operators.yml`（YAML 格式），在 Modern 模板中为 `manifest.json`（JSON 格式）
 
 ---
 
@@ -487,6 +517,11 @@ public class PackageCommonLibrary {
 3. **参数映射**
    - 参数映射功能尚未实现
    - 无法在算子包级别配置算子参数
+
+4. **打包下载**
+   - 仅支持 Legacy 模板的完整实现（包括元数据文件）
+   - Modern 和 Custom 模板的元数据文件生成待完善
+   - 打包过程在内存中进行，大文件可能占用较多内存
 
 ### 7.2 技术注意事项
 
@@ -511,13 +546,18 @@ public class PackageCommonLibrary {
 
 ### 8.1 高优先级
 
-1. **批量配置公共库功能**
-   - 在算子列表页添加批量选择
-   - 添加"批量配置代码库"按钮
-   - 支持选择多个公共库
-   - 后端新增批量更新 API
+1. **~批量配置公共库功能~** ✅ 已完成
+   - ✅ 在公共库配置标签页添加批量配置按钮
+   - ✅ 支持批量使用推荐路径
+   - ✅ 后端批量更新 API 已实现
 
-2. **参数映射功能**
+2. **~打包下载功能~** ✅ 已完成
+   - ✅ 后端 PackageBuildService 实现打包逻辑
+   - ✅ 前端下载按钮和处理函数
+   - ✅ 自动生成元数据文件
+   - ✅ 浏览器自动下载 ZIP 压缩包
+
+3. **参数映射功能**
    - 在算子包层面配置算子参数
    - 支持参数映射和重命名
    - 支持参数默认值覆盖
@@ -551,6 +591,7 @@ public class PackageCommonLibrary {
 | 日期 | 版本 | 变更内容 | 作者 |
 |------|------|---------|------|
 | 2026-02-22 | v1.0 | 初始版本，基于当前代码实现创建 | Claude |
+| 2026-02-23 | v1.1 | 新增打包下载功能，更新打包模板路径（添加版本号），更新已知限制和优化方向 | Claude |
 
 ---
 
