@@ -8,6 +8,145 @@ import * as monaco from 'monaco-editor';
   getWorker: () => undefined,
 };
 
+/**
+ * 注册 Groovy 语言支持
+ * 基于 Java 语法规则实现 Groovy 语法高亮
+ */
+const registerGroovyLanguage = () => {
+  // 注册 Groovy 语言
+  monaco.languages.register({ id: 'groovy' });
+
+  // 使用 Java 的 Tokenizer 配置
+  monaco.languages.setMonarchTokensProvider('groovy', {
+    keywords: [
+      'abstract', 'continue', 'for', 'new', 'switch', 'assert', 'default', 'goto',
+      'package', 'synchronized', 'boolean', 'do', 'if', 'private', 'this', 'break',
+      'double', 'implements', 'protected', 'throw', 'byte', 'else', 'import',
+      'public', 'throws', 'case', 'enum', 'instanceof', 'return', 'transient',
+      'catch', 'extends', 'int', 'short', 'try', 'char', 'final', 'interface',
+      'static', 'void', 'class', 'finally', 'long', 'strictfp', 'volatile',
+      'const', 'float', 'native', 'super', 'while', 'def', 'in', 'as', 'trait'
+    ],
+
+    operators: [
+      '=', '>', '<', '!', '~', '?', ':', '==', '<=', '>=', '!=', '&&', '||', '++', '--',
+      '+', '-', '*', '/', '&', '|', '^', '%', '(', ')', '[', ']', '{', '}', '.', ',',
+      ';', '@', '?.', '*.', '*:', '..'
+    ],
+
+    symbols: /[=><!~?:&|+\-*\/\^%]+/,
+
+    // C# style strings
+    escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
+
+    // The main tokenizer for our languages
+    tokenizer: {
+      root: [
+        [/[a-z_$][\w$]*/, {
+          cases: {
+            '@keywords': { token: 'keyword.$0' },
+            '@default': 'identifier'
+          }
+        }],
+        [/[A-Z][\w\$]*/, 'type.identifier'],  // to mark class names
+
+        // whitespace
+        { include: '@whitespace' },
+
+        // delimiters and operators
+        [/[{}()\[\]]/, '@brackets'],
+        [/@symbols/, {
+          cases: {
+            '@operators': 'operator',
+            '@default': ''
+          }
+        }],
+
+        // numbers
+        [/\d*\.\d+([eE][\-+]?\d+)?/, 'number.float'],
+        [/\d+/, 'number'],
+
+        // delimiter: after number because of .\d floats
+        [/[;,.]/, 'delimiter'],
+
+        // strings
+        [/"([^"\\]|\\.)*$/, 'string.invalid'],  // non-teminated string
+        [/"/, 'string', '@string'],
+        [/'''/, 'string', '@tripleString'],
+
+        // characters
+        [/'[^\\']'/, 'string'],
+        [/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
+        [/'/, 'string.invalid']
+      ],
+
+      whitespace: [
+        [/[ \t\r\n]+/, 'white'],
+        [/\/\*/, 'comment', '@comment'],
+        [/\/\/.*$/, 'comment'],
+      ],
+
+      comment: [
+        [/[^\/*]+/, 'comment'],
+        [/\/\*/, 'comment', '@push'],
+        ['\\*/', 'comment', '@pop'],
+        [/[\/*]/, 'comment']
+      ],
+
+      string: [
+        [/[^\\"]+/, 'string'],
+        [/@escapes/, 'string.escape'],
+        [/\\./, 'string.escape.invalid'],
+        [/"/, 'string', '@pop']
+      ],
+
+      tripleString: [
+        [/'''/, 'string', '@pop'],
+        [/[^\\']+/, 'string'],
+        [/\\./, 'string.escape.invalid']
+      ],
+    },
+  });
+
+  // 配置语言特性
+  monaco.languages.setLanguageConfiguration('groovy', {
+    comments: {
+      lineComment: '//',
+      blockComment: ['/*', '*/']
+    },
+    brackets: [
+      ['{', '}'],
+      ['[', ']'],
+      ['(', ')']
+    ],
+    autoClosingPairs: [
+      { open: '{', close: '}' },
+      { open: '[', close: ']' },
+      { open: '(', close: ')' },
+      { open: '"', close: '"' },
+      { open: "'", close: "'" },
+      { open: '`', close: '`' },
+    ],
+    surroundingPairs: [
+      { open: '{', close: '}' },
+      { open: '[', close: ']' },
+      { open: '(', close: ')' },
+      { open: '"', close: '"' },
+      { open: "'", close: "'" },
+      { open: '<', close: '>' },
+    ],
+    folding: {
+      markers: {
+        start: /^\s*\/\/\s*#region\b/,
+        end: /^\s*\/\/\s*#endregion\b/
+      }
+    }
+  });
+};
+
+// 初始化时注册 Groovy 语言
+registerGroovyLanguage();
+
 interface CodeEditorProps {
   language: 'java' | 'groovy' | 'javascript' | 'typescript';
   value?: string;
