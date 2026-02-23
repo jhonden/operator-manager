@@ -243,7 +243,7 @@ public class PackageController {
     /**
      * 批量移除算子
      */
-    @PostMapping("/{id}/operators/batch")
+    @PostMapping("/{id}/operators/batch-delete")
     @Operation(summary = "批量移除算子", description = "批量移除算子到算子包")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse<Void>> batchRemoveOperators(

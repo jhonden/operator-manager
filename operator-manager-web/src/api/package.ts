@@ -141,11 +141,15 @@ export const packageApi = {
    */
   batchRemoveOperators: (
     packageId: number,
-    data: { packageOperatorIds: number[]; reason: string }
+    packageOperatorIds: number[],
+    reason?: string
   ): Promise<ApiResponse<void>> => {
     return request.post<ApiResponse<void>>(
-      `/v1/packages/${packageId}/operators/batch`,
-      data
+      `/v1/packages/${packageId}/operators/batch-delete`,
+      {
+        packageOperatorIds,
+        reason: reason || '批量移除',
+      }
     );
   },
 
