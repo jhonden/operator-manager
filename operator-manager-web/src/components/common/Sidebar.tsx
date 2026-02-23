@@ -21,6 +21,19 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
 
   const menuItems = [
     {
+      key: 'libraries-group',
+      label: '公共库',
+      type: 'group' as const,
+      children: [
+        {
+          key: '/libraries',
+          icon: <DatabaseOutlined />,
+          label: '常用公共库',
+          onClick: () => navigate('/libraries'),
+        },
+      ],
+    },
+    {
       key: 'operators-group',
       label: '算子',
       type: 'group' as const,
@@ -43,19 +56,6 @@ const Sidebar: React.FC<Props> = ({ collapsed }) => {
           icon: <AppstoreOutlined />,
           label: '所有算子包',
           onClick: () => navigate('/packages'),
-        },
-      ],
-    },
-    {
-      key: 'libraries-group',
-      label: '公共库',
-      type: 'group' as const,
-      children: [
-        {
-          key: '/libraries',
-          icon: <DatabaseOutlined />,
-          label: '常用公共库',
-          onClick: () => navigate('/libraries'),
         },
       ],
     },
