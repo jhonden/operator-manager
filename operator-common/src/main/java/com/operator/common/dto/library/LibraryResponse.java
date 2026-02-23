@@ -27,7 +27,7 @@ public class LibraryResponse {
     private String version;
     private String category;
     private LibraryType libraryType;
-    private Long createdBy;
+    private String createdBy; // 创建者用户名
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<LibraryFileResponse> files;

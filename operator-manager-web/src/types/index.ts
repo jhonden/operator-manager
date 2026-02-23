@@ -138,6 +138,21 @@ export interface PackageOperator {
   createdAt: string;
 }
 
+export interface PackageFilters {
+  keyword?: string;
+  status?: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+}
+
+// Package Import types
+export interface PackageImportResponse {
+  id: number; // 新建的算子包 ID
+  name: string; // 算子包名称（可能已加后缀）
+  operatorsUpdated: number; // 更新的算子数量
+  operatorsCreated: number; // 新建的算子数量
+  librariesUpdated: number; // 更新的公共库数量
+  librariesCreated: number; // 新建的公共库数量
+}
+
 // Task types
 export interface Task {
   id: number;

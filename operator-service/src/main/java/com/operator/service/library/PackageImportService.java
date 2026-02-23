@@ -7,9 +7,11 @@ import com.operator.common.enums.LibraryType;
 import com.operator.common.exception.BadRequestException;
 import com.operator.core.library.domain.CommonLibrary;
 import com.operator.core.library.domain.CommonLibraryFile;
+import com.operator.core.library.domain.OperatorCommonLibrary;
 import com.operator.core.library.domain.PackageCommonLibrary;
 import com.operator.core.library.repository.CommonLibraryFileRepository;
 import com.operator.core.library.repository.CommonLibraryRepository;
+import com.operator.core.library.repository.OperatorCommonLibraryRepository;
 import com.operator.core.library.repository.PackageCommonLibraryRepository;
 import com.operator.core.operator.domain.Operator;
 import com.operator.core.operator.repository.OperatorRepository;
@@ -52,6 +54,7 @@ public class PackageImportService {
     private final OperatorPackageRepository packageRepository;
     private final PackageOperatorRepository packageOperatorRepository;
     private final PackageCommonLibraryRepository packageCommonLibraryRepository;
+    private final OperatorCommonLibraryRepository operatorCommonLibraryRepository;
     private final OperatorRepository operatorRepository;
     private final CommonLibraryRepository commonLibraryRepository;
     private final CommonLibraryFileRepository commonLibraryFileRepository;
@@ -172,11 +175,11 @@ public class PackageImportService {
 
             for (Map<String, Object> instance : instances) {
                 PackageImportMetadata.OperatorMetadata om = new PackageImportMetadata.OperatorMetadata();
-                om.setOperator_code((String) instance.get("operator_code"));
-                om.setName((String) instance.get("name"));
-                om.setObject_code((String) instance.get("object_code"));
-                om.setData_format((String) instance.get("data_format"));
-                om.setGenerator((String) instance.get("generator"));
+                om.setOperator_code(convertToString(instance.get("operator_code")));
+                om.setName(convertToString(instance.get("name")));
+                om.setObject_code(convertToString(instance.get("object_code")));
+                om.setData_format(convertToString(instance.get("data_format")));
+                om.setGenerator(convertToString(instance.get("generator")));
                 om.setOrder_no(instance.get("order_no") != null ? ((Number) instance.get("order_no")).intValue() : 1);
                 operatorList.add(om);
             }
@@ -297,11 +300,14 @@ public class PackageImportService {
 
         // Legacy 模板路径解析
         if (relativePath.startsWith("operators/constants/")) {
-            return new LibraryInfo(extractLibraryName(relativePath), LibraryType.CONSTANT, extractFileName(relativePath));
+            // constants 文件夹下的所有文件合并为一个库，库名为 "constants"
+            return new LibraryInfo("constants", LibraryType.CONSTANT, extractFileName(relativePath));
         } else if (relativePath.startsWith("operators/method/")) {
-            return new LibraryInfo(extractLibraryName(relativePath), LibraryType.METHOD, extractFileName(relativePath));
+            // method 文件夹下的所有文件合并为一个库，库名为 "method"
+            return new LibraryInfo("method", LibraryType.METHOD, extractFileName(relativePath));
         } else if (relativePath.startsWith("models/")) {
-            return new LibraryInfo(extractLibraryName(relativePath), LibraryType.MODEL, extractFileName(relativePath));
+            // models 文件夹下的所有文件合并为一个库，库名为 "models"
+            return new LibraryInfo("models", LibraryType.MODEL, extractFileName(relativePath));
         } else if (relativePath.startsWith("lib/")) {
             // 自定义库路径：lib/libraryName/fileName
             String[] parts = relativePath.split("/");
@@ -414,15 +420,23 @@ public class PackageImportService {
         Map<String, CommonLibrary> libraryMap = new HashMap<>();
 
         for (LibraryContent content : libraryContents.values()) {
-            // 查询现有公共库
+            // 查询现有公共库（按名称查询，不区分版本）
             java.util.Optional<CommonLibrary> libraryOpt = commonLibraryRepository
-                    .findByNameAndVersion(content.libraryName, "1.0");
+                    .findByName(content.libraryName);
 
             CommonLibrary library;
             if (libraryOpt.isPresent()) {
                 // 复用现有公共库，替换所有代码文件
                 library = libraryOpt.get();
-                log.info("复用现有公共库：libraryName={}", content.libraryName);
+                log.info("复用现有公共库：libraryName={}, version={}",
+                         content.libraryName, library.getVersion());
+
+                // 如果现有公共库的版本号为空，设置为默认值 "1.0"
+                if (library.getVersion() == null) {
+                    library.setVersion("1.0");
+                    commonLibraryRepository.save(library);
+                    log.info("更新公共库版本号：libraryName={}, version=1.0", content.libraryName);
+                }
 
                 // 删除所有旧文件
                 commonLibraryFileRepository.deleteByLibraryId(library.getId());
@@ -598,27 +612,46 @@ public class PackageImportService {
     private void syncLibrariesToPackage(OperatorPackage pkg,
                                        Map<String, CommonLibrary> libraryMap,
                                        ImportStatistics stats) {
+        List<OperatorCommonLibrary> operatorCommonLibraries = new ArrayList<>();
         List<PackageCommonLibrary> packageCommonLibraries = new ArrayList<>();
 
         // 获取算子包的算子关联
         List<PackageOperator> packageOperators = packageOperatorRepository
                 .findByOperatorPackageIdOrderByOrderIndexAsc(pkg.getId());
 
+        // 先处理包级别关联（每个库只创建一条记录，去重）
+        int orderIndex = 0;
         for (CommonLibrary library : libraryMap.values()) {
-            // 为每个算子创建公共库关联
-            for (PackageOperator po : packageOperators) {
+            boolean exists = packageCommonLibraryRepository
+                    .existsByOperatorPackageIdAndLibraryId(pkg.getId(), library.getId());
+            if (!exists) {
                 PackageCommonLibrary pcl = PackageCommonLibrary.builder()
                         .operatorPackage(pkg)
-                        .operator(po.getOperator())
+                        .operator(packageOperators.get(0).getOperator()) // 使用第一个算子作为来源
                         .library(library)
-                        .orderIndex(1)
+                        .version(library.getVersion())
+                        .orderIndex(orderIndex++)
+                        .useCustomPath(false)
                         .build();
                 packageCommonLibraries.add(pcl);
             }
         }
 
+        // 再处理算子级别关联（每个算子都需要创建记录）
+        for (PackageOperator po : packageOperators) {
+            for (CommonLibrary library : libraryMap.values()) {
+                OperatorCommonLibrary ocl = OperatorCommonLibrary.builder()
+                        .operator(po.getOperator())
+                        .library(library)
+                        .build();
+                operatorCommonLibraries.add(ocl);
+            }
+        }
+
+        operatorCommonLibraryRepository.saveAll(operatorCommonLibraries);
         packageCommonLibraryRepository.saveAll(packageCommonLibraries);
-        log.info("同步公共库到算子包成功：count={}", packageCommonLibraries.size());
+        log.info("同步公共库到算子包成功：operatorLevel={}, packageLevel={}",
+                operatorCommonLibraries.size(), packageCommonLibraries.size());
     }
 
     // ========== 内部类 ==========
@@ -627,10 +660,10 @@ public class PackageImportService {
      * 导入统计
      */
     private static class ImportStatistics {
-        int operatorsUpdated = 0;
         int operatorsCreated = 0;
-        int librariesUpdated = 0;
+        int operatorsUpdated = 0;
         int librariesCreated = 0;
+        int librariesUpdated = 0;
     }
 
     /**
@@ -668,5 +701,19 @@ public class PackageImportService {
             this.libraryType = libraryType;
             this.fileName = fileName;
         }
+    }
+
+    /**
+     * 安全地将 Object 转换为 String
+     * 支持 Integer 等数字类型转换为 String
+     */
+    private String convertToString(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof String) {
+            return (String) value;
+        }
+        return String.valueOf(value);
     }
 }

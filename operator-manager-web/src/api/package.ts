@@ -5,16 +5,17 @@ import type {
   PackageRequest,
   PageResponse,
   PackageOperator,
-  PackagePathConfigResponse,
-  PackagePathConfigRequest,
-  OperatorPathConfigResponse,
   BatchUpdateOrderIndexRequest,
   BatchAddOperatorsRequest,
   BatchAddOperatorsResponse,
+  PackageImportResponse,
+  AddLibraryToPackageRequest,
+  PackagePathConfigRequest,
+  PackagePathConfigResponse,
+  PackagePreviewResponse,
+  BatchPathConfigRequest,
 } from '@/types';
 import { message } from 'antd';
-
-import { operatorApi } from '@/api/operator';
 
 export const packageApi = {
   /**
@@ -313,5 +314,27 @@ export const packageApi = {
       console.error('[downloadPackage] 下载失败:', error);
       message.error(error.message || '下载算子包失败');
     });
+  },
+
+  /**
+   * 导入算子包
+   *
+   * @param file ZIP 压缩包文件
+   */
+  importPackage: (
+    file: File
+  ): Promise<ApiResponse<PackageImportResponse>> => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return request.post<ApiResponse<PackageImportResponse>>(
+      '/v1/packages/import',
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
   },
 };

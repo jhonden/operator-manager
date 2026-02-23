@@ -22,6 +22,11 @@ import java.util.Optional;
 public interface CommonLibraryRepository extends JpaRepository<CommonLibrary, Long> {
 
     /**
+     * 根据库名称查找公共库（不区分版本）
+     */
+    Optional<CommonLibrary> findByName(String name);
+
+    /**
      * 根据库名称和版本查找公共库
      */
     Optional<CommonLibrary> findByNameAndVersion(String name, String version);

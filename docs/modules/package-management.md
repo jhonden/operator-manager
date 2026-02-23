@@ -343,6 +343,40 @@ public class PackageCommonLibrary {
 | PUT | `/v1/packages/{id}/libraries/{libraryId}/path-config` | 配置单个公共库路径 | 是 |
 | PUT | `/v1/packages/{id}/libraries/batch-path-config` | 批量配置公共库路径 | 是 |
 
+### 4.4 算子包导入接口
+
+| 方法 | 路径 | 描述 | 认证 |
+|------|------|------|------|
+| POST | `/v1/packages/import` | 导入算子包（ZIP 文件） | 是 |
+
+**导入接口说明**：
+- **请求格式**：`multipart/form-data`
+- **请求参数**：`file: File`（ZIP 压缩包文件，最大 10MB）
+- **响应格式（成功）**：
+  ```json
+  {
+    "success": true,
+    "message": "算子包导入成功",
+    "data": {
+      "id": 123,
+      "name": "my_package",
+      "operatorsUpdated": 3,
+      "operatorsCreated": 2,
+      "librariesUpdated": 5,
+      "librariesCreated": 1
+    }
+  }
+  ```
+- **导入策略**：
+  - 算子（Operator）：按编码智能复用（存在则更新基本信息和代码）
+  - 公共库（CommonLibrary）：按名称智能复用（存在则删除旧文件，替换为新文件）
+  - 算子包（OperatorPackage）：始终新建（名称冲突自动加后缀）
+  - Legacy 模板：`operators/constants/`、`operators/method/`、`models/` 文件夹合并为单独的库
+- **数据完整性验证**：
+  - 元数据文件必须存在（`metainfo_operators.yml`）
+  - 元数据中的算子必须有对应的代码文件
+  - 公共库文件内容不能为空
+
 ### 4.4 打包配置接口
 
 | 方法 | 路径 | 描述 | 认证 |
@@ -522,10 +556,6 @@ public class PackageCommonLibrary {
    - 当前不支持算子包的多版本管理
    - 所有修改在同一版本上进行
 
-2. **算子包导入**
-   - 当前不支持从文件导入算子包
-   - 无法自动解析现有算子包结构
-
 3. **参数映射**
    - 参数映射功能尚未实现
    - 无法在算子包级别配置算子参数
@@ -581,10 +611,16 @@ public class PackageCommonLibrary {
    - 版本对比功能
    - 版本回滚功能
 
-4. **算子包导入**
-   - 支持从文件导入算子包
-   - 自动解析算子包结构
-   - 创建对应的算子和公共库
+4. **~算子包导入功能~** ✅ 已完成
+   - ✅ 后端 PackageImportService 实现导入逻辑
+   - ✅ 后端 PackageImportController 提供导入接口
+   - ✅ 前端导入按钮和文件上传功能
+   - ✅ 支持 ZIP 文件解析
+   - ✅ 智能复用算子和公共库
+   - ✅ 数据完整性验证
+   - ✅ 算子包名称冲突处理
+   - ✅ Legacy 模板库合并（constants、method、models）
+   - ✅ 正确建立包级别和算子级别关联关系
 
 ### 8.3 低优先级
 
@@ -606,6 +642,7 @@ public class PackageCommonLibrary {
 | 2026-02-23 | v1.1 | 新增打包下载功能，更新打包模板路径（添加版本号），更新已知限制和优化方向 | Claude |
 | 2026-02-23 | v1.2 | 新增批量添加算子功能，支持多选、搜索、语言筛选，优化界面布局（执行顺序置顶，确认按钮固定底部） | Claude |
 | 2026-02-23 | v1.3 | 新增批量移除算子功能，支持勾选多个算子后批量移除，填写移除原因 | Claude |
+| 2026-02-24 | v1.4 | 新增算子包导入功能，支持 ZIP 文件导入、智能复用算子和公共库、数据完整性验证、Legacy 模板库合并，更新 API 接口清单和已知限制 | Claude |
 
 ---
 

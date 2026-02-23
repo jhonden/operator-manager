@@ -10,6 +10,7 @@ import {
   Popconfirm,
   Row,
   Col,
+  Upload,
 } from 'antd';
 import {
   PlusOutlined,
@@ -19,9 +20,10 @@ import {
   SearchOutlined,
   ReloadOutlined,
   AppstoreOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import type { OperatorPackage, PackageFilters } from '@/types';
+import type { OperatorPackage } from '@/types';
 import { packageApi } from '@/api/package';
 import { t } from '@/utils/i18n';
 
@@ -29,6 +31,8 @@ import { t } from '@/utils/i18n';
  * Operator package list page
  */
 const PackageListPage: React.FC = () => {
+  console.log('[PackageListPage] 组件渲染');
+
   const navigate = useNavigate();
   const [packages, setPackages] = useState<OperatorPackage[]>([]);
   const [pagination, setPagination] = useState({
@@ -38,7 +42,7 @@ const PackageListPage: React.FC = () => {
   });
 
   // Filter states
-  const [filters, setFilters] = useState<PackageFilters>({
+  const [filters, setFilters] = useState({
     keyword: '',
     status: undefined,
   });
@@ -92,6 +96,53 @@ const PackageListPage: React.FC = () => {
     }
   };
 
+  const handleImport = async (file: File) => {
+    console.log('[handleImport] 开始导入', file);
+    try {
+      const response = await packageApi.importPackage(file);
+      console.log('[handleImport] API 响应', response);
+      if (response.success && response.data) {
+        message.success(
+          `算子包导入成功！${t('common.operatorCreated')}: ${response.data.operatorsCreated}, ${t('common.operatorUpdated')}: ${response.data.operatorsUpdated}, ${t('common.libraryCreated')}: ${response.data.librariesCreated}, ${t('common.libraryUpdated')}: ${response.data.librariesUpdated}`
+        );
+        fetchPackages();
+      } else {
+        message.error(response.error || '导入算子包失败');
+      }
+    } catch (error: any) {
+      console.error('[handleImport] 导入失败', error);
+      message.error(error.message || '导入算子包失败');
+    }
+  };
+
+  const uploadProps: UploadProps = {
+    name: 'file',
+    accept: '.zip,application/zip',
+    maxCount: 1,
+    showUploadList: false,
+    beforeUpload: async (file) => {
+      console.log('[beforeUpload] 文件验证中', file.name, file.type);
+      const isZip = file.type === 'application/zip' || file.name.endsWith('.zip');
+      if (!isZip) {
+        message.error('只支持 ZIP 格式文件');
+        return Upload.LIST_IGNORE;
+      }
+
+      const maxSize = 10 * 1024 * 1024; // 10MB
+      if (file.size > maxSize) {
+        message.error('文件大小超过限制（最大 10MB）');
+        return Upload.LIST_IGNORE;
+      }
+
+      console.log('[beforeUpload] 验证通过，开始导入');
+      // 直接在 beforeUpload 中调用导入函数
+      handleImport(file);
+      // 返回 false 阻止默认上传
+      return Upload.LIST_IGNORE;
+    },
+    disabled: false,
+  };
+
   return (
     <div style={{ padding: '24px' }}>
       <Card
@@ -103,13 +154,20 @@ const PackageListPage: React.FC = () => {
           </Space>
         }
         extra={
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            onClick={() => navigate('/packages/create')}
-          >
-            创建算子包
-          </Button>
+          <Space>
+            <Upload {...uploadProps} showUploadList={false}>
+              <Button icon={<UploadOutlined />}>
+                导入算子包
+              </Button>
+            </Upload>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => navigate('/packages/create')}
+            >
+              创建算子包
+            </Button>
+          </Space>
         }
       >
         {/* Search and Filters */}

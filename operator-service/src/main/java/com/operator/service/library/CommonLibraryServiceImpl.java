@@ -265,7 +265,7 @@ public class CommonLibraryServiceImpl implements CommonLibraryService {
                 .version(library.getVersion())
                 .category(library.getCategory())
                 .libraryType(library.getLibraryType())
-                .createdBy(library.getCreatedBy() != null ? Long.parseLong(library.getCreatedBy()) : null)
+                .createdBy(library.getCreatedBy()) // 直接传递用户名字符串
                 .createdAt(library.getCreatedAt())
                 .updatedAt(library.getUpdatedAt())
                 .files(fileResponses)
