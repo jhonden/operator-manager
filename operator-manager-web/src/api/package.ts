@@ -5,14 +5,13 @@ import type {
   PackageRequest,
   PageResponse,
   PackageOperator,
-  PackagePathConfigRequest,
   PackagePathConfigResponse,
-  OperatorPathConfigRequest,
-  LibraryPathConfigRequest,
-  BatchPathConfigRequest,
-  AddLibraryToPackageRequest,
-  PackagePreviewResponse,
+  PackagePathConfigRequest,
+  OperatorPathConfigResponse,
 } from '@/types';
+import { message } from 'antd';
+
+import { operatorApi } from '@/api/operator';
 
 export const packageApi = {
   /**
@@ -149,29 +148,7 @@ export const packageApi = {
     );
   },
 
-  /**
-   * Update package status
-   */
-  updatePackageStatus: (
-    id: number,
-    status: string
-  ): Promise<ApiResponse<OperatorPackage>> => {
-    return request.patch<ApiResponse<OperatorPackage>>(
-      `/v1/packages/${id}/status`,
-      {},
-      { params: { status } }
-    );
-  },
-
-  /**
-   * Toggle featured status
-   */
-  toggleFeatured: (id: number): Promise<ApiResponse<OperatorPackage>> => {
-    return request.patch<ApiResponse<OperatorPackage>>(`/v1/packages/${id}/featured`);
-  },
-
   // ========== 公共库和打包配置相关接口 ==========
-
   /**
    * 向算子包添加公共库
    */
@@ -247,20 +224,6 @@ export const packageApi = {
   },
 
   /**
-   * 更新公共库打包路径配置
-   */
-  updateLibraryPathConfig: (
-    packageId: number,
-    packageCommonLibraryId: number,
-    data: LibraryPathConfigRequest
-  ): Promise<ApiResponse<void>> => {
-    return request.put<ApiResponse<void>>(
-      `/v1/packages/${packageId}/libraries/${packageCommonLibraryId}/path-config`,
-      data
-    );
-  },
-
-  /**
    * 批量更新公共库路径配置
    */
   batchUpdateLibraryPathConfig: (
@@ -284,5 +247,37 @@ export const packageApi = {
       `/v1/packages/${packageId}/preview`,
       { params: { template } }
     );
+  },
+
+  /**
+   * 下载算子包
+   *
+   * @param packageId 算子包 ID
+   * @param packageName 算子包名称（用于生成文件名）
+   */
+  downloadPackage: (
+    packageId: number,
+    packageName: string
+  ): Promise<void> => {
+    return request.get<Blob>(
+      `/v1/packages/${packageId}/download`,
+      {
+        responseType: 'blob',
+        params: { packageName }
+      }
+    ).then((blob) => {
+      // 手动创建下载链接
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `operator_package_${packageName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    }).catch((error: any) => {
+      console.error('[downloadPackage] 下载失败:', error);
+      message.error(error.message || '下载算子包失败');
+    });
   },
 };

@@ -30,6 +30,7 @@ import {
   PlusOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
+  DownloadOutlined,
   FolderOutlined,
   FileOutlined,
   SettingOutlined,
@@ -113,6 +114,21 @@ const PackageDetailPage: React.FC = () => {
       }
     } catch (error: any) {
       message.error(error.message || '获取打包配置失败');
+    }
+  };
+
+  const handleDownloadPackage = async () => {
+    if (!id) return;
+
+    if (!packageData || !packageData.name) {
+      return;
+    }
+
+    try {
+      await packageApi.downloadPackage(Number(id), packageData?.name || 'package');
+    } catch (error: any) {
+      console.error('[handleDownloadPackage] 下载失败:', error);
+      message.error(error.message || '下载算子包失败');
     }
   };
 
@@ -701,9 +717,18 @@ const PackageDetailPage: React.FC = () => {
                     </Tag>
                   </Col>
                   <Col span={16} style={{ textAlign: 'right' }}>
-                    <Button icon={<ReloadOutlined />} onClick={() => fetchPreview()}>
-                      刷新预览
-                    </Button>
+                    <Space>
+                      <Button icon={<ReloadOutlined />} onClick={() => fetchPreview()}>
+                        刷新预览
+                      </Button>
+                      <Button
+                        type="primary"
+                        icon={<DownloadOutlined />}
+                        onClick={handleDownloadPackage}
+                      >
+                        打包下载
+                      </Button>
+                    </Space>
                   </Col>
                 </Row>
               </Card>
