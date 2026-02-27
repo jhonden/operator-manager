@@ -78,6 +78,87 @@ Operator Manager 是一个基于算子（Operator）和算子包（Operator Pack
 
 **开源地址**：https://github.com/jhonden/operator-manager
 
+**系统架构图：**
+
+```mermaid
+graph TB
+    subgraph Frontend["前端技术栈 (React 18 + TypeScript 5.x)"]
+        UI[Ant Design 5.x<br/>UI组件库]
+        State[Zustand<br/>状态管理]
+        Router[React Router 6.x<br/>路由]
+        HTTP[Axios<br/>HTTP客户端]
+        Editor[Monaco Editor<br/>代码编辑器]
+        MD[ByteMD<br/>文档编辑器]
+        Charts[ECharts<br/>图表]
+    end
+
+    subgraph Backend["后端技术栈 (Spring Boot 3.2.x + Java 21)"]
+        subgraph BackendModules["后端分层架构"]
+            API[operator-api<br/>API层<br/>REST控制器]
+            Service[operator-service<br/>业务逻辑层<br/>Service实现]
+            Core[operator-core<br/>领域层<br/>JPA实体和仓库]
+            Common[operator-common<br/>公共模块<br/>DTO枚举工具]
+            Infra[operator-infrastructure<br/>基础设施层<br/>MinIO Git Docker Redis]
+        end
+
+        Security[JWT + Spring Security<br/>认证授权]
+    end
+
+    subgraph Database["数据存储"]
+        PG[(PostgreSQL 15+<br/>关系型数据库)]
+        Redis[(Redis 7.x<br/>缓存<br/>规划中)]
+        MinIO[MinIO<br/>S3兼容存储<br/>规划中]
+    end
+
+    subgraph CoreModules["核心功能模块"]
+        OperatorMgmt[算子管理<br/>CRUD 参数管理<br/>代码编辑 业务逻辑]
+        PackageMgmt[算子包管理<br/>CRUD 算子组合<br/>公共库同步 打包配置]
+        LibraryMgmt[公共库管理<br/>CRUD 文件管理<br/>代码编辑 分类]
+    end
+
+    Frontend <-->|HTTP/REST| BackendModules
+    Frontend --> UI
+    Frontend --> State
+    Frontend --> Router
+    Frontend --> HTTP
+    Frontend --> Editor
+    Frontend --> MD
+    Frontend --> Charts
+
+    BackendModules --> Security
+
+    API --> Service
+    Service --> Core
+    Service --> Common
+    Service --> Infra
+    Core --> PG
+    Infra --> Redis
+    Infra --> MinIO
+
+    API --> OperatorMgmt
+    API --> PackageMgmt
+    API --> LibraryMgmt
+
+    Service --> OperatorMgmt
+    Service --> PackageMgmt
+    Service --> LibraryMgmt
+
+    OperatorMgmt <--> LibraryMgmt
+    PackageMgmt <--> LibraryMgmt
+    PackageMgmt <--> OperatorMgmt
+
+    style Frontend fill:#e1f5fe
+    style Backend fill:#f3e5f5
+    style Database fill:#fff3e0
+    style CoreModules fill:#e8f5e9
+```
+
+**架构说明：**
+- **前端**：基于 React 18 + TypeScript 5.x，使用 Ant Design UI 组件库、Zustand 状态管理、React Router 路由
+- **后端**：基于 Spring Boot 3.2.x + Java 21，采用清晰的分层架构（API → Service → Core/Infrastructure）
+- **核心模块**：算子管理、算子包管理、公共库管理三大核心功能模块
+- **数据存储**：PostgreSQL 关系型数据库，Redis 缓存（规划中），MinIO 对象存储（规划中）
+
 ---
 
 ### 1.2 开发背景
