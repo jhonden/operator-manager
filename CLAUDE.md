@@ -12,27 +12,36 @@
 
 必须阅读以下规范文档，理解项目开发要求：
 
-1. **[开发规范](./docs/standards/development-conventions.md)** ⭐⭐⭐
+1. **[开发规范文档目录](./docs/standards/README.md)** ⭐⭐⭐
+   - 文档索引和导航
+   - 快速找到需要的规范文档
+
+2. **[开发规范](./docs/standards/development-conventions.md)** ⭐⭐⭐
    - 文档和注释语言规范
    - 后端开发规范（Java 21、日志、事务等）
    - 前端开发规范（TypeScript、组件、样式等）
    - 测试规范
    - 安全规范（输入验证、SQL 注入防护、XSS 防护）
 
-2. **[代码提交流程](./docs/standards/code-submission-workflow.md)** ⭐⭐⭐⭐⭐
+3. **[服务管理规范](./docs/standards/service-management.md)** ⭐⭐⭐
+   - 服务启动规范（整体启动、前端启动、后端启动）
+   - 服务停止规范（整体停止、前端停止、后端停止）
+   - 服务启动验证要求
+
+4. **[代码提交流程](./docs/standards/code-submission-workflow.md)** ⭐⭐⭐⭐⭐
    - 修改后必须验证
    - 验证步骤（编译、启动、功能测试）
    - 只有验证通过才能提交
    - 提交前必须得到用户确认
    - 服务启动验证要求
 
-3. **[需求设计工作流程](./docs/standards/requirements-design-workflow.md)** ⭐⭐⭐⭐⭐
+5. **[需求设计工作流程](./docs/standards/requirements-design-workflow.md)** ⭐⭐⭐⭐⭐
    - 需求讨论流程
    - 方案设计流程
    - 方案确认和归档流程
    - 实施规划要求
 
-4. **[前后端协同开发规范](./docs/standards/frontend-backend-collaboration.md)** ⭐⭐⭐⭐⭐
+6. **[前后端协同开发规范](./docs/standards/frontend-backend-collaboration.md)** ⭐⭐⭐⭐⭐
    - 核心原则：先后端再前端，测试驱动开发
    - 后端开发阶段：API 测试、端到端测试、测试用例固化
    - 前端开发阶段：API 契约验证、模块化设计、日志输出、增量编译、类型优先
@@ -117,7 +126,9 @@ operator-manager/
 ├── operator-manager-web/            # 前端项目 - React + TypeScript + Vite
 ├── docs/                          # 文档目录
 │   ├── standards/                    # 规约和规范（⭐ 必读）
+│   │   ├── README.md                   # 规范文档目录索引
 │   │   ├── development-conventions.md      # 开发规范
+│   │   ├── service-management.md         # 服务管理规范
 │   │   ├── code-submission-workflow.md    # 代码提交流程
 │   │   ├── frontend-backend-collaboration.md  # 前后端协同开发规范
 │   │   ├── requirements-design-workflow.md  # 需求设计工作流程
@@ -133,7 +144,20 @@ operator-manager/
 ├── tests/                         # 测试脚本目录
 ├── start-backend.sh                # 后端启动脚本（Docker 模式）
 ├── start-backend-local.sh           # 后端启动脚本（本地调试模式，无 Docker）
+├── start-backend.bat               # Windows 后端启动脚本（Docker 模式）
+├── start-backend-local.bat          # Windows 后端启动脚本（本地调试模式）
+├── start-all.sh                   # 同时启动前后端服务脚本
+├── start-all.bat                  # Windows 同时启动前后端服务脚本
 ├── start-frontend.sh               # 前端启动脚本
+├── start-frontend.bat              # Windows 前端启动脚本
+├── stop-backend.sh                 # 后端停止脚本（Docker 模式）
+├── stop-backend-local.sh          # 后端停止脚本（本地调试模式）
+├── stop-backend.bat               # Windows 后端停止脚本（Docker 模式）
+├── stop-backend-local.bat          # Windows 后端停止脚本（本地调试模式）
+├── stop-all.sh                    # 同时停止前后端服务脚本
+├── stop-all.bat                   # Windows 同时停止前后端服务脚本
+├── stop-frontend.sh               # 前端停止脚本
+├── stop-frontend.bat              # Windows 前端停止脚本
 ├── CLAUDE.md                      # 本文件 - 项目总体入口
 └── .cursorrules                    # 代码提交流程（已迁移到 docs/standards/）
 ```
@@ -142,7 +166,9 @@ operator-manager/
 
 | 文件路径 | 用途 | 重要程度 |
 |---------|------|---------|
+| [规范文档目录](./docs/standards/README.md) | 规范文档索引和导航 | ⭐⭐⭐ |
 | [开发规范](./docs/standards/development-conventions.md) | 项目编码规范（语言、后端、前端、测试、安全）| ⭐⭐⭐ |
+| [服务管理规范](./docs/standards/service-management.md) | 服务启动/停止/验证规范 | ⭐⭐⭐ |
 | [代码提交流程](./docs/standards/code-submission-workflow.md) | 代码修改、验证、提交流程 | ⭐⭐⭐⭐⭐ |
 | [前后端协同开发规范](./docs/standards/frontend-backend-collaboration.md) | 前后端协同开发的流程、测试规范和最佳实践 | ⭐⭐⭐⭐⭐ |
 | [需求设计工作流程](./docs/standards/requirements-design-workflow.md) | 需求讨论、方案设计、确认归档流程 | ⭐⭐⭐⭐⭐ |
