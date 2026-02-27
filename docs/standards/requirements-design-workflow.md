@@ -58,9 +58,10 @@
 ### 2.1 AI 助手需要做的事
 
 **必读文档：**
-1. [开发规范](./development-conventions.md) - 理解开发规范和约束
-2. [项目关键约束](./project-constraints.md) - 理解技术栈和功能范围约束
-3. [代码提交流程](./code-submission-workflow.md) - 理解代码提交和验证要求
+阅读 [开发规范文档目录](./README.md) 中列出的所有规范文档，理解：
+- 编码规范和约束
+- 技术栈和功能范围约束
+- 代码提交和验证要求
 
 **了解现有代码：**
 - 查看相关的实体类（Entity）
@@ -324,9 +325,11 @@
 
 ## 11. 附录：相关文档
 
-- [开发规范](./development-conventions.md)
-- [项目关键约束](./project-constraints.md)
-- [代码提交流程](./code-submission-workflow.md)
+- [开发规范文档目录](./README.md) - 所有规范文档索引
+- [编码规范](./development-conventions.md) - 编码规范
+- [项目关键约束](./project-constraints.md) - 技术栈和功能范围约束
+- [代码提交流程](./code-submission-workflow.md) - 代码验证和提交
+- [前后端协同开发规范](./frontend-backend-collaboration.md) - 前后端协同开发流程
 - [需求设计文档模板](../requirements/需求设计文档模板.md)
 - [需求文档目录](../requirements/README.md)
 

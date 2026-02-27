@@ -2,6 +2,8 @@
 
 本文档定义了涉及前后端协同开发时的开发流程、测试规范和最佳实践。
 
+---
+
 ## 核心原则
 
 **先后端再前端，测试驱动开发**
@@ -29,6 +31,8 @@
 - 确保后端 API 设计合理，考虑前端的易用性
 - 使用清晰的 API 响应格式
 
+---
+
 ### 1.2 后端 API 功能测试
 
 后端开发完成后，必须对每个 API 端点进行测试：
@@ -55,6 +59,8 @@ curl -s -w '\nHTTP_CODE:%{http_code}\n' -H "Authorization: Bearer $TOKEN" \
   http://localhost:8080/api/v1/operators/1/library-dependencies | tail -1
 ```
 
+---
+
 ### 1.3 关键功能端到端流程测试
 
 除了单个 API 端点的测试，还必须测试完整的业务流程：
@@ -75,6 +81,8 @@ curl -s -w '\nHTTP_CODE:%{http_code}\n' -H "Authorization: Bearer $TOKEN" \
 # 6. 查询验证（确认删除成功）
 # 7. 获取库依赖列表（确认为空）
 ```
+
+---
 
 ### 1.4 测试用例固化到测试脚本
 
@@ -177,6 +185,8 @@ assert_empty_data "$RESPONSE"      # 验证 data 为空
 4. 确认响应数据结构
 5. 确认错误处理逻辑
 
+---
+
 ### 2.2 模块化组件设计
 
 **原则：**
@@ -199,6 +209,8 @@ const LibrarySelectorModal: React.FC<LibrarySelectorModalProps> = ({
 // create.tsx - 算子编辑页面
 // 只负责：页面布局、状态管理、业务逻辑调用
 ```
+
+---
 
 ### 2.3 关键位置日志输出
 
@@ -236,6 +248,8 @@ console.error('[Operator Page] Error adding library dependency:', error);
 - 使用中文描述（便于理解）
 - 技术术语保留英文（如 operatorId、libraryId）
 
+---
+
 ### 2.4 增量编译验证
 
 **原则：**
@@ -256,6 +270,8 @@ npm run build
 # 如果有错误，修复后再运行
 npm run build
 ```
+
+---
 
 ### 2.5 类型系统优先
 
@@ -311,6 +327,8 @@ const [libraries, setLibraries] = useState<LibraryDependencyResponse[]>([]);
 3. 如有失败，先修复后端问题
 4. 确认后端稳定后，再开始前端测试
 
+---
+
 ### 3.2 前端功能测试
 
 **原则：**
@@ -331,62 +349,6 @@ const [libraries, setLibraries] = useState<LibraryDependencyResponse[]>([]);
 3. 执行完整的业务流程
 4. 检查控制台日志
 5. 验证功能是否正常
-
----
-
-## 第四阶段：代码提交
-
-### 4.1 代码审查和提交
-
-**原则：**
-- 提交前运行 `git status` 和 `git diff` 确认改动
-- 编写中文提交信息，清晰描述改动内容
-- 包含 `Co-Authored-By` 标识
-- 推送到远程仓库
-
-**提交信息格式：**
-```
-<类型>：<简要描述>
-
-详细描述（可选）
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
-
-**类型示例：**
-- `新增：添加 xxx 功能`
-- `修复：修复 xxx 问题`
-- `优化：优化 xxx 性能`
-- `重构：重构 xxx 代码`
-
-**示例：**
-```
-新增：算子公共库依赖管理前端功能
-
-新增功能：
-- 添加 LibrarySelectorModal 组件用于选择公共库
-- 在算子创建/编辑页面新增 Step 5 公共库依赖管理
-- 实现库依赖的添加、删除、列表展示功能
-- 支持按类型筛选和关键词搜索公共库
-
-技术改进：
-- 修复 TypeScript 类型导入错误
-- 为 Parameter 接口添加 ioType 属性
-- 添加关键位置日志输出
-
-Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
-```
-
-### 4.2 提交流程
-
-**步骤：**
-1. 运行 `git status` 查看改动
-2. 运行 `git diff --stat` 查看改动统计
-3. 添加改动到暂存区：`git add <files>`
-4. 创建提交：`git commit -m "提交信息"`
-5. 运行 `git status` 验证提交
-6. 推送到远程：`git push origin main`
-7. 运行 `git status` 验证推送
 
 ---
 
@@ -440,7 +402,7 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 ### 联调和提交阶段
 10. ✅ 前后端联调测试
 11. ✅ 用户测试验证
-12. ✅ 代码提交规范
+12. ✅ 代码提交规范（见 [代码提交流程](./code-submission-workflow.md)）
 
 ---
 
@@ -463,6 +425,12 @@ Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>
 
 ---
 
-## 版本历史
+**相关文档**:
+- [代码提交流程](./code-submission-workflow.md) - 代码提交规范
+- [服务管理规范](./service-management.md) - 服务启动和停止
+- [编码规范](./development-conventions.md) - 编码规范
 
-- **v1.0** (2026-02-22) - 初始版本，基于算子公共库依赖功能的开发经验总结
+---
+
+**文档维护者**: Claude AI Assistant
+**最后更新**: 2026-02-27
