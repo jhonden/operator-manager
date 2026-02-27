@@ -47,14 +47,14 @@
 
 ### 1.1 项目介绍
 
-Operator Manager 是一个基于算子（Operator）和算子包（Operator Package）的业务流程管理平台，支持算子的创建、配置、打包、发布和执行。
+Operator Manager 是一个基于算子（Operator）和算子包（Operator Package）的业务流程管理平台，支持算子的创建、配置、打包。
 
 **技术栈：**
 - **后端**：Spring Boot 3.2.x + Java 21 LTS
 - **前端**：React 18 + TypeScript 5.x + Vite 5.x + Ant Design 5.x
 - **数据库**：PostgreSQL 15+
-- **缓存**：Redis 7.x
-- **存储**：MinIO（S3 兼容）
+- **缓存**：Redis 7.x（规划中，暂未使用）
+- **存储**：MinIO（S3 兼容）（规划中，暂未使用）
 - **认证**：JWT + Spring Security
 
 **核心功能模块：**
@@ -543,7 +543,6 @@ docs/standards/
 **关键技术点：**
 
 - **多对多关系设计**：算子与公共库是多对多关系
-- **文件存储**：使用 MinIO 存储公共库文件
 - **代码编辑器**：集成 Monaco Editor
 - **模块化组件**：LibrarySelectorModal 作为独立组件
 - **测试自动化**：Shell 脚本自动化测试
@@ -554,7 +553,7 @@ docs/standards/
 
 **需求背景：**
 
-算子需要支持业务规则字段，用于控制算子的执行逻辑和行为。
+算子需要支持业务规则字段，用于灵活控制算子的业务逻辑和行为。
 
 **博客案例：第4篇 - 为算子增加业务规则字段**
 
